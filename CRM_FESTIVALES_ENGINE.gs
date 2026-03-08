@@ -38,6 +38,55 @@
 // 5) Auditorias de estructura, clasificacion y stress test
 // =============================================================================
 
+// =============================================================================
+// CONTEXTO DEL CHAT Y ACUERDOS OPERATIVOS (MEMORIA PARA NUEVOS CHATS)
+// =============================================================================
+// Este bloque deja por escrito las decisiones tomadas durante el desarrollo:
+//
+// 1) Alcance actual:
+// - CRM de festivales para Espana (fase actual del proyecto).
+// - Prioridad de calidad de contacto: EMAIL, TELEFONO y NOMBRE CONTACTO.
+//
+// 2) Clasificacion de genero acordada:
+// - URBAN, POP, INDIE, ROCK, ELECTR, JAZZ, FLAM, RUMBA, MEC (musica clasica),
+//   MFR (musica regional), y PTE para pendientes/no clasificados.
+//
+// 3) Regla de tamano por aforo acordada:
+// - S: desde 0 hasta 1000 (1000 incluido)
+// - L: desde 1001 hasta 9999
+// - XL: desde 10000 hasta infinito
+//
+// 4) Experiencia visual acordada:
+// - Menu principal con emojis.
+// - Pestanas coloreadas por genero.
+// - Tabla homogenea en orden A:J y reglas visuales de alerta.
+//
+// 5) Seguridad acordada:
+// - Las acciones de menu se ejecutan bajo password.
+// - Password actual configurada en este script: +rubencoton26
+//
+// 6) IA/Gemini acordado:
+// - Modelo preferente: gemini-3.1-pro-preview (maxima prioridad).
+// - Fallback automatico a otros modelos en cascada.
+// - Cache de respuestas para reducir coste y latencia.
+//
+// 7) Arquitectura y sincronizacion acordadas:
+// - Desarrollo y versionado en GitHub (rama main).
+// - Despliegue en Google Apps Script via clasp (gas:push).
+// - Este archivo .gs es la fuente principal operativa del CRM FESTIVALES.
+//
+// 8) Orden recomendado de ejecucion en la hoja:
+// - 1) Escaner total + homogeneizar
+// - 2) Depurar contactos local
+// - 3) Depurar contactos con Gemini (por lotes)
+// - 4) Auditar estructura
+// - 5) Auditar genero + tamano
+// - 6) Modo auditor extremo cuando se quiera stress test
+//
+// 9) Nota de continuidad:
+// - Si abres otro chat nuevo, pide revisar primero este bloque de memoria y
+//   despues ejecutar la auditoria antes de tocar reglas de negocio.
+// =============================================================================
 /**
  * Configuracion central del CRM de festivales.
  * - HEADER define el contrato de columnas fijo para todas las pestanas.
