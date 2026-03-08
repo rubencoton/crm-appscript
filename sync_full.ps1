@@ -3,6 +3,7 @@
   [switch]$AllowDirty,
   [switch]$SkipCrmProject,
   [switch]$SkipGitPush,
+  [switch]$AllowBulkUntracked,
   [string]$CommitMessage = ""
 )
 
@@ -20,6 +21,7 @@ $outArgs = @()
 if ($DryRun) { $outArgs += "-DryRun" }
 if ($SkipCrmProject) { $outArgs += "-SkipCrmProject" }
 if ($SkipGitPush) { $outArgs += "-SkipGitPush" }
+if ($AllowBulkUntracked) { $outArgs += "-AllowBulkUntracked" }
 if (-not [string]::IsNullOrWhiteSpace($CommitMessage)) {
   $outArgs += "-CommitMessage"
   $outArgs += $CommitMessage

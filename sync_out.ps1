@@ -2,6 +2,7 @@
   [switch]$DryRun,
   [switch]$SkipCrmProject,
   [switch]$SkipGitPush,
+  [switch]$AllowBulkUntracked,
   [string]$CommitMessage = ""
 )
 
@@ -84,6 +85,26 @@ $crmPath = Join-Path $repoRoot "crm-ayudas-subvenciones"
 Ensure-ToolPath
 $git = Get-GitCmd
 Set-Location $repoRoot
+
+if (-not $DryRun) {
+  $untracked = & $git -c "safe.directory=$repoRoot" -C $repoRoot status --porcelain | Where-Object { $_ -like "?? *" }
+
+  $hasWorkspaceBackup = $false
+  foreach ($line in $untracked) {
+    if ($line -match "_full_workspace_backup") {
+      $hasWorkspaceBackup = $true
+      break
+    }
+  }
+
+  if ($hasWorkspaceBackup) {
+    throw "Detectado _full_workspace_backup en no-trackeados. Revisa .gitignore antes de sync_out."
+  }
+
+  if (($untracked.Count -gt 40) -and (-not $AllowBulkUntracked)) {
+    throw "Demasiados no-trackeados ($($untracked.Count)). Usa -AllowBulkUntracked si es intencional."
+  }
+}
 
 Invoke-Step -Title "[1/5] clasp push (Festivales)" -ErrorMessage "clasp push en Festivales fallo" -Action {
   Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $repoRoot -Action "push"

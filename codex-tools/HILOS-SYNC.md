@@ -1,25 +1,27 @@
 ﻿# HILOS-SYNC
 
 ## Objetivo
-Que Codex muestre los mismos hilos en portatil y sobremesa (en la medida que la nube de Codex lo permita).
+Alinear visibilidad de hilos de Codex entre equipos usando la misma cuenta y el mismo workspace.
 
-## Paso 1 (en ambos equipos)
-Ejecutar:
-`powershell -ExecutionPolicy Bypass -File .\codex-tools\alinear_hilos_codex.ps1`
+## Scripts
+- Alinear estado de workspace:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\codex-tools\alinear_hilos_codex.ps1`
+- Diagnosticar estado real:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\codex-tools\diagnostico_hilos_codex.ps1`
 
-## Paso 2 (en ambos equipos)
-Ejecutar:
-`powershell -ExecutionPolicy Bypass -File .\codex-tools\diagnostico_hilos_codex.ps1`
+## Requisitos en ambos equipos
+- Misma cuenta Codex: `manager@rubencoton.com`
+- Mismo `account_id`: `64822acc-b670-4d3b-b18f-3fd82e58ee85`
+- Mismo workspace activo/guardado:
+  - `C:\Users\elrub\Desktop\CARPETA CODEX`
 
-## Paso 3 (en la app Codex)
-- Iniciar sesion con la misma cuenta.
-- Abrir exactamente el mismo workspace: `C:\Users\elrub\Desktop\CARPETA CODEX`.
-- Completar setup de cloud sync si aparece pendiente.
-
-## Comprobacion rapida
-- `CLOUD_ACCESS` deberia dejar de estar en `enabled_needs_setup`.
-- `CANONICAL_IN_ACTIVE` y `CANONICAL_IN_SAVED` deben salir `True`.
-- El listado de hilos debe verse igual tras reiniciar la app en ambos equipos.
+## Cloud de hilos
+Si `CLOUD_ACCESS` no es `enabled` (por ejemplo `enabled_needs_setup`):
+1. Abrir la app Codex.
+2. Ir a ajustes de cuenta/cloud sync.
+3. Completar setup cloud con la misma cuenta.
+4. Reiniciar app.
+5. Re-ejecutar `diagnostico_hilos_codex.ps1`.
 
 ## Limitacion real
-Si Codex cloud no termina setup o hay restriccion de plataforma, no existe forma 100% garantizada por script para forzar sincronizacion absoluta de hilos.
+Sin `codexCloudAccess=enabled` no existe garantia de sincronizacion absoluta de hilos entre dispositivos, aunque el workspace quede alineado.
