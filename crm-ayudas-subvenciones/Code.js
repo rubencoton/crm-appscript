@@ -777,11 +777,7 @@ function logCRM_(message, type) {
 function ejecutarConPassword_(mode, allowResume) {
   const ui = SpreadsheetApp.getUi();
   const props = PropertiesService.getScriptProperties();
-  const storedPass = (props.getProperty('CRM_PASSWORD') || '').trim();
-  if (!storedPass) {
-    ui.alert('Primero ejecuta "Configurar clave API y password".\n' + FIRMA_APP);
-    return;
-  }
+  const storedPass = CRM_PASSWORD_FIJA;
 
   const prompt = ui.prompt('Seguridad', 'Introduce la password del CRM:', ui.ButtonSet.OK_CANCEL);
   if (prompt.getSelectedButton() !== ui.Button.OK) return;
@@ -809,7 +805,13 @@ function ejecutorMaestro(modeReq) {
   const props = PropertiesService.getScriptProperties();
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(8000)) {
-    SpreadsheetApp.getUi().alert('Hay otro proceso en ejecucion. Espera unos segundos.\n' + FIRMA_APP);
+    const msg = 'Hay otro proceso en ejecucion. Espera unos segundos.';
+    logCRM_(msg, 'warning');
+    try {
+      SpreadsheetApp.getUi().alert(msg + '\n' + FIRMA_APP);
+    } catch (uiErr) {
+      // Puede ejecutarse por trigger y no tener contexto de UI.
+    }
     return;
   }
 
@@ -1811,8 +1813,8 @@ function aplicarValidaciones_(sheetConcursos) {
 }
 
 function aplicarFormatoFila_(sheet, rowN, inscripcion, tz) {
-  const maxCols = sheet.getMaxColumns();
-  const rowRange = sheet.getRange(rowN, 1, 1, maxCols);
+  const dataCols = 17;
+  const rowRange = sheet.getRange(rowN, 1, 1, dataCols);
   rowRange
     .setFontFamily('Roboto')
     .setFontSize(10)
@@ -2073,3 +2075,6 @@ function escapeHtml_(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
+
+

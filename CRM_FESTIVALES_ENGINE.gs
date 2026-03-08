@@ -32,23 +32,9 @@ const FEST_GEMINI_API_KEY = 'AIzaSyC2AnnQuFgKOR_qGNl4jTrsoWF672bnK0M';
 const FEST_GEMINI_MODELS = [
   'gemini-3.1-pro-preview',
   'gemini-2.5-pro',
-  'gemini-3-flash-preview',
   'gemini-2.5-flash',
-  'gemini-2.5-flash-lite',
-  'gemini-flash-latest'
+  'gemini-1.5-pro-latest'
 ];
-const FEST_GEMINI_MODEL_PREFERENCES = [
-  'gemini-3.1-pro-preview',
-  'gemini-2.5-pro',
-  'gemini-3-flash-preview',
-  'gemini-2.5-flash',
-  'gemini-2.5-flash-lite',
-  'gemini-flash-latest',
-  'gemini-pro-latest'
-];
-const FEST_GEMINI_MODEL_CACHE_TTL_SEC = 6 * 60 * 60;
-const FEST_GEMINI_RESPONSE_CACHE_TTL_SEC = 6 * 60 * 60;
-const FEST_GEMINI_MAX_RETRIES_PER_MODEL = 2;
 const FEST_MAX_RUNTIME_MS = 4.7 * 60 * 1000;
 const FEST_ARCHITECT = 'RUBEN COTON';
 const FEST_GENRE_DROPDOWN = [
@@ -1038,14 +1024,7 @@ function depurarContactosConGeminiCRMFestivales() {
 
   Object.keys(touched).forEach((name) => {
     const sh = ss.getSheetByName(name);
-    if (sh) {
-      applyVisualDesignToSheet_(sh);
-      try {
-        const tx = parseSheetTaxonomy_(sh.getName());
-        const tabColors = { URBAN: '#FB8C00', POP: '#EC407A', INDIE: '#546E7A', ROCK: '#E53935', ELECTR: '#00ACC1', JAZZ: '#3949AB', FLAM: '#D81B60', RUMBA: '#43A047', MEC: '#6D4C41', MFR: '#8D6E63', PTE: '#757575' };
-        if (tabColors[tx.genre]) sh.setTabColor(tabColors[tx.genre]);
-      } catch (errTab) {}
-    }
+    if (sh) applyVisualDesignToSheet_(sh);
   });
 
   const timeoutReached = Date.now() - start > FEST_MAX_RUNTIME_MS;
@@ -1113,90 +1092,7 @@ function llamarGeminiDepuracionFila_(rowObj) {
   return invocarGeminiConFallback_(prompt, schema);
 }
 
-function normalizeGeminiModelName_(name) {
-  return cleanText_(name).replace(/^models//i, '');
-}
-
-function isGeminiTextModelCandidate_(name) {
-  const model = normalizeGeminiModelName_(name).toLowerCase();
-  if (!model || model.indexOf('gemini') !== 0) return false;
-  if (/(image|tts|audio|robotics|computer-use|deep-research|embedding|aqa|veo|imagen|gemma|nano-banana)/i.test(model)) return false;
-  return true;
-}
-
-function digestToHex_(bytes) {
-  return (bytes || []).map((b) => {
-    const v = b < 0 ? b + 256 : b;
-    return v.toString(16).padStart(2, '0');
-  }).join('');
-}
-
-function buildGeminiResponseCacheKey_(prompt, responseSchema) {
-  try {
-    const raw = String(prompt || '') + '||' + JSON.stringify(responseSchema || {});
-    const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, raw);
-    return 'FEST_GEM_RESP_' + digestToHex_(digest).substring(0, 64);
-  } catch (err) {
-    return '';
-  }
-}
-
-function getGeminiModelCandidates_() {
-  const fallback = FEST_GEMINI_MODELS.slice();
-  const preferred = FEST_GEMINI_MODEL_PREFERENCES.slice();
-  const apiKey = cleanText_(FEST_GEMINI_API_KEY);
-  if (!apiKey) return fallback;
-
-  try {
-    const cache = CacheService.getScriptCache();
-    const cached = cache.get('FEST_GEM_MODELS_V2');
-    if (cached) {
-      const arr = JSON.parse(cached);
-      if (Array.isArray(arr) && arr.length) return arr;
-    }
-  } catch (errCacheRead) {}
-
-  let discovered = [];
-  try {
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(apiKey);
-    const res = UrlFetchApp.fetch(url, {
-      method: 'get',
-      muteHttpExceptions: true,
-      headers: { 'User-Agent': 'CRM-FESTIVALES/1.0' }
-    });
-
-    if (res.getResponseCode() === 200) {
-      const root = JSON.parse(res.getContentText());
-      const names = (root.models || []).map((m) => normalizeGeminiModelName_(m.name));
-      discovered = names.filter(isGeminiTextModelCandidate_);
-    }
-  } catch (errFetchModels) {}
-
-  const merged = [];
-  const seen = {};
-  const pushUnique = (m) => {
-    const model = normalizeGeminiModelName_(m);
-    if (!model || seen[model]) return;
-    seen[model] = true;
-    merged.push(model);
-  };
-
-  preferred.forEach(pushUnique);
-  discovered.forEach(pushUnique);
-  fallback.forEach(pushUnique);
-
-  const out = merged.length ? merged : fallback;
-  try {
-    CacheService.getScriptCache().put('FEST_GEM_MODELS_V2', JSON.stringify(out), FEST_GEMINI_MODEL_CACHE_TTL_SEC);
-  } catch (errCacheWrite) {}
-
-  return out;
-}
-
 function invocarGeminiConFallback_(prompt, responseSchema) {
-  const apiKey = cleanText_(FEST_GEMINI_API_KEY);
-  if (!apiKey) return null;
-
   const payload = {
     systemInstruction: {
       parts: [{
@@ -1221,63 +1117,36 @@ function invocarGeminiConFallback_(prompt, responseSchema) {
     }
   };
 
-  const cacheKey = buildGeminiResponseCacheKey_(prompt, responseSchema);
-  if (cacheKey) {
-    try {
-      const hit = CacheService.getScriptCache().get(cacheKey);
-      if (hit) return { model: 'cache', data: JSON.parse(hit) };
-    } catch (errCacheHit) {}
-  }
-
   const options = {
     method: 'post',
     contentType: 'application/json',
     payload: JSON.stringify(payload),
-    muteHttpExceptions: true,
-    headers: { 'User-Agent': 'CRM-FESTIVALES/1.0' }
+    muteHttpExceptions: true
   };
 
-  const candidateModels = getGeminiModelCandidates_();
+  for (let i = 0; i < FEST_GEMINI_MODELS.length; i++) {
+    const model = FEST_GEMINI_MODELS[i];
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
+      model + ':generateContent?key=' + FEST_GEMINI_API_KEY;
 
-  for (let i = 0; i < candidateModels.length; i++) {
-    const model = normalizeGeminiModelName_(candidateModels[i]);
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
+    try {
+      const res = UrlFetchApp.fetch(url, options);
+      const code = res.getResponseCode();
+      const raw = res.getContentText();
 
-    for (let attempt = 0; attempt < FEST_GEMINI_MAX_RETRIES_PER_MODEL; attempt++) {
-      try {
-        const res = UrlFetchApp.fetch(url, options);
-        const code = res.getResponseCode();
-        const raw = res.getContentText();
-
-        if (code === 200) {
-          const parsed = parseGeminiJson_(raw);
-          if (parsed) {
-            if (cacheKey) {
-              try {
-                CacheService.getScriptCache().put(cacheKey, JSON.stringify(parsed), FEST_GEMINI_RESPONSE_CACHE_TTL_SEC);
-              } catch (errCacheStore) {}
-            }
-            return { model: model, data: parsed };
-          }
+      if (code === 200) {
+        const parsed = parseGeminiJson_(raw);
+        if (parsed) {
+          return { model: model, data: parsed };
         }
-
-        if (code === 401 || code === 403) {
-          return null;
-        }
-
-        if (code === 404) {
-          break;
-        }
-
-        if (code === 429 || code >= 500) {
-          Utilities.sleep(650 * Math.pow(2, attempt));
-          continue;
-        }
-
-        break;
-      } catch (err) {
-        Utilities.sleep(650 * Math.pow(2, attempt));
       }
+
+      if (code === 404 || code === 429 || code >= 500) {
+        Utilities.sleep(900);
+        continue;
+      }
+    } catch (err) {
+      Utilities.sleep(900);
     }
   }
 
@@ -1288,32 +1157,22 @@ function parseGeminiJson_(rawText) {
   try {
     const root = JSON.parse(rawText);
     if (!root || !root.candidates || !root.candidates.length) return null;
-
     const part = root.candidates[0].content && root.candidates[0].content.parts
       ? root.candidates[0].content.parts[0]
       : null;
-    if (!part || !part.text) return null;
+    if (!part) return null;
 
-    const cleaned = String(part.text)
-      .replace(/`{3}json/gi, '')
-      .replace(/`{3}/g, '')
-      .trim();
-
-    if (!cleaned) return null;
-
-    if (cleaned.charAt(0) === '{' || cleaned.charAt(0) === '[') {
-      const parsedDirect = JSON.parse(cleaned);
-      if (Array.isArray(parsedDirect)) return parsedDirect.length ? parsedDirect[0] : null;
-      return parsedDirect;
+    if (part.text) {
+      const match = part.text.match(/\{[\s\S]*\}/);
+      if (!match) return null;
+      return JSON.parse(match[0]);
     }
 
-    const match = cleaned.match(/{[sS]*}|[[sS]*]/);
-    if (!match) return null;
-
-    const parsed = JSON.parse(match[0]);
-    if (Array.isArray(parsed)) return parsed.length ? parsed[0] : null;
-    return parsed;
+    return null;
   } catch (err) {
     return null;
   }
 }
+
+
+
