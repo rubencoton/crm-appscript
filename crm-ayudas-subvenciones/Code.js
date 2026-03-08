@@ -1105,7 +1105,7 @@ function procesarNuevos_(ss, sheetConcursos, sheetNuevos, props, startTime) {
   props.setProperty('FASE_ACTUAL', 'Fase 2: Analisis de nuevos links');
   let idx = Number(props.getProperty('IDX_NEW') || '0');
   const rows = sheetNuevos.getLastRow() - 1;
-  const vals = sheetNuevos.getRange(2, 1, rows, Math.max(2, sheetNuevos.getMaxColumns())).getValues();
+  const vals = sheetNuevos.getRange(2, 1, rows, 2).getValues();
   const existentes = getSetNombres_(sheetConcursos);
 
   for (let i = idx; i < vals.length; i++) {
