@@ -1,8 +1,6 @@
 {
   "timeZone": "Europe/Madrid",
-  "dependencies": {},
-  "executionApi": {
-    "access": "ANYONE"
+  "dependencies": {
   },
   "exceptionLogging": "STACKDRIVER",
   "runtimeVersion": "V8"
