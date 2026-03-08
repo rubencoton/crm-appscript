@@ -1555,35 +1555,9 @@ function getApiKey_() {
 function getModels_() {
   const props = PropertiesService.getScriptProperties();
   const custom = sanitizeValue_(props.getProperty('GEMINI_MODELS_CSV'));
-  if (custom) {
-    const manual = custom.split(',').map(function (s) { return sanitizeValue_(s); }).filter(function (s) { return !!s; });
-    if (manual.length) return uniqueList_(manual);
-  }
-
-  const cacheRaw = sanitizeValue_(props.getProperty('GEMINI_MODELS_CACHE_JSON'));
-  const cacheTs = Number(props.getProperty('GEMINI_MODELS_CACHE_TS') || '0');
-  if (cacheRaw && cacheTs > 0 && (Date.now() - cacheTs) < CRM_CONFIG.GEMINI_MODELS_CACHE_MS) {
-    try {
-      const cacheList = JSON.parse(cacheRaw);
-      if (Array.isArray(cacheList) && cacheList.length) return cacheList;
-    } catch (err) {
-      // no-op
-    }
-  }
-
-  try {
-    const discovered = fetchGeminiModelsFromApi_(apiKey);
-    if (discovered.length) {
-      props.setProperty('GEMINI_MODELS_CACHE_JSON', JSON.stringify(discovered));
-      props.setProperty('GEMINI_MODELS_CACHE_TS', String(Date.now()));
-      logCRM_('Modelos Gemini detectados: ' + discovered.slice(0, 8).join(', '), 'system');
-      return discovered;
-    }
-  } catch (err) {
-    logCRM_('No se pudo actualizar listado de modelos Gemini: ' + err.message, 'warning');
-  }
-
-  return CRM_CONFIG.DEFAULT_MODELS.slice();
+  if (!custom) return CRM_CONFIG.DEFAULT_MODELS.slice();
+  const arr = custom.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return !!s; });
+  return arr.length ? arr : CRM_CONFIG.DEFAULT_MODELS.slice();
 }
 
 // -----------------------------------------------------------------------------
@@ -2101,11 +2075,6 @@ function escapeHtml_(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
-
-
-
-
-
 
 
 
