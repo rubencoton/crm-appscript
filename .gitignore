@@ -16,3 +16,8 @@ Thumbs.db
 # Local backups / mirror workspaces
 _full_workspace_backup/
 
+
+# Apps Script duplicate js exports
+CRM_FESTIVALES_ENGINE.js
+INSPECCION_HOJA.js
+
