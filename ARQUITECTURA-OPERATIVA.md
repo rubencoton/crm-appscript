@@ -1,5 +1,8 @@
 ﻿# ARQUITECTURA-OPERATIVA
 
+## Ruta canonica
+- `C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github`
+
 ## Flujo diario
 1. Abrir workspace canonico: `C:\Users\elrub\Desktop\CARPETA CODEX`
 2. Ejecutar `sync_in` (manual o por tarea)
@@ -7,26 +10,21 @@
 4. Ejecutar `sync_out`
 5. Verificar `git status -sb` limpio
 
-## Decisiones operativas
-- Fuente de verdad de codigo: GitHub (`main`).
-- Sincronizacion GAS: `clasp pull/push` en 2 proyectos:
-  - raiz repo
-  - `crm-ayudas-subvenciones`
-- No forzar merges ni reescribir historial.
-- Ante conflicto Git: detener y resolver manualmente.
+## Capas
+- `sync_in.ps1`: entrada manual estricta (git pull --rebase + clasp pull en 2 proyectos).
+- `sync_out.ps1`: salida manual (clasp push en 2 proyectos + git add/commit/push).
+- `sync_full.ps1`: ciclo completo manual.
+- `sync_in_auto.ps1`: entrada automatica segura (cada 5 min), con lock y logs.
+
+## Automatizacion
+- Tarea Windows: `CodexSyncInFestivales_Every5Min` -> `sync_in_auto.ps1`.
+- Fallback de inicio de sesion: Startup `CodexSyncInOnLogon.bat` -> `sync_in_auto.ps1`.
+
+## Gobernanza de conflictos
+- Nunca forzar `push` ni reescrituras destructivas.
+- Si `git pull --rebase` da conflicto: resolver manualmente o `git rebase --abort`.
 
 ## Sincronizacion entre dispositivos
 - Codigo: GitHub + scripts `sync_*`.
-- Hilos Codex: depende de cloud sync de Codex (`codexCloudAccess`).
-- Workspace comun obligatorio para reducir desalineaciones.
-
-## Automatizacion instalada
-- `CodexSyncIn_5min`: pull continuo cada 5 minutos.
-- ONLOGON: si no hay permisos de tarea, fallback Startup:
-  - `C:\Users\elrub\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\CodexSyncIn_OnLogon.cmd`
-
-## Riesgos y mitigacion
-- Cambios locales no commit + sync_in:
-  - mitigacion: bloqueo por defecto; usar `-AllowDirty` solo consciente.
-- Diferencias de hilos entre equipos:
-  - mitigacion: alinear workspace + completar setup cloud + rediagnosticar.
+- Hilos Codex: misma cuenta + mismo workspace + cloud setup completado.
+- Diagnostico/alineacion en `codex-tools`.
