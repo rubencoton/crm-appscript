@@ -6,13 +6,34 @@
 
 $ErrorActionPreference = "Stop"
 
+function Get-WinGetNodeDir {
+  $packagesRoot = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages"
+  if (-not (Test-Path $packagesRoot)) { return $null }
+
+  $pkg = Get-ChildItem -Path $packagesRoot -Directory -Filter "OpenJS.NodeJS.LTS*" -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
+  if (-not $pkg) { return $null }
+
+  $nodeDir = Get-ChildItem -Path $pkg.FullName -Directory -Filter "node-v*-win-x64" -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
+
+  if ($nodeDir) { return $nodeDir.FullName }
+  return $null
+}
+
 function Ensure-ToolPath {
+  $wingetNode = Get-WinGetNodeDir
   $candidates = @(
     "C:\Program Files\nodejs",
     "C:\Program Files\Git\cmd",
-    "C:\Program Files\Git\mingw64\bin"
+    "C:\Program Files\Git\mingw64\bin",
+    "$env:LOCALAPPDATA\Microsoft\WinGet\Links",
+    $wingetNode
   )
   foreach ($dir in $candidates) {
+    if ([string]::IsNullOrWhiteSpace($dir)) { continue }
     if (-not (Test-Path $dir)) { continue }
     if ($env:Path -notlike "*$dir*") {
       $env:Path = "$dir;$env:Path"
@@ -30,6 +51,43 @@ function Get-GitCmd {
   throw "No se encontro git.exe"
 }
 
+function Get-ClaspCmd {
+  param([string]$RepoRoot)
+
+  $localClasp = Join-Path $RepoRoot "node_modules\.bin\clasp.cmd"
+  if (Test-Path $localClasp) { return $localClasp }
+
+  $claspCmd = Get-Command clasp.cmd -ErrorAction SilentlyContinue
+  if ($claspCmd) { return $claspCmd.Source }
+
+  $directWinGet = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages\OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe\node-v24.14.0-win-x64\clasp.cmd"
+  if (Test-Path $directWinGet) { return $directWinGet }
+
+  $wingetNode = Get-WinGetNodeDir
+  if ($wingetNode) {
+    $wingetClasp = Join-Path $wingetNode "clasp.cmd"
+    if (Test-Path $wingetClasp) { return $wingetClasp }
+  }
+
+  return $null
+}
+
+function Get-NpxCmd {
+  $npxCmd = Get-Command npx.cmd -ErrorAction SilentlyContinue
+  if ($npxCmd) { return $npxCmd.Source }
+
+  $npxProgramFiles = "C:\Program Files\nodejs\npx.cmd"
+  if (Test-Path $npxProgramFiles) { return $npxProgramFiles }
+
+  $wingetNode = Get-WinGetNodeDir
+  if ($wingetNode) {
+    $npxWinGet = Join-Path $wingetNode "npx.cmd"
+    if (Test-Path $npxWinGet) { return $npxWinGet }
+  }
+
+  return $null
+}
+
 function Invoke-Clasp {
   param(
     [string]$RepoRoot,
@@ -37,20 +95,14 @@ function Invoke-Clasp {
     [string]$Action
   )
 
-  $localClasp = Join-Path $RepoRoot "node_modules\\.bin\\clasp.cmd"
-  if (Test-Path $localClasp) {
-    & $localClasp -P $ProjectPath $Action
+  $clasp = Get-ClaspCmd -RepoRoot $RepoRoot
+  if ($clasp) {
+    & $clasp -P $ProjectPath $Action
     return
   }
 
-  $claspCmd = Get-Command clasp.cmd -ErrorAction SilentlyContinue
-  if ($claspCmd) {
-    & $claspCmd.Source -P $ProjectPath $Action
-    return
-  }
-
-  $npx = "C:\Program Files\nodejs\npx.cmd"
-  if (Test-Path $npx) {
+  $npx = Get-NpxCmd
+  if ($npx) {
     & $npx clasp -P $ProjectPath $Action
     return
   }
