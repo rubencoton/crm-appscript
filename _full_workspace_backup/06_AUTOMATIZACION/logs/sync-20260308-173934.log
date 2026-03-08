@@ -1,0 +1,44 @@
+﻿**********************
+Inicio de la transcripción de Windows PowerShell
+Hora de inicio: 20260308173937
+Nombre de usuario: PC_RUBEN_COTON\CodexSandboxOffline
+Usuario RunAs: PC_RUBEN_COTON\CodexSandboxOffline
+Nombre de la configuración: 
+Máquina: PC_RUBEN_COTON (Microsoft Windows NT 10.0.26200.0)
+Aplicación host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1 -Mode backup -WorkspaceRoot C:\Users\elrub\Desktop\CARPETA CODEX
+Id. de proceso: 9672
+PSVersion: 5.1.26100.7920
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7920
+BuildVersion: 10.0.26100.7920
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+[INFO] Mode: backup
+[INFO] WorkspaceRoot: C:\Users\elrub\Desktop\CARPETA CODEX
+[INFO] ProjectsRoot: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS
+[INFO] gitCmd: C:\Program Files\Git\cmd\git.exe
+[INFO] claspCmd: C:\Users\elrub\AppData\Roaming\npm\clasp.cmd
+
+====================================================
+[INFO] Repo: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+[INFO] clasp pull in: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+
+[INFO] clasp pull in: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github\crm-ayudas-subvenciones
+
+[INFO] git pull --rebase --autostash
+
+[INFO] No changes to commit.
+
+====================== SUMMARY ======================
+[INFO] Repos detected: 1
+[INFO] Repos synced:   1
+[INFO] Repos changed:  0
+[INFO] Repos failed:   0
+[INFO] Log file:       C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\logs\sync-20260308-173934.log
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20260308173939
+**********************

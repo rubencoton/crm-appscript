@@ -1,0 +1,52 @@
+﻿**********************
+Inicio de la transcripción de Windows PowerShell
+Hora de inicio: 20260308173739
+Nombre de usuario: PC_RUBEN_COTON\CodexSandboxOffline
+Usuario RunAs: PC_RUBEN_COTON\CodexSandboxOffline
+Nombre de la configuración: 
+Máquina: PC_RUBEN_COTON (Microsoft Windows NT 10.0.26200.0)
+Aplicación host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1 -Mode backup -WorkspaceRoot C:\Users\elrub\Desktop\CARPETA CODEX
+Id. de proceso: 10752
+PSVersion: 5.1.26100.7920
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7920
+BuildVersion: 10.0.26100.7920
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+[INFO] Mode: backup
+[INFO] WorkspaceRoot: C:\Users\elrub\Desktop\CARPETA CODEX
+[INFO] ProjectsRoot: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS
+
+====================================================
+[INFO] Repo: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+[INFO] clasp pull in: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+PS>ErrorTerminación(): "Error al ejecutar el programa 'clasp.cmd': Acceso denegadoEn C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 68 Carácter: 13
++             & $ClaspCommand pull
++             ~~~~~~~~~~~~~~~~~~~~."
+[WARN] clasp pull failed in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github: Error al ejecutar el programa 'clasp.cmd': Acceso denegadoEn C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 68 Carácter: 13
++             & $ClaspCommand pull
++             ~~~~~~~~~~~~~~~~~~~~.
+[INFO] clasp pull in: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github\crm-ayudas-subvenciones
+PS>ErrorTerminación(): "Error al ejecutar el programa 'clasp.cmd': Acceso denegadoEn C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 68 Carácter: 13
++             & $ClaspCommand pull
++             ~~~~~~~~~~~~~~~~~~~~."
+[WARN] clasp pull failed in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github\crm-ayudas-subvenciones: Error al ejecutar el programa 'clasp.cmd': Acceso denegadoEn C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 68 Carácter: 13
++             & $ClaspCommand pull
++             ~~~~~~~~~~~~~~~~~~~~.
+[INFO] git pull --rebase --autostash
+[ERROR] Sync failed in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+[ERROR] El término 'git' no se reconoce como nombre de un cmdlet, función, archivo de script o programa ejecutable. Compruebe si escribió correctamente el nombre o, si incluyó una ruta de acceso, compruebe que dicha ruta es correcta e inténtelo de nuevo.
+
+====================== SUMMARY ======================
+[INFO] Repos detected: 1
+[INFO] Repos synced:   0
+[INFO] Repos changed:  0
+[INFO] Repos failed:   1
+[INFO] Log file:       C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\logs\sync-20260308-173738.log
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20260308173743
+**********************

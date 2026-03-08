@@ -1,4 +1,11 @@
-﻿$ErrorActionPreference = "Stop"
+﻿param(
+  [switch]$DryRun,
+  [switch]$SkipCrmProject,
+  [switch]$SkipGitPush,
+  [string]$CommitMessage = ""
+)
+
+$ErrorActionPreference = "Stop"
 
 function Ensure-ToolPath {
   $candidates = @(
@@ -52,6 +59,20 @@ function Invoke-Clasp {
   throw "No se encontro clasp.cmd ni npx.cmd"
 }
 
+function Run-OrDry {
+  param(
+    [string]$Title,
+    [scriptblock]$Action
+  )
+  Write-Host $Title
+  if ($DryRun) {
+    Write-Host "[DRYRUN] $Title"
+    return 0
+  }
+  & $Action
+  return $LASTEXITCODE
+}
+
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $crmPath = Join-Path $repoRoot "crm-ayudas-subvenciones"
 
@@ -59,19 +80,36 @@ Ensure-ToolPath
 $git = Get-GitCmd
 Set-Location $repoRoot
 
-Write-Host "[1/5] clasp push (Festivales)"
-$code = Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $repoRoot -Action "push"
+$code = Run-OrDry -Title "[1/5] clasp push (Festivales)" -Action {
+  Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $repoRoot -Action "push"
+}
 if ($code -ne 0) { throw "clasp push en Festivales fallo" }
 
-Write-Host "[2/5] clasp push (CRM AYUDAS Y SUBVENCIONES)"
-$code = Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $crmPath -Action "push"
-if ($code -ne 0) { throw "clasp push en CRM fallo" }
+if ($SkipCrmProject) {
+  Write-Host "[2/5] omitido por -SkipCrmProject"
+} else {
+  if (-not (Test-Path -LiteralPath (Join-Path $crmPath ".clasp.json"))) {
+    throw "No existe .clasp.json en proyecto CRM secundario: $crmPath"
+  }
+  $code = Run-OrDry -Title "[2/5] clasp push (CRM AYUDAS Y SUBVENCIONES)" -Action {
+    Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $crmPath -Action "push"
+  }
+  if ($code -ne 0) { throw "clasp push en CRM fallo" }
+}
 
-Write-Host "[3/5] git add"
-& $git -C $repoRoot add -A
-if ($LASTEXITCODE -ne 0) { throw "git add fallo" }
+$code = Run-OrDry -Title "[3/5] git add -A" -Action {
+  & $git -c "safe.directory=$repoRoot" -C $repoRoot add -A
+}
+if ($code -ne 0) { throw "git add fallo" }
 
-$changes = & $git -C $repoRoot diff --cached --name-only
+if ($DryRun) {
+  Write-Host "[4/5] commit omitido (DryRun)"
+  Write-Host "[5/5] push omitido (DryRun)"
+  Write-Host "OK sync_out completado (DryRun)"
+  exit 0
+}
+
+$changes = & $git -c "safe.directory=$repoRoot" -C $repoRoot diff --cached --name-only
 if (-not $changes) {
   Write-Host "[4/5] No hay cambios para commit"
   Write-Host "[5/5] No se hace git push (nada nuevo)"
@@ -80,20 +118,29 @@ if (-not $changes) {
 }
 
 $stamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-$msg = "sync_out $stamp"
+$msg = $CommitMessage
+if ([string]::IsNullOrWhiteSpace($msg)) {
+  $msg = "sync_out $stamp"
+}
 
-Write-Host "[4/5] git commit"
-& $git -C $repoRoot commit -m $msg
-if ($LASTEXITCODE -ne 0) { throw "git commit fallo" }
+$code = Run-OrDry -Title "[4/5] git commit" -Action {
+  & $git -c "safe.directory=$repoRoot" -C $repoRoot commit -m $msg
+}
+if ($code -ne 0) { throw "git commit fallo" }
 
-Write-Host "[5/5] git push"
-try {
-  & $git -C $repoRoot push origin main
-  if ($LASTEXITCODE -ne 0) { throw "git push devolvio codigo $LASTEXITCODE" }
-} catch {
+if ($SkipGitPush) {
+  Write-Host "[5/5] omitido por -SkipGitPush"
+  Write-Host "OK sync_out completado"
+  exit 0
+}
+
+$code = Run-OrDry -Title "[5/5] git push" -Action {
+  & $git -c "safe.directory=$repoRoot" -C $repoRoot push origin main
+}
+if ($code -ne 0) {
   Write-Host "ERROR de Git push (sin forzar nada)."
   Write-Host "Si hay rechazo/conflicto remoto, primero haz 'git pull --ff-only' y revisa estado."
-  throw
+  throw "git push devolvio codigo $code"
 }
 
 Write-Host "OK sync_out completado"

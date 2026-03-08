@@ -1,0 +1,28 @@
+﻿**********************
+Inicio de la transcripción de Windows PowerShell
+Hora de inicio: 20260308175756
+Nombre de usuario: PC_RUBEN_COTON\CodexSandboxOffline
+Usuario RunAs: PC_RUBEN_COTON\CodexSandboxOffline
+Nombre de la configuración: 
+Máquina: PC_RUBEN_COTON (Microsoft Windows NT 10.0.26200.0)
+Aplicación host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1 -Mode backup -WorkspaceRoot C:\Users\elrub\Desktop\CARPETA CODEX -ProjectsRoot C:\Users\elrub\Desktop\CARPETA CODEX\04_TEMPORAL\_empty_test
+Id. de proceso: 13484
+PSVersion: 5.1.26100.7920
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7920
+BuildVersion: 10.0.26100.7920
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+[INFO] Mode: backup
+[INFO] WorkspaceRoot: C:\Users\elrub\Desktop\CARPETA CODEX
+[INFO] ProjectsRoot: C:\Users\elrub\Desktop\CARPETA CODEX\04_TEMPORAL\_empty_test
+[INFO] gitCmd: C:\Program Files\Git\cmd\git.exe
+[INFO] claspCmd: C:\Users\elrub\AppData\Roaming\npm\clasp.cmd
+[INFO] No git repos found under C:\Users\elrub\Desktop\CARPETA CODEX\04_TEMPORAL\_empty_test
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20260308175756
+**********************

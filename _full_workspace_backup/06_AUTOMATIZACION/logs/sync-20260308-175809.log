@@ -1,0 +1,59 @@
+﻿**********************
+Inicio de la transcripción de Windows PowerShell
+Hora de inicio: 20260308175812
+Nombre de usuario: PC_RUBEN_COTON\CodexSandboxOffline
+Usuario RunAs: PC_RUBEN_COTON\CodexSandboxOffline
+Nombre de la configuración: 
+Máquina: PC_RUBEN_COTON (Microsoft Windows NT 10.0.26200.0)
+Aplicación host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1 -Mode backup -WorkspaceRoot C:\Users\elrub\Desktop\CARPETA CODEX -ProjectsRoot C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS
+Id. de proceso: 28268
+PSVersion: 5.1.26100.7920
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7920
+BuildVersion: 10.0.26100.7920
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+[INFO] Mode: backup
+[INFO] WorkspaceRoot: C:\Users\elrub\Desktop\CARPETA CODEX
+[INFO] ProjectsRoot: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS
+[INFO] gitCmd: C:\Program Files\Git\cmd\git.exe
+[INFO] claspCmd: C:\Users\elrub\AppData\Roaming\npm\clasp.cmd
+
+====================================================
+[INFO] Repo: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+[INFO] clasp pull in: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+PS>ErrorTerminación(cmd.exe): "Se detuvo el comando en ejecución porque la variable de preferencia "ErrorActionPreference" o un parámetro común se han establecido en Stop: Acceso denegado."
+[WARN] clasp pull failed in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github: Acceso denegado.
+[INFO] clasp pull in: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github\crm-ayudas-subvenciones
+PS>ErrorTerminación(cmd.exe): "Se detuvo el comando en ejecución porque la variable de preferencia "ErrorActionPreference" o un parámetro común se han establecido en Stop: Acceso denegado."
+[WARN] clasp pull failed in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github\crm-ayudas-subvenciones: Acceso denegado.
+[INFO] git pull --rebase --autostash
+PS>ErrorTerminación(): "git failed (pull --rebase --autostash) in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github. ExitCode=1. git.exe : fatal: unable to access 'https://github.com/rubencoton/crm-appscript.git/': Failed to connect to github.com 
+port 443 after 29 ms: Could not connect to server
+En C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 88 Carácter: 19
++         $output = & $script:gitCmd -C $RepoPath @GitArgs 2>&1
++                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: unable t...nnect to server:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError"
+[ERROR] Sync failed in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+[ERROR] git failed (pull --rebase --autostash) in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github. ExitCode=1. git.exe : fatal: unable to access 'https://github.com/rubencoton/crm-appscript.git/': Failed to connect to github.com 
+port 443 after 29 ms: Could not connect to server
+En C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 88 Carácter: 19
++         $output = & $script:gitCmd -C $RepoPath @GitArgs 2>&1
++                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: unable t...nnect to server:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+====================== SUMMARY ======================
+[INFO] Repos detected: 1
+[INFO] Repos synced:   0
+[INFO] Repos changed:  0
+[INFO] Repos failed:   1
+[INFO] Log file:       C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\logs\sync-20260308-175809.log
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20260308175815
+**********************

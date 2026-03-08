@@ -1,0 +1,86 @@
+﻿**********************
+Inicio de la transcripción de Windows PowerShell
+Hora de inicio: 20260308175402
+Nombre de usuario: PC_RUBEN_COTON\CodexSandboxOffline
+Usuario RunAs: PC_RUBEN_COTON\CodexSandboxOffline
+Nombre de la configuración: 
+Máquina: PC_RUBEN_COTON (Microsoft Windows NT 10.0.26200.0)
+Aplicación host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1 -Mode backup -WorkspaceRoot C:\Users\elrub\Desktop\CARPETA CODEX -ProjectsRoot C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS
+Id. de proceso: 18928
+PSVersion: 5.1.26100.7920
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7920
+BuildVersion: 10.0.26100.7920
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+[INFO] Mode: backup
+[INFO] WorkspaceRoot: C:\Users\elrub\Desktop\CARPETA CODEX
+[INFO] ProjectsRoot: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS
+[INFO] gitCmd: C:\Program Files\Git\cmd\git.exe
+[INFO] claspCmd: C:\Users\elrub\AppData\Roaming\npm\clasp.cmd
+
+====================================================
+[INFO] Repo: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+[INFO] clasp pull in: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+cmd : Acceso denegado.
+En C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 152 Carácter: 77
++ ... Native -Description ("clasp " + $Action) -Command { cmd /c $cmdline }
++                                                         ~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Acceso denegado.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+[WARN] clasp pull failed in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github. ExitCode=1. cmd : Acceso denegado.
+En C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 152 Carácter: 77
++ ... Native -Description ("clasp " + $Action) -Command { cmd /c $cmdline }
++                                                         ~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Acceso denegado.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+[INFO] clasp pull in: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github\crm-ayudas-subvenciones
+cmd : Acceso denegado.
+En C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 152 Carácter: 77
++ ... Native -Description ("clasp " + $Action) -Command { cmd /c $cmdline }
++                                                         ~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Acceso denegado.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+[WARN] clasp pull failed in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github\crm-ayudas-subvenciones. ExitCode=1. cmd : Acceso denegado.
+En C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 152 Carácter: 77
++ ... Native -Description ("clasp " + $Action) -Command { cmd /c $cmdline }
++                                                         ~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Acceso denegado.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+[INFO] git pull --rebase --autostash
+git.exe : fatal: unable to access 'https://github.com/rubencoton/crm-appscript.git/': Failed to connect to github.com 
+port 443 after 75 ms: Could not connect to server
+En C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 106 Carácter: 85
++ ... tArgs -join " ")) -Command { & $script:gitCmd -C $RepoPath @GitArgs }
++                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: unable t...nnect to server:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+PS>ErrorTerminación(): "git failed (pull --rebase --autostash) in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github. ExitCode=1. git.exe : fatal: unable to access 'https://github.com/rubencoton/crm-appscript.git/': Failed to connect to github.com 
+port 443 after 75 ms: Could not connect to server
+En C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 106 Carácter: 85
++ ... tArgs -join " ")) -Command { & $script:gitCmd -C $RepoPath @GitArgs }
++                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: unable t...nnect to server:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError"
+[ERROR] Sync failed in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+[ERROR] git failed (pull --rebase --autostash) in C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github. ExitCode=1. git.exe : fatal: unable to access 'https://github.com/rubencoton/crm-appscript.git/': Failed to connect to github.com 
+port 443 after 75 ms: Could not connect to server
+En C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\sync-all.ps1: 106 Carácter: 85
++ ... tArgs -join " ")) -Command { & $script:gitCmd -C $RepoPath @GitArgs }
++                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: unable t...nnect to server:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+====================== SUMMARY ======================
+[INFO] Repos detected: 1
+[INFO] Repos synced:   0
+[INFO] Repos changed:  0
+[INFO] Repos failed:   1
+[INFO] Log file:       C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\logs\sync-20260308-175359.log
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20260308175405
+**********************
