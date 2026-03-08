@@ -35,3 +35,6 @@ Genera un reporte en:
 ## Regla operativa
 - Usa siempre el mismo workspace en ambos equipos:
   - `C:\Users\elrub\Desktop\CARPETA CODEX`
+
+- sync_out bloquea commits masivos por no-trackeados (usar -AllowBulkUntracked solo si es intencional).
+

@@ -40,36 +40,41 @@ function Invoke-Clasp {
   $localClasp = Join-Path $RepoRoot "node_modules\\.bin\\clasp.cmd"
   if (Test-Path $localClasp) {
     & $localClasp -P $ProjectPath $Action
-    return $LASTEXITCODE
+    return
   }
 
   $claspCmd = Get-Command clasp.cmd -ErrorAction SilentlyContinue
   if ($claspCmd) {
     & $claspCmd.Source -P $ProjectPath $Action
-    return $LASTEXITCODE
+    return
   }
 
   $npx = "C:\Program Files\nodejs\npx.cmd"
   if (Test-Path $npx) {
     & $npx clasp -P $ProjectPath $Action
-    return $LASTEXITCODE
+    return
   }
 
   throw "No se encontro clasp.cmd ni npx.cmd"
 }
 
-function Run-OrDry {
+function Invoke-Step {
   param(
     [string]$Title,
-    [scriptblock]$Action
+    [scriptblock]$Action,
+    [string]$ErrorMessage
   )
+
   Write-Host $Title
   if ($DryRun) {
     Write-Host "[DRYRUN] $Title"
-    return 0
+    return
   }
+
   & $Action
-  return $LASTEXITCODE
+  if ($LASTEXITCODE -ne 0) {
+    throw "$ErrorMessage (codigo $LASTEXITCODE)"
+  }
 }
 
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -86,19 +91,19 @@ if ((-not $DryRun) -and (-not $AllowDirty)) {
   }
 }
 
-$code = Run-OrDry -Title "[1/3] git pull --ff-only" -Action {
-  & $git -c "safe.directory=$repoRoot" -C $repoRoot pull --ff-only origin main
-}
-if ($code -ne 0) {
+try {
+  Invoke-Step -Title "[1/3] git pull --ff-only" -ErrorMessage "git pull --ff-only fallo" -Action {
+    & $git -c "safe.directory=$repoRoot" -C $repoRoot pull --ff-only origin main
+  }
+} catch {
   Write-Host "ERROR de Git (sin forzar nada)."
   Write-Host "Elige: resolver conflictos manualmente, o revisar estado con 'git status'."
-  throw "git pull --ff-only devolvio codigo $code"
+  throw
 }
 
-$code = Run-OrDry -Title "[2/3] clasp pull (Festivales)" -Action {
+Invoke-Step -Title "[2/3] clasp pull (Festivales)" -ErrorMessage "clasp pull en Festivales fallo" -Action {
   Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $repoRoot -Action "pull"
 }
-if ($code -ne 0) { throw "clasp pull en Festivales fallo" }
 
 if ($SkipCrmProject) {
   Write-Host "[3/3] omitido por -SkipCrmProject"
@@ -106,10 +111,10 @@ if ($SkipCrmProject) {
   if (-not (Test-Path -LiteralPath (Join-Path $crmPath ".clasp.json"))) {
     throw "No existe .clasp.json en proyecto CRM secundario: $crmPath"
   }
-  $code = Run-OrDry -Title "[3/3] clasp pull (CRM AYUDAS Y SUBVENCIONES)" -Action {
+
+  Invoke-Step -Title "[3/3] clasp pull (CRM AYUDAS Y SUBVENCIONES)" -ErrorMessage "clasp pull en CRM fallo" -Action {
     Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $crmPath -Action "pull"
   }
-  if ($code -ne 0) { throw "clasp pull en CRM fallo" }
 }
 
 Write-Host "OK sync_in completado"

@@ -12,3 +12,7 @@ Thumbs.db
 # Temporary
 *.tmp
 *.temp
+
+# Local backups / mirror workspaces
+_full_workspace_backup/
+

@@ -41,36 +41,41 @@ function Invoke-Clasp {
   $localClasp = Join-Path $RepoRoot "node_modules\\.bin\\clasp.cmd"
   if (Test-Path $localClasp) {
     & $localClasp -P $ProjectPath $Action
-    return $LASTEXITCODE
+    return
   }
 
   $claspCmd = Get-Command clasp.cmd -ErrorAction SilentlyContinue
   if ($claspCmd) {
     & $claspCmd.Source -P $ProjectPath $Action
-    return $LASTEXITCODE
+    return
   }
 
   $npx = "C:\Program Files\nodejs\npx.cmd"
   if (Test-Path $npx) {
     & $npx clasp -P $ProjectPath $Action
-    return $LASTEXITCODE
+    return
   }
 
   throw "No se encontro clasp.cmd ni npx.cmd"
 }
 
-function Run-OrDry {
+function Invoke-Step {
   param(
     [string]$Title,
-    [scriptblock]$Action
+    [scriptblock]$Action,
+    [string]$ErrorMessage
   )
+
   Write-Host $Title
   if ($DryRun) {
     Write-Host "[DRYRUN] $Title"
-    return 0
+    return
   }
+
   & $Action
-  return $LASTEXITCODE
+  if ($LASTEXITCODE -ne 0) {
+    throw "$ErrorMessage (codigo $LASTEXITCODE)"
+  }
 }
 
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -80,10 +85,9 @@ Ensure-ToolPath
 $git = Get-GitCmd
 Set-Location $repoRoot
 
-$code = Run-OrDry -Title "[1/5] clasp push (Festivales)" -Action {
+Invoke-Step -Title "[1/5] clasp push (Festivales)" -ErrorMessage "clasp push en Festivales fallo" -Action {
   Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $repoRoot -Action "push"
 }
-if ($code -ne 0) { throw "clasp push en Festivales fallo" }
 
 if ($SkipCrmProject) {
   Write-Host "[2/5] omitido por -SkipCrmProject"
@@ -91,16 +95,15 @@ if ($SkipCrmProject) {
   if (-not (Test-Path -LiteralPath (Join-Path $crmPath ".clasp.json"))) {
     throw "No existe .clasp.json en proyecto CRM secundario: $crmPath"
   }
-  $code = Run-OrDry -Title "[2/5] clasp push (CRM AYUDAS Y SUBVENCIONES)" -Action {
+
+  Invoke-Step -Title "[2/5] clasp push (CRM AYUDAS Y SUBVENCIONES)" -ErrorMessage "clasp push en CRM fallo" -Action {
     Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $crmPath -Action "push"
   }
-  if ($code -ne 0) { throw "clasp push en CRM fallo" }
 }
 
-$code = Run-OrDry -Title "[3/5] git add -A" -Action {
+Invoke-Step -Title "[3/5] git add -A" -ErrorMessage "git add fallo" -Action {
   & $git -c "safe.directory=$repoRoot" -C $repoRoot add -A
 }
-if ($code -ne 0) { throw "git add fallo" }
 
 if ($DryRun) {
   Write-Host "[4/5] commit omitido (DryRun)"
@@ -123,10 +126,9 @@ if ([string]::IsNullOrWhiteSpace($msg)) {
   $msg = "sync_out $stamp"
 }
 
-$code = Run-OrDry -Title "[4/5] git commit" -Action {
+Invoke-Step -Title "[4/5] git commit" -ErrorMessage "git commit fallo" -Action {
   & $git -c "safe.directory=$repoRoot" -C $repoRoot commit -m $msg
 }
-if ($code -ne 0) { throw "git commit fallo" }
 
 if ($SkipGitPush) {
   Write-Host "[5/5] omitido por -SkipGitPush"
@@ -134,13 +136,14 @@ if ($SkipGitPush) {
   exit 0
 }
 
-$code = Run-OrDry -Title "[5/5] git push" -Action {
-  & $git -c "safe.directory=$repoRoot" -C $repoRoot push origin main
-}
-if ($code -ne 0) {
+try {
+  Invoke-Step -Title "[5/5] git push" -ErrorMessage "git push fallo" -Action {
+    & $git -c "safe.directory=$repoRoot" -C $repoRoot push origin main
+  }
+} catch {
   Write-Host "ERROR de Git push (sin forzar nada)."
   Write-Host "Si hay rechazo/conflicto remoto, primero haz 'git pull --ff-only' y revisa estado."
-  throw "git push devolvio codigo $code"
+  throw
 }
 
 Write-Host "OK sync_out completado"
