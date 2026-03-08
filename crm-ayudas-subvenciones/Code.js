@@ -14,22 +14,14 @@ const CRM_CONFIG = {
   LOG_CACHE_KEY: 'LIVE_LOGS',
   LOG_CACHE_SECONDS: 3600,
   MAX_LOG_LINES: 250,
-  GEMINI_MODELS_CACHE_MS: 6 * 60 * 60 * 1000,
   DEFAULT_MODELS: [
-    'gemini-3-pro-preview',
-    'gemini-3-flash-preview',
+    'gemini-3.1-pro-preview',
     'gemini-2.5-pro',
     'gemini-2.5-flash',
-    'gemini-2.5-flash-lite'
-  ],
-  GEMINI_MODEL_PRIORITY: [
-    'gemini-3-pro-preview',
-    'gemini-3-flash-preview',
-    'gemini-2.5-pro',
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite'
+    'gemini-1.5-pro'
   ]
 };
+
 const CRM_COL = {
   NOMBRE: 1,
   ESTADO: 2,
@@ -1404,7 +1396,7 @@ function extraerWeb_(url) {
 
 function llamarIA_(prompt, webObj, asArray) {
   const apiKey = getApiKey_();
-  const models = getModels_(apiKey);
+  const models = getModels_();
   const props = PropertiesService.getScriptProperties();
   const now = new Date();
   const hoy = Utilities.formatDate(now, Session.getScriptTimeZone(), 'dd/MM/yyyy');
@@ -1494,16 +1486,13 @@ function llamarIA_(prompt, webObj, asArray) {
     if (PropertiesService.getScriptProperties().getProperty('STOP_REQUESTED') === 'TRUE') return null;
 
     const model = models[idxModel];
-    const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent';
+    const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(apiKey);
     try {
       const resp = UrlFetchApp.fetch(endpoint, {
         method: 'post',
         contentType: 'application/json',
         payload: JSON.stringify(payload),
-        muteHttpExceptions: true,
-        headers: {
-          'x-goog-api-key': apiKey
-        }
+        muteHttpExceptions: true
       });
       const code = resp.getResponseCode();
       const text = resp.getContentText();
@@ -1563,7 +1552,7 @@ function getApiKey_() {
   return key;
 }
 
-function getModels_(apiKey) {
+function getModels_() {
   const props = PropertiesService.getScriptProperties();
   const custom = sanitizeValue_(props.getProperty('GEMINI_MODELS_CSV'));
   if (custom) {
@@ -1597,120 +1586,6 @@ function getModels_(apiKey) {
   return CRM_CONFIG.DEFAULT_MODELS.slice();
 }
 
-function fetchGeminiModelsFromApi_(apiKey) {
-  const collected = [];
-  let pageToken = '';
-  let guard = 0;
-
-  while (guard < 10) {
-    guard++;
-    let endpoint = 'https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000';
-    if (pageToken) endpoint += '&pageToken=' + encodeURIComponent(pageToken);
-
-    const resp = UrlFetchApp.fetch(endpoint, {
-      method: 'get',
-      muteHttpExceptions: true,
-      headers: {
-        'x-goog-api-key': apiKey
-      }
-    });
-    const code = resp.getResponseCode();
-    const txt = resp.getContentText();
-    if (code !== 200) {
-      let msg = txt;
-      try {
-        msg = (JSON.parse(txt).error || {}).message || txt;
-      } catch (err) {
-        // no-op
-      }
-      throw new Error('HTTP ' + code + ': ' + msg);
-    }
-
-    const payload = JSON.parse(txt || '{}');
-    const models = Array.isArray(payload.models) ? payload.models : [];
-    for (let i = 0; i < models.length; i++) {
-      const fullName = sanitizeValue_(models[i].name);
-      const id = fullName.replace(/^models\//i, '');
-      if (!id) continue;
-      if (!isGeminiModelForGenerateContent_(id, models[i])) continue;
-      collected.push(id);
-    }
-
-    pageToken = sanitizeValue_(payload.nextPageToken);
-    if (!pageToken) break;
-  }
-
-  const unique = uniqueList_(collected);
-  return rankGeminiModels_(unique);
-}
-
-function isGeminiModelForGenerateContent_(modelId, modelObj) {
-  const id = sanitizeValue_(modelId).toLowerCase();
-  if (!id || id.indexOf('gemini') !== 0) return false;
-
-  const methods = Array.isArray(modelObj.supportedGenerationMethods) ? modelObj.supportedGenerationMethods : [];
-  let supportsGenerate = false;
-  for (let i = 0; i < methods.length; i++) {
-    if (sanitizeValue_(methods[i]).toLowerCase() === 'generatecontent') {
-      supportsGenerate = true;
-      break;
-    }
-  }
-  if (!supportsGenerate) return false;
-
-  const blockedHints = ['embedding', 'imagen', 'image', 'veo', 'tts', 'speech', 'audio', 'aqa', 'learnlm'];
-  for (let j = 0; j < blockedHints.length; j++) {
-    if (id.indexOf(blockedHints[j]) !== -1) return false;
-  }
-  return true;
-}
-
-function rankGeminiModels_(models) {
-  const input = Array.isArray(models) ? models.slice() : [];
-  const used = {};
-  const out = [];
-  const lowerToReal = {};
-
-  for (let i = 0; i < input.length; i++) {
-    const m = sanitizeValue_(input[i]);
-    if (!m) continue;
-    lowerToReal[m.toLowerCase()] = m;
-  }
-
-  for (let p = 0; p < CRM_CONFIG.GEMINI_MODEL_PRIORITY.length; p++) {
-    const target = CRM_CONFIG.GEMINI_MODEL_PRIORITY[p].toLowerCase();
-    if (lowerToReal[target] && !used[target]) {
-      out.push(lowerToReal[target]);
-      used[target] = true;
-    }
-  }
-
-  const remaining = Object.keys(lowerToReal)
-    .filter(function (k) { return !used[k]; })
-    .sort();
-
-  for (let r = 0; r < remaining.length; r++) {
-    out.push(lowerToReal[remaining[r]]);
-  }
-
-  if (!out.length) return CRM_CONFIG.DEFAULT_MODELS.slice();
-  return out;
-}
-
-function uniqueList_(arr) {
-  const seen = {};
-  const out = [];
-  const list = Array.isArray(arr) ? arr : [];
-  for (let i = 0; i < list.length; i++) {
-    const v = sanitizeValue_(list[i]);
-    if (!v) continue;
-    const k = v.toLowerCase();
-    if (seen[k]) continue;
-    seen[k] = true;
-    out.push(v);
-  }
-  return out;
-}
 // -----------------------------------------------------------------------------
 // 8) BOLETIN A BANDAS
 // -----------------------------------------------------------------------------

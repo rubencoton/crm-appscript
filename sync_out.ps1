@@ -131,6 +131,31 @@ function Invoke-Step {
   }
 }
 
+function Invoke-GitPushWithRetry {
+  param(
+    [string]$Git,
+    [string]$RepoRoot
+  )
+
+  Write-Host "[5/5] git push (intento 1)"
+  & $Git -c "safe.directory=$RepoRoot" -C $RepoRoot push origin main
+  if ($LASTEXITCODE -eq 0) {
+    return
+  }
+
+  Write-Host "WARN: push rechazado; intento de auto-integracion con pull --rebase (sin forzar)."
+  & $Git -c "safe.directory=$RepoRoot" -C $RepoRoot pull --rebase origin main
+  if ($LASTEXITCODE -ne 0) {
+    throw "git pull --rebase fallo durante auto-recuperacion (codigo $LASTEXITCODE). Resolver manualmente."
+  }
+
+  Write-Host "[5/5] git push (intento 2)"
+  & $Git -c "safe.directory=$RepoRoot" -C $RepoRoot push origin main
+  if ($LASTEXITCODE -ne 0) {
+    throw "git push fallo tras reintento (codigo $LASTEXITCODE)."
+  }
+}
+
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $crmPath = Join-Path $repoRoot "crm-ayudas-subvenciones"
 
@@ -210,12 +235,10 @@ if ($SkipGitPush) {
 }
 
 try {
-  Invoke-Step -Title "[5/5] git push" -ErrorMessage "git push fallo" -Action {
-    & $git -c "safe.directory=$repoRoot" -C $repoRoot push origin main
-  }
+  Invoke-GitPushWithRetry -Git $git -RepoRoot $repoRoot
 } catch {
   Write-Host "ERROR de Git push (sin forzar nada)."
-  Write-Host "Si hay rechazo/conflicto remoto, primero haz 'git pull --ff-only' y revisa estado."
+  Write-Host "Si hay conflicto real, resolver manualmente o ejecutar 'git rebase --abort'."
   throw
 }
 
