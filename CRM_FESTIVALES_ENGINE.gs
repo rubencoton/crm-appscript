@@ -3,6 +3,46 @@
 // Listo para Google Apps Script
 // =============================================================================
 
+// =============================================================================
+// MAPA FUNCIONAL DEL SCRIPT (CRM FESTIVALES)
+// =============================================================================
+// Este proyecto trabaja sobre Google Sheets + Apps Script para CRM de festivales.
+//
+// Estructura canonica de columnas (A:J):
+// A NOMBRE FESTIVAL
+// B GENERO
+// C AFORO
+// D UBICACION (MUNICIPIO)
+// E PROVINCIA
+// F CCAA
+// G EMAIL
+// H TELEFONO
+// I NOMBRE CONTACTO
+// J OBSERVACIONES
+//
+// Convencion de pestanas:
+// - <GENERO>_<TAMANO> -> ej. URBAN_S, POP_L, ELECTR_XL
+// - PTE_* para pendientes de clasificar
+// - Alias historicos MR/MC se normalizan a MFR/MEC
+//
+// Regla de tamano por aforo:
+// - S: 0..1000 (incluido 1000)
+// - L: 1001..9999
+// - XL: 10000..infinito
+//
+// Modulos principales:
+// 1) Menu y seguridad por password
+// 2) Homogeneizacion de estructura + diseno
+// 3) Depuracion local de contactos
+// 4) Depuracion con Gemini (fallback + cache)
+// 5) Auditorias de estructura, clasificacion y stress test
+// =============================================================================
+
+/**
+ * Configuracion central del CRM de festivales.
+ * - HEADER define el contrato de columnas fijo para todas las pestanas.
+ * - COLORS define la identidad visual y codigos de alerta.
+ */
 const FEST_HOMO = {
   HEADER: [
     'NOMBRE FESTIVAL',
@@ -27,6 +67,10 @@ const FEST_HOMO = {
   }
 };
 
+// Seguridad y IA:
+// - FEST_SECURITY_PASSWORD protege acciones de menu sensibles.
+// - FEST_GEMINI_API_KEY y FEST_GEMINI_MODELS habilitan depuracion asistida por IA.
+// - El orden de modelos define fallback: se intenta del mas potente al mas rapido.
 const FEST_SECURITY_PASSWORD = '+rubencoton26';
 const FEST_GEMINI_API_KEY = 'AIzaSyC2AnnQuFgKOR_qGNl4jTrsoWF672bnK0M';
 const FEST_GEMINI_MODELS = [
@@ -48,6 +92,10 @@ const FEST_GENRE_DROPDOWN = [
 
 // Si no tienes otro onOpen en el proyecto, este ya deja el menu automatico.
 
+/**
+ * Hook nativo de Google Sheets.
+ * Se ejecuta al abrir el archivo y dibuja el menu operativo del CRM.
+ */
 function onOpen(e) {
   crearMenuCRMFestivales_();
 }
@@ -57,6 +105,10 @@ function onOpenFestivalesHomogeneidad_() {
   crearMenuCRMFestivales_();
 }
 
+/**
+ * Construye el menu principal visible en la barra de Google Sheets.
+ * Todas las opciones llaman wrappers protegidos por password.
+ */
 function crearMenuCRMFestivales_() {
   SpreadsheetApp.getUi()
     .createMenu('🚀 CRM FESTIVALES | RUBEN COTON')
@@ -75,6 +127,10 @@ function crearMenuCRMFestivales_() {
     .addToUi();
 }
 
+/**
+ * Instala un trigger onOpen dedicado para asegurar que el menu aparece siempre,
+ * incluso tras copiar el archivo o moverlo de carpeta/proyecto.
+ */
 function instalarTriggerMenuCRMFestivales() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const existing = ScriptApp.getProjectTriggers();
@@ -113,6 +169,12 @@ function limpiarTriggersMenuCRMFestivales() {
 }
 
 
+/**
+ * Wrapper de seguridad para menu.
+ * 1) Solicita password
+ * 2) Activa sesion corta en cache
+ * 3) Ejecuta la accion pedida
+ */
 function ejecutarConPassword_(accionFn, etiqueta) {
   const ui = SpreadsheetApp.getUi();
   const prompt = ui.prompt(
@@ -132,6 +194,9 @@ function ejecutarConPassword_(accionFn, etiqueta) {
   accionFn();
 }
 
+/**
+ * Marca una sesion temporal de confianza (TTL corto) en cache de usuario.
+ */
 function activarSesionSegura_() {
   try {
     CacheService.getUserCache().put('FEST_AUTH_OK', '1', 300);
@@ -140,6 +205,10 @@ function activarSesionSegura_() {
   }
 }
 
+/**
+ * Verifica que la accion se lanzo desde el wrapper con password.
+ * Evita ejecucion directa accidental desde editor sin autenticacion previa.
+ */
 function validarSesionSegura_(accion) {
   try {
     if (CacheService.getUserCache().get('FEST_AUTH_OK') === '1') return true;
@@ -153,6 +222,7 @@ function validarSesionSegura_(accion) {
   return false;
 }
 
+// Wrappers de menu: unifican el paso de seguridad para cada modulo.
 function menuHomogeneizarCRMFestivales() {
   ejecutarConPassword_(homogeneizarCRMFestivales, 'Homogeneizar columnas + diseno');
 }
@@ -197,6 +267,13 @@ function menuGuiaArquitecturaCRMFestivales() {
  * 1) Unifica TODAS las pestanas de festivales al mismo orden de columnas.
  * 2) Aplica diseno visual consistente para una lectura comoda.
  */
+/**
+ * MODULO PRINCIPAL DE NORMALIZACION.
+ * - Recorre todas las pestanas de festivales validas.
+ * - Reescribe cada hoja a formato canonico A:J.
+ * - Normaliza genero/aforo/contactos y reaplica diseno visual.
+ * - Usa LockService para evitar doble ejecucion simultanea.
+ */
 function homogeneizarCRMFestivales() {
   if (!validarSesionSegura_('Homogeneizar columnas + diseno')) return;
   const lock = LockService.getScriptLock();
@@ -239,6 +316,9 @@ function homogeneizarCRMFestivales() {
 /**
  * Reaplica solo el formato visual a las pestanas detectadas.
  */
+/**
+ * Solo reaplica formato visual corporativo sin tocar datos.
+ */
 function aplicarDisenoCRMFestivales() {
   if (!validarSesionSegura_('Aplicar diseno visual')) return;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -254,6 +334,12 @@ function aplicarDisenoCRMFestivales() {
 
 /**
  * Solo depura campos de contacto sin reordenar filas.
+ */
+/**
+ * Depuracion local (sin IA):
+ * - EMAIL: limpia, deduplica y valida sintaxis
+ * - TELEFONO: intenta normalizar a +34 XXX XXX XXX
+ * - CONTACTO: capitalizacion y limpieza basica
  */
 function depurarContactosCRMFestivales() {
   if (!validarSesionSegura_('Depurar contactos local')) return;
@@ -319,6 +405,10 @@ function depurarContactosCRMFestivales() {
   );
 }
 
+/**
+ * Auditoria de estructura:
+ * comprueba presencia de columnas requeridas y orden canonico en A:J.
+ */
 function auditarEstructuraCRMFestivales() {
   if (!validarSesionSegura_('Auditar estructura')) return;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -354,6 +444,11 @@ function auditarEstructuraCRMFestivales() {
   SpreadsheetApp.getUi().alert('🛰️ Auditoria de estructura\n\n' + lines.join('\n'));
 }
 
+/**
+ * Auditoria de coherencia de clasificacion:
+ * - Compara genero de fila vs genero esperado por nombre de pestana.
+ * - Compara tamano calculado por aforo vs sufijo S/L/XL de la pestana.
+ */
 function auditarClasificacionGeneroTamanoCRMFestivales() {
   if (!validarSesionSegura_('Auditar genero + tamano S/L/XL')) return;
 
@@ -422,6 +517,12 @@ function auditarClasificacionGeneroTamanoCRMFestivales() {
   SpreadsheetApp.getUi().alert(resumen);
 }
 
+/**
+ * Stress test interno del motor:
+ * - Pruebas de borde de reglas S/L/XL
+ * - Fuzz sobre helpers de normalizacion
+ * - Chequeo de handlers de menu y salud basica de datos
+ */
 function auditoriaEstresCRMFestivales() {
   if (!validarSesionSegura_('Modo auditor extremo (stress test)')) return;
 
@@ -537,6 +638,9 @@ function auditoriaEstresCRMFestivales() {
   SpreadsheetApp.getUi().alert(message);
 }
 
+/**
+ * Dialogo de ayuda para explicar arquitectura local + Apps Script + GitHub.
+ */
 function mostrarGuiaIntegracionCRMFestivales() {
   const html = [
     '<div style="font-family:Arial,sans-serif;padding:14px;line-height:1.5;color:#222;">',
@@ -555,6 +659,10 @@ function mostrarGuiaIntegracionCRMFestivales() {
   );
 }
 
+/**
+ * Devuelve solo pestanas de trabajo del CRM FESTIVALES.
+ * Ignora hojas auxiliares que no cumplan la taxonomia de nombre.
+ */
 function getFestivalSheets_(ss) {
   const valid = [];
   const reMain = /^(URBAN|POP|INDIE|ROCK|ELECTR|JAZZ|FLAM|RUMBA|MR|MC|MFR|MEC)_(S|L|XL)$/i;
@@ -570,6 +678,10 @@ function getFestivalSheets_(ss) {
   return valid;
 }
 
+/**
+ * Extrae genero y tamano desde el nombre de pestana.
+ * Ejemplo: "ELECTR_XL" -> { genre: "ELECTR", size: "XL" }
+ */
 function parseSheetTaxonomy_(sheetName) {
   const name = cleanText_(sheetName).toUpperCase();
   if (/^PTE[_-]/.test(name)) return { genre: 'PTE', size: '' };
@@ -583,6 +695,10 @@ function parseSheetTaxonomy_(sheetName) {
   return { genre: genre, size: m[2] };
 }
 
+/**
+ * Canoniza genero a codigo corto interno:
+ * URBAN, POP, INDIE, ROCK, ELECTR, JAZZ, FLAM, RUMBA, MEC, MFR.
+ */
 function normalizeGenreCode_(raw) {
   const t = normalizeHeader_(raw);
   if (!t) return '';
@@ -599,6 +715,10 @@ function normalizeGenreCode_(raw) {
   return '';
 }
 
+/**
+ * Aplica reglas de negocio del tamano por aforo.
+ * S <= 1000, L 1001..9999, XL >= 10000.
+ */
 function sizeCodeFromAforo_(aforoRaw) {
   const n = parseAforo_(aforoRaw);
   if (n === '' || isNaN(n)) return '';
@@ -607,6 +727,10 @@ function sizeCodeFromAforo_(aforoRaw) {
   return 'L';
 }
 
+/**
+ * Normaliza filas de una hoja a la estructura canonica del CRM.
+ * Descarta filas completamente vacias y conserva solo informacion util.
+ */
 function normalizeSheetRows_(data, sheetName) {
   if (!data || data.length === 0) return [];
 
@@ -648,6 +772,9 @@ function normalizeSheetRows_(data, sheetName) {
   return out;
 }
 
+/**
+ * Reescribe la hoja completa con cabecera estandar y filas normalizadas.
+ */
 function rewriteSheet_(sheet, rows) {
   sheet.clear();
   sheet.getRange(1, 1, 1, FEST_HOMO.HEADER.length).setValues([FEST_HOMO.HEADER]);
@@ -657,6 +784,12 @@ function rewriteSheet_(sheet, rows) {
   }
 }
 
+/**
+ * Aplica experiencia visual uniforme:
+ * - Cabecera corporativa
+ * - Colores por pestana/genero
+ * - Filtro, anchos, alineaciones, validaciones y formato condicional
+ */
 function applyVisualDesignToSheet_(sheet) {
   const lastRow = Math.max(2, sheet.getLastRow());
   const lastCol = FEST_HOMO.HEADER.length;
@@ -742,6 +875,10 @@ function applyVisualDesignToSheet_(sheet) {
   sheet.setConditionalFormatRules([warnRule, errorRule]);
 }
 
+/**
+ * Crea mapa de indices de columna tolerante a variantes de cabecera.
+ * Si falta una cabecera, aplica fallback por posicion A:J.
+ */
 function buildHeaderMap_(headerRow) {
   const map = {};
   for (let c = 0; c < headerRow.length; c++) {
@@ -783,6 +920,10 @@ function isHeaderInCanonicalOrder_(headerRow) {
   return true;
 }
 
+/**
+ * Normaliza cabeceras para comparaciones robustas:
+ * trim + uppercase + sin acentos + espacios colapsados.
+ */
 function normalizeHeader_(v) {
   return cleanText_(v)
     .normalize('NFD')
@@ -831,6 +972,10 @@ function parseAforo_(v) {
   return parseInt(digits, 10);
 }
 
+/**
+ * Limpia y estandariza emails multiples.
+ * Devuelve lista separada por "; " con deduplicacion.
+ */
 function normalizeEmailCell_(v) {
   const txt = cleanText_(v).toLowerCase();
   if (!txt) return '';
@@ -858,6 +1003,9 @@ function isValidEmail_(email) {
   return /^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/i.test(email || '');
 }
 
+/**
+ * Intenta extraer el primer telefono espanol valido de una celda.
+ */
 function normalizePhoneCell_(v) {
   const txt = cleanText_(v);
   if (!txt) return '';
@@ -875,6 +1023,10 @@ function normalizePhoneCell_(v) {
   return txt;
 }
 
+/**
+ * Formatea telefono espanol a +34 XXX XXX XXX.
+ * Acepta variantes con prefijo 0034 o 34.
+ */
 function formatSpanishPhone_(raw) {
   const digits = cleanText_(raw).replace(/[^\d]/g, '');
   if (!digits) return '';
@@ -889,6 +1041,9 @@ function formatSpanishPhone_(raw) {
   return '+34 ' + base.substring(0, 3) + ' ' + base.substring(3, 6) + ' ' + base.substring(6);
 }
 
+/**
+ * Capitaliza nombre de contacto manteniendo conectores comunes en minuscula.
+ */
 function normalizeContactName_(v) {
   const txt = cleanText_(v);
   if (!txt) return '';
@@ -914,6 +1069,11 @@ function normalizeContactName_(v) {
 
 
 
+/**
+ * Depuracion avanzada con Gemini por lotes.
+ * Solo procesa filas donde la validacion local detecta debilidad de datos.
+ * Respeta limite de tiempo de Apps Script para evitar cortes bruscos.
+ */
 function depurarContactosConGeminiCRMFestivales() {
   if (!validarSesionSegura_('Depurar contactos con Gemini')) return;
   const ui = SpreadsheetApp.getUi();
@@ -1044,6 +1204,9 @@ function depurarContactosConGeminiCRMFestivales() {
   );
 }
 
+/**
+ * Decide si una fila necesita IA o si la calidad local ya es suficiente.
+ */
 function filaNecesitaGemini_(email, phone, contact) {
   const emailOk = isValidEmailList_(email);
   const phoneOk = !!formatSpanishPhone_(phone);
@@ -1068,6 +1231,9 @@ function isValidEmailList_(raw) {
   return true;
 }
 
+/**
+ * Construye prompt + schema estricto para depurar una fila concreta.
+ */
 function llamarGeminiDepuracionFila_(rowObj) {
   const schema = {
     type: 'OBJECT',
@@ -1096,6 +1262,9 @@ function llamarGeminiDepuracionFila_(rowObj) {
   return invocarGeminiConFallback_(prompt, schema);
 }
 
+/**
+ * Firma hash de peticion para cachear respuestas de IA y ahorrar coste/tiempo.
+ */
 function buildGeminiResponseCacheKey_(prompt, responseSchema) {
   try {
     const base = String(prompt || '') + '|' + JSON.stringify(responseSchema || {});
@@ -1107,6 +1276,12 @@ function buildGeminiResponseCacheKey_(prompt, responseSchema) {
   }
 }
 
+/**
+ * Cliente Gemini con fallback por modelos:
+ * - Reintentos por modelo para 429/5xx
+ * - Salto de modelo ante 404
+ * - Cache de respuestas para prompts repetidos
+ */
 function invocarGeminiConFallback_(prompt, responseSchema) {
   const apiKey = cleanText_(FEST_GEMINI_API_KEY);
   if (!apiKey) return null;
@@ -1190,6 +1365,10 @@ function invocarGeminiConFallback_(prompt, responseSchema) {
   return null;
 }
 
+/**
+ * Parser tolerante de respuesta de Gemini.
+ * Soporta JSON puro, bloques markdown y texto envolvente con JSON embebido.
+ */
 function parseGeminiJson_(rawText) {
   try {
     const root = JSON.parse(rawText);
