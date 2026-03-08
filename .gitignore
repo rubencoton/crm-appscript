@@ -1,0 +1,14 @@
+﻿# Node
+node_modules/
+npm-debug.log*
+
+# clasp auth tokens (local machine)
+.clasprc.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.tmp
+*.temp

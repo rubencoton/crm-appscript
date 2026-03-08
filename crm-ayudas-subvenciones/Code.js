@@ -15,6 +15,7 @@ const CRM_CONFIG = {
   LOG_CACHE_SECONDS: 3600,
   MAX_LOG_LINES: 250,
   DEFAULT_MODELS: [
+    'gemini-3.1-pro-preview',
     'gemini-2.5-pro',
     'gemini-2.5-flash',
     'gemini-1.5-pro'
@@ -59,6 +60,8 @@ const CRM_INSCRIPCION = {
 };
 
 const CRM_TIPO_PREMIO = ['ECONOMICO', 'SERVICIO', 'ACTUACION', 'RESIDENCIA', 'VARIOS'];
+const CRM_TIPO_PREMIO_SET = { ECONOMICO: true, SERVICIO: true, ACTUACION: true, RESIDENCIA: true, VARIOS: true };
+const CRM_NO_DATA = 'No publicado / No localizado';
 
 const GEMINI_API_KEY_FIJA = 'AIzaSyC2AnnQuFgKOR_qGNl4jTrsoWF672bnK0M';
 const CRM_PASSWORD_FIJA = '+rubencoton26';
@@ -71,16 +74,17 @@ const FIRMA_APP = 'DESARROLLADOR: RUBEN COTON';
 
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu('🚀 CRM: AYUDAS')
-    .addItem('1) Escaner total (con consola)', 'lanzarModoTotal')
-    .addItem('2) Auditar matriz (con consola)', 'lanzarModoActualizar')
-    .addItem('3) Nuevos + Radar (con consola)', 'lanzarModoNuevas')
-    .addItem('4) Continuar escaner', 'continuarEscaner')
+    .createMenu('🚀 CRM: Ayudas')
+    .addItem('🚀 Escaner total (con consola)', 'lanzarModoTotal')
+    .addItem('🔍 Auditar matriz (con consola)', 'lanzarModoActualizar')
+    .addItem('🛰️ Nuevos + Radar (con consola)', 'lanzarModoNuevas')
     .addSeparator()
-    .addItem('5) Enviar boletin a BANDAS', 'verificarYEnviarCorreos')
+    .addItem('🧾 Ver codigo (desplegable)', 'mostrarVisorCodigoProyecto_')
+    .addItem('📟 Ver estado tecnico', 'mostrarPanelEstadoTecnico_')
     .addSeparator()
-    .addItem('6) Apagado de emergencia', 'solicitarParada')
-    .addItem('7) Purgar estado/logs', 'purgarSistema')
+    .addItem('📨 Enviar boletin a BANDAS', 'verificarYEnviarCorreos')
+    .addSeparator()
+    .addItem('🧹 Purgar estado/logs', 'purgarSistema')
     .addToUi();
 }
 
@@ -88,6 +92,280 @@ function configurarSistema() {
   SpreadsheetApp.getUi().alert('Configuracion deshabilitada. Este CRM usa API y password fijas en el codigo.\n' + FIRMA_APP);
 }
 
+function buildScriptEditorUrl_() {
+  return 'https://script.google.com/home/projects/' + encodeURIComponent(ScriptApp.getScriptId()) + '/edit';
+}
+
+function mostrarVisorCodigoProyecto_() {
+  const html = HtmlService.createHtmlOutput(`<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { margin:0; background:#070d09; color:#d7ffe8; font-family:'Courier New', monospace; }
+    .wrap { padding:12px; }
+    .card { border:1px solid #0d5c33; border-radius:10px; background:#05110a; padding:12px; box-shadow:0 0 20px rgba(0,255,133,0.15); }
+    h3 { margin:0 0 8px 0; color:#00ff85; }
+    .sub { margin:0 0 10px 0; color:#93d6ad; font-size:12px; }
+    .row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    input, select { width:100%; box-sizing:border-box; padding:8px; border:1px solid #0d5c33; border-radius:8px; background:#000; color:#00ff85; }
+    button { border:none; border-radius:8px; padding:9px 12px; font-weight:700; cursor:pointer; font-family:'Courier New', monospace; }
+    .ok { background:#00ff85; color:#01290f; }
+    .aux { background:#00b4ff; color:#032133; }
+    .soft { background:#334155; color:#fff; }
+    #meta { color:#89c5a2; font-size:12px; margin-bottom:8px; }
+    #code { width:100%; height:430px; box-sizing:border-box; background:#010603; color:#d7ffe8; border:1px solid #0d5c33; border-radius:8px; padding:10px; font-size:12px; line-height:1.4; white-space:pre; overflow:auto; }
+    #msg { min-height:18px; color:#ffd280; font-size:12px; margin-top:8px; white-space:pre-wrap; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="login">
+      <h3>🧾 VISOR DE CODIGO | RUBEN COTON</h3>
+      <p class="sub">Introduce password para cargar el codigo con desplegable por archivo.</p>
+      <input id="pwd" type="password" placeholder="Password del CRM">
+      <div class="row">
+        <button class="ok" onclick="cargar()">🔓 Cargar codigo</button>
+        <button class="soft" onclick="google.script.host.close()">Cerrar</button>
+      </div>
+      <div id="msg"></div>
+    </div>
+
+    <div class="card" id="viewer" style="display:none;">
+      <h3>🧠 CODIGO DEL PROYECTO</h3>
+      <div id="meta"></div>
+      <div class="row">
+        <select id="sel" onchange="render()"></select>
+      </div>
+      <div class="row">
+        <button class="aux" onclick="copiar()">📋 Copiar archivo</button>
+        <button class="soft" onclick="abrirEditor()">🌐 Abrir editor</button>
+      </div>
+      <pre id="code"></pre>
+    </div>
+  </div>
+  <script>
+    let payload = null;
+    let files = [];
+
+    function cargar() {
+      const pass = (document.getElementById('pwd').value || '').trim();
+      const msg = document.getElementById('msg');
+      msg.textContent = 'Cargando codigo...';
+      google.script.run
+        .withSuccessHandler(function(data) {
+          payload = data || {};
+          files = Array.isArray(payload.files) ? payload.files : [];
+          if (!files.length) throw new Error('No hay archivos para mostrar.');
+
+          document.getElementById('login').style.display = 'none';
+          document.getElementById('viewer').style.display = 'block';
+
+          const sel = document.getElementById('sel');
+          sel.innerHTML = '';
+          files.forEach(function(f, idx) {
+            const opt = document.createElement('option');
+            opt.value = String(idx);
+            opt.textContent = (f.name || 'SIN_NOMBRE') + ' [' + (f.type || 'DESCONOCIDO') + ']';
+            sel.appendChild(opt);
+          });
+
+          document.getElementById('meta').textContent =
+            'Script ID: ' + (payload.scriptId || '') +
+            ' | Archivos: ' + files.length +
+            ' | Cargado: ' + (payload.fetchedAt || '');
+
+          render();
+        })
+        .withFailureHandler(function(e) {
+          msg.textContent = '❌ ' + (e && e.message ? e.message : e);
+        })
+        .obtenerCodigoProyectoSeguro_(pass);
+    }
+
+    function render() {
+      const idx = Number(document.getElementById('sel').value || '0');
+      const f = files[idx] || files[0] || {};
+      document.getElementById('code').textContent = String(f.source || '');
+    }
+
+    function copiar() {
+      const txt = document.getElementById('code').textContent || '';
+      navigator.clipboard.writeText(txt).then(function(){ alert('✅ Archivo copiado'); });
+    }
+
+    function abrirEditor() {
+      const url = payload && payload.editUrl ? payload.editUrl : '';
+      if (!url) {
+        alert('No hay URL de editor disponible.');
+        return;
+      }
+      window.open(url, '_blank');
+    }
+  </script>
+</body>
+</html>`).setWidth(980).setHeight(700);
+
+  SpreadsheetApp.getUi().showModelessDialog(html, 'VISOR DE CODIGO | ' + DESARROLLADOR_APP);
+}
+
+function obtenerCodigoProyectoSeguro_(pass) {
+  if (!validarPasswordServidor(pass)) {
+    throw new Error('Password incorrecta.');
+  }
+  return obtenerCodigoProyecto_();
+}
+
+function obtenerCodigoProyecto_() {
+  const scriptId = ScriptApp.getScriptId();
+  const url = 'https://script.googleapis.com/v1/projects/' + encodeURIComponent(scriptId) + '/content';
+  const resp = UrlFetchApp.fetch(url, {
+    method: 'get',
+    muteHttpExceptions: true,
+    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }
+  });
+
+  const code = resp.getResponseCode();
+  if (code !== 200) {
+    const body = resp.getContentText() || '';
+    throw new Error('No se pudo cargar el codigo automaticamente (HTTP ' + code + '). Revisa permisos de Apps Script API. ' + body.substring(0, 220));
+  }
+
+  const parsed = JSON.parse(resp.getContentText() || '{}');
+  const files = (parsed.files || []).map(function(f) {
+    return {
+      name: f.name || 'SIN_NOMBRE',
+      type: f.type || 'DESCONOCIDO',
+      source: String(f.source || '')
+    };
+  }).sort(function(a, b) {
+    return a.name.localeCompare(b.name);
+  });
+
+  return {
+    scriptId: scriptId,
+    editUrl: buildScriptEditorUrl_(),
+    fetchedAt: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm:ss'),
+    files: files
+  };
+}
+
+function mostrarPanelEstadoTecnico_() {
+  const html = HtmlService.createHtmlOutput(`<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { margin:0; background:#070d09; color:#d7ffe8; font-family:'Courier New', monospace; }
+    .wrap { padding:12px; }
+    .card { border:1px solid #0d5c33; border-radius:10px; background:#05110a; padding:12px; box-shadow:0 0 20px rgba(0,255,133,0.15); }
+    h3 { margin:0 0 8px 0; color:#00ff85; }
+    .row { display:flex; gap:8px; margin-bottom:8px; }
+    button { border:none; border-radius:8px; padding:9px 12px; font-weight:700; cursor:pointer; font-family:'Courier New', monospace; }
+    .ok { background:#00ff85; color:#01290f; }
+    .aux { background:#00b4ff; color:#032133; }
+    pre { margin:0; width:100%; height:520px; overflow:auto; background:#010603; color:#d7ffe8; border:1px solid #0d5c33; border-radius:8px; padding:10px; font-size:12px; line-height:1.35; white-space:pre-wrap; }
+    #meta { color:#89c5a2; font-size:12px; margin-bottom:8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h3>📟 ESTADO TECNICO | RUBEN COTON</h3>
+      <div id="meta">Cargando...</div>
+      <div class="row">
+        <button class="ok" onclick="cargar()">🔄 Refrescar</button>
+        <button class="aux" onclick="copiar()">📋 Copiar JSON</button>
+      </div>
+      <pre id="out"></pre>
+    </div>
+  </div>
+  <script>
+    function cargar() {
+      google.script.run.withSuccessHandler(function(data){
+        document.getElementById('meta').textContent = 'Script ID: ' + (data.scriptId || '') + ' | Hora: ' + (data.now || '');
+        document.getElementById('out').textContent = JSON.stringify(data, null, 2);
+      }).withFailureHandler(function(e){
+        document.getElementById('meta').textContent = 'Error';
+        document.getElementById('out').textContent = '❌ ' + (e && e.message ? e.message : e);
+      }).obtenerEstadoTecnico_();
+    }
+
+    function copiar() {
+      const txt = document.getElementById('out').textContent || '';
+      navigator.clipboard.writeText(txt).then(function(){ alert('✅ Estado copiado'); });
+    }
+
+    cargar();
+  </script>
+</body>
+</html>`).setWidth(920).setHeight(690);
+
+  SpreadsheetApp.getUi().showModelessDialog(html, 'ESTADO TECNICO | ' + DESARROLLADOR_APP);
+}
+
+function obtenerEstadoTecnico_() {
+  const props = PropertiesService.getScriptProperties();
+  const keys = [
+    'RUN_MODE', 'PHASE', 'CURRENT_ROW', 'TOTAL_ROWS',
+    'FASE_ACTUAL', 'IS_RUNNING', 'IS_DONE', 'TIME_OUT',
+    'STOP_REQUESTED', 'IDX_EXISTING', 'IDX_NEW', 'IDX_MODEL'
+  ];
+  const snapshot = {};
+  for (let i = 0; i < keys.length; i++) {
+    snapshot[keys[i]] = props.getProperty(keys[i]) || '';
+  }
+
+  return {
+    now: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm:ss'),
+    developer: DESARROLLADOR_APP,
+    scriptId: ScriptApp.getScriptId(),
+    editUrl: buildScriptEditorUrl_(),
+    estado: getEstadoProgreso(),
+    props: snapshot
+  };
+}
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+    const sh = e.range.getSheet();
+    if (sh.getName() !== CRM_CONFIG.SHEET_CONCURSOS) return;
+    const row = e.range.getRow();
+    const col = e.range.getColumn();
+    if (row < 2) return;
+
+    if (col === CRM_COL.ESTADO) {
+      const estado = normalizeEstado_(e.range.getValue());
+      if (e.range.getValue() !== estado) {
+        e.range.setValue(estado);
+      }
+
+      let bg = '#EFEFEF';
+      let fc = '#333333';
+      if (estado === CRM_ESTADO.REVISADO_IA) { bg = '#D9EAD3'; fc = '#1E4620'; }
+      if (estado === CRM_ESTADO.REVISADO_HUMANO) { bg = '#D0E0F5'; fc = '#113A67'; }
+      if (estado === CRM_ESTADO.NUEVO_DESCUBRIMIENTO) { bg = '#FFE9B8'; fc = '#704D00'; }
+      e.range.setBackground(bg).setFontColor(fc);
+    }
+
+    if (col === CRM_COL.INSCRIPCION || col === CRM_COL.ESTADO) {
+      const ins = sanitizeValue_(sh.getRange(row, CRM_COL.INSCRIPCION).getValue()).toUpperCase();
+      aplicarFormatoFila_(sh, row, ins, SpreadsheetApp.getActive().getSpreadsheetTimeZone());
+    }
+
+    if (col === CRM_COL.ESTADO) {
+      const estadoFinal = normalizeEstado_(sh.getRange(row, CRM_COL.ESTADO).getValue());
+      let bg2 = '#EFEFEF';
+      let fc2 = '#333333';
+      if (estadoFinal === CRM_ESTADO.REVISADO_IA) { bg2 = '#D9EAD3'; fc2 = '#1E4620'; }
+      if (estadoFinal === CRM_ESTADO.REVISADO_HUMANO) { bg2 = '#D0E0F5'; fc2 = '#113A67'; }
+      if (estadoFinal === CRM_ESTADO.NUEVO_DESCUBRIMIENTO) { bg2 = '#FFE9B8'; fc2 = '#704D00'; }
+      sh.getRange(row, CRM_COL.ESTADO).setBackground(bg2).setFontColor(fc2);
+    }
+  } catch (err) {
+    logCRM_('onEdit aviso: ' + err.message, 'warning');
+  }
+}
 function lanzarModoTotal() {
   mostrarConsolaSegura_('TOTAL', '🚀 ESCANER TOTAL');
 }
@@ -108,7 +386,7 @@ function solicitarParada() {
   const props = PropertiesService.getScriptProperties();
   props.setProperty('STOP_REQUESTED', 'TRUE');
   logCRM_('🛑 Peticion de parada recibida.', 'warning');
-  SpreadsheetApp.getUi().alert('🛑 Peticion de parada registrada.');
+  return 'OK';
 }
 
 function purgarSistema() {
@@ -190,32 +468,33 @@ function mostrarConsolaSegura_(mode, titleText) {
 <head>
   <meta charset="utf-8">
   <style>
-    body { margin:0; background:#090d12; color:#e5e7eb; font-family:Consolas, monospace; }
+    body { margin:0; background:#020603; color:#d2ffe3; font-family:'Courier New', monospace; }
+    .wrap::before { content:''; position:fixed; inset:0; pointer-events:none; background:linear-gradient(to bottom, rgba(0,255,133,0.05) 50%, rgba(0,0,0,0) 50%); background-size:100% 4px; opacity:0.35; }
     .wrap { padding:14px; height:100vh; box-sizing:border-box; display:flex; flex-direction:column; }
-    .panel { border:1px solid #263041; border-radius:10px; background:#111827; padding:14px; }
+    .panel { border:1px solid #0d5c33; border-radius:10px; background:#05110a; padding:14px; box-shadow:0 0 20px rgba(0,255,133,0.15); }
     #login { display:block; }
     #console { display:none; height:100%; }
-    h2 { margin:0 0 8px 0; font-size:20px; color:#22d3ee; }
-    .sub { margin:0 0 12px 0; color:#94a3b8; font-size:12px; }
-    input { width:100%; box-sizing:border-box; padding:10px; border-radius:8px; border:1px solid #334155; background:#0b1220; color:#fff; margin-bottom:10px; }
+    h2 { margin:0 0 8px 0; font-size:20px; color:#00ff85; text-shadow:0 0 10px rgba(0,255,133,0.55); }
+    .sub { margin:0 0 12px 0; color:#85caa2; font-size:12px; }
+    input { width:100%; box-sizing:border-box; padding:10px; border-radius:8px; border:1px solid #0d5c33; background:#000; color:#00ff85; margin-bottom:10px; }
     .row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
     button { cursor:pointer; border:none; border-radius:8px; padding:10px 12px; font-weight:700; }
-    .ok { background:#22c55e; color:#06240f; }
+    .ok { background:#00ff85; color:#01290f; }
     .danger { background:#ef4444; color:#fff; }
-    .copy { background:#38bdf8; color:#06233a; }
+    .copy { background:#00b4ff; color:#001d2b; }
     .continue { background:#f59e0b; color:#1f1300; display:none; }
     .small { font-size:12px; color:#fca5a5; min-height:18px; }
     .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-    .badge { background:#0ea5e9; color:#04243a; font-weight:700; padding:4px 8px; border-radius:999px; font-size:12px; }
-    #fase { color:#93c5fd; margin-bottom:8px; font-size:12px; }
-    #terminal { flex:1; background:#020617; border:1px solid #1e293b; border-radius:8px; padding:10px; overflow:auto; font-size:12px; white-space:pre-wrap; line-height:1.45; }
-    .line-time { color:#64748b; }
-    .line-info { color:#cbd5e1; }
+    .badge { background:#00ff85; color:#01290f; font-weight:700; padding:4px 8px; border-radius:999px; font-size:12px; }
+    #fase { color:#b8ffd5; margin-bottom:8px; font-size:12px; }
+    #terminal { flex:1; background:#010603; border:1px solid #0d5c33; border-radius:8px; padding:10px; overflow:auto; font-size:12px; white-space:pre-wrap; line-height:1.45; }
+    .line-time { color:#5aa07a; }
+    .line-info { color:#d2ffe3; }
     .line-warning { color:#facc15; }
     .line-error { color:#f97316; }
     .line-fatal { color:#fecaca; background:#7f1d1d; padding:0 4px; }
     .line-success { color:#22c55e; }
-    .line-scan { color:#67e8f9; }
+    .line-scan { color:#5de7ff; }
     .line-system { color:#c4b5fd; }
     .line-title { color:#f8fafc; font-weight:700; text-decoration:underline; }
     .bar { display:flex; gap:8px; margin-top:10px; }
@@ -265,12 +544,22 @@ function mostrarConsolaSegura_(mode, titleText) {
         }
         document.getElementById('login').style.display = 'none';
         document.getElementById('console').style.display = 'block';
+        document.getElementById('fase').textContent = 'Inicializando motor...';
+
+        const run = google.script.run
+          .withSuccessHandler(function(){
+            iniciarPolling();
+          })
+          .withFailureHandler(function(e){
+            document.getElementById('fase').textContent = 'Error al iniciar';
+            document.getElementById('terminal').innerText = '❌ ' + (e && e.message ? e.message : e);
+          });
+
         if (mode === 'CONTINUE') {
-          google.script.run.iniciarEscanerContinuacionDesdePanel_();
+          run.iniciarEscanerContinuacionDesdePanel_();
         } else {
-          google.script.run.iniciarEscanerDesdePanel_(mode);
+          run.iniciarEscanerDesdePanel_(mode);
         }
-        iniciarPolling();
       }).withFailureHandler(function(e){
         err.textContent = 'Error: ' + (e && e.message ? e.message : e);
       }).validarPasswordServidor(pass);
@@ -278,11 +567,17 @@ function mostrarConsolaSegura_(mode, titleText) {
 
     function iniciarPolling() {
       if (poll) clearInterval(poll);
+      google.script.run.withSuccessHandler(renderEstado).getEstadoProgreso();
       poll = setInterval(function(){
-        google.script.run.withSuccessHandler(renderEstado).getEstadoProgreso();
+        google.script.run
+          .withSuccessHandler(renderEstado)
+          .withFailureHandler(function(e){
+            document.getElementById('fase').textContent = 'Error de comunicacion';
+            document.getElementById('terminal').innerText = '❌ Error de polling: ' + (e && e.message ? e.message : e);
+          })
+          .getEstadoProgreso();
       }, 1000);
     }
-
     function renderEstado(st) {
       const total = Number(st.total || 0);
       const actual = Number(st.actual || 0);
@@ -319,14 +614,24 @@ function mostrarConsolaSegura_(mode, titleText) {
 
     function continuar() {
       document.getElementById('fase').textContent = '⏳ Reanudando...';
-      google.script.run.iniciarEscanerContinuacionDesdePanel_();
-      iniciarPolling();
+      google.script.run
+        .withSuccessHandler(function(){
+          iniciarPolling();
+        })
+        .withFailureHandler(function(e){
+          document.getElementById('fase').textContent = 'Error al reanudar';
+          document.getElementById('terminal').innerText = '❌ ' + (e && e.message ? e.message : e);
+        })
+        .iniciarEscanerContinuacionDesdePanel_();
     }
 
     function apagar() {
-      google.script.run.solicitarParada();
+      google.script.run
+        .withFailureHandler(function(e){
+          document.getElementById('terminal').innerText = '❌ No se pudo solicitar apagado: ' + (e && e.message ? e.message : e);
+        })
+        .solicitarParada();
     }
-
     function copiar() {
       navigator.clipboard.writeText(rawLogs || '').then(function(){
         alert('✅ Logs copiados');
@@ -348,21 +653,61 @@ function validarPasswordServidor(pass) {
 
 function iniciarEscanerDesdePanel_(mode) {
   validarConfiguracionMinima_();
-  PropertiesService.getScriptProperties().setProperty('TIME_OUT', 'FALSE');
-  ejecutorMaestro(mode);
+  const props = PropertiesService.getScriptProperties();
+  const modeFinal = sanitizeValue_(mode).toUpperCase() || 'TOTAL';
+
+  props.setProperty('RUN_MODE', modeFinal);
+  props.setProperty('TIME_OUT', 'FALSE');
+  props.setProperty('IS_DONE', 'FALSE');
+  props.setProperty('STOP_REQUESTED', 'FALSE');
+  props.setProperty('FASE_ACTUAL', 'Inicializando motor en segundo plano...');
+
+  encolarEjecucionAsincrona_();
+  logCRM_('Solicitud de escaneo recibida (modo ' + modeFinal + ').', 'system');
   return getEstadoProgreso();
 }
 
 function iniciarEscanerContinuacionDesdePanel_() {
   validarConfiguracionMinima_();
-  const mode = String(PropertiesService.getScriptProperties().getProperty('RUN_MODE') || '').trim();
+  const props = PropertiesService.getScriptProperties();
+  const mode = sanitizeValue_(props.getProperty('RUN_MODE'));
   if (!mode) {
     throw new Error('No hay una ejecucion previa para continuar.');
   }
-  ejecutorMaestro(mode);
+
+  props.setProperty('TIME_OUT', 'FALSE');
+  props.setProperty('IS_DONE', 'FALSE');
+  props.setProperty('STOP_REQUESTED', 'FALSE');
+  props.setProperty('FASE_ACTUAL', 'Reanudando motor en segundo plano...');
+
+  encolarEjecucionAsincrona_();
+  logCRM_('Solicitud de continuacion recibida.', 'system');
   return getEstadoProgreso();
 }
 
+function encolarEjecucionAsincrona_() {
+  limpiarTriggersEjecucion_();
+  ScriptApp.newTrigger('ejecutorAsincrono_').timeBased().after(1000).create();
+}
+
+function ejecutorAsincrono_() {
+  const props = PropertiesService.getScriptProperties();
+  const mode = sanitizeValue_(props.getProperty('RUN_MODE')) || 'TOTAL';
+  try {
+    ejecutorMaestro(mode);
+  } finally {
+    limpiarTriggersEjecucion_();
+  }
+}
+
+function limpiarTriggersEjecucion_() {
+  const triggers = ScriptApp.getProjectTriggers();
+  for (let i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'ejecutorAsincrono_') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+}
 function validarConfiguracionMinima_() {
   if (!GEMINI_API_KEY_FIJA || !CRM_PASSWORD_FIJA) {
     throw new Error('Faltan API o password fijas en el codigo.');
@@ -648,9 +993,10 @@ function procesarMatriz_(ss, sheetConcursos, props, startTime) {
     let inscripcionFinal = CRM_INSCRIPCION.SIN_PUBLICAR;
 
     try {
-      const urlPrincipal = firstUrl_(row[CRM_COL.LINK1 - 1], row[CRM_COL.LINK2 - 1]);
-      const webObj = extraerWeb_(urlPrincipal);
-      const prompt = construirPromptFila_(row, urlPrincipal);
+      const fuentesWeb = collectUrls_(row[CRM_COL.LINK1 - 1], row[CRM_COL.LINK2 - 1], row[CRM_COL.LINK3 - 1]);
+      const urlPrincipal = fuentesWeb.length ? fuentesWeb[0] : '';
+      const webObj = extraerWebProfundo_(fuentesWeb);
+      const prompt = construirPromptFila_(row, fuentesWeb);
       const ai = llamarIA_(prompt, webObj, false);
 
       const fechaLimite = normalizarFechaLimite_(ai ? ai.fechaLimite : '', row[CRM_COL.FECHA_LIMITE - 1]);
@@ -672,13 +1018,22 @@ function procesarMatriz_(ss, sheetConcursos, props, startTime) {
       updated[CRM_COL.DIRIGIDO_A - 1] = mergeValue_(ai ? ai.dirigidoA : '', row[CRM_COL.DIRIGIDO_A - 1]);
       updated[CRM_COL.MUNICIPIO - 1] = mergeValue_(ai ? ai.municipio : '', row[CRM_COL.MUNICIPIO - 1]);
       updated[CRM_COL.PROVINCIA - 1] = mergeValue_(ai ? ai.provincia : '', row[CRM_COL.PROVINCIA - 1]);
-      updated[CRM_COL.PAIS - 1] = mergeValue_(ai ? ai.pais : '', row[CRM_COL.PAIS - 1]) || 'Espana';
-      updated[CRM_COL.LINK1 - 1] = link1 || 'No publicado';
-      updated[CRM_COL.LINK2 - 1] = normalizarUrl_(ai ? ai.link2 : '') || normalizarUrl_(row[CRM_COL.LINK2 - 1]) || 'No publicado';
-      updated[CRM_COL.LINK3 - 1] = normalizarUrl_(ai ? ai.link3 : '') || 'No publicado';
+      updated[CRM_COL.PAIS - 1] = mergeValue_(ai ? ai.pais : '', row[CRM_COL.PAIS - 1]) || 'España';
+      updated[CRM_COL.LINK1 - 1] = link1 || CRM_NO_DATA;
+      updated[CRM_COL.LINK2 - 1] = normalizarUrl_(ai ? ai.link2 : '') || normalizarUrl_(row[CRM_COL.LINK2 - 1]) || CRM_NO_DATA;
+      updated[CRM_COL.LINK3 - 1] = normalizarUrl_(ai ? ai.link3 : '') || CRM_NO_DATA;
       updated[CRM_COL.EMAIL - 1] = mergeValue_(ai ? ai.email : '', row[CRM_COL.EMAIL - 1]);
       updated[CRM_COL.TELEFONO - 1] = mergeValue_(ai ? ai.telefono : '', row[CRM_COL.TELEFONO - 1]);
       updated[CRM_COL.NOTAS - 1] = mergeValue_(ai ? ai.notas : '', row[CRM_COL.NOTAS - 1]);
+
+      const emailAI = sanitizeValue_(ai ? ai.email : '');
+      const emailPrev = sanitizeValue_(row[CRM_COL.EMAIL - 1]);
+      if (!isValidEmail_(emailAI) && isValidEmail_(emailPrev)) {
+        const notaActual = sanitizeValue_(updated[CRM_COL.NOTAS - 1]);
+        if (notaActual.toLowerCase().indexOf('heredado de fuentes historicas') === -1) {
+          updated[CRM_COL.NOTAS - 1] = (notaActual ? (notaActual + ' | ') : '') + 'Email de contacto heredado de fuentes historicas.';
+        }
+      }
 
       sheetConcursos.getRange(rowN, 1, 1, 17).setValues([updated]).clearNote();
       if (ai && sanitizeValue_(ai._razonamiento_logico)) {
@@ -708,22 +1063,34 @@ function procesarMatriz_(ss, sheetConcursos, props, startTime) {
   return 'DONE';
 }
 
-function construirPromptFila_(row, urlPrincipal) {
+function construirPromptFila_(row, urls) {
+  const fuentes = (Array.isArray(urls) && urls.length) ? urls.join(' | ') : 'No disponible';
   const historico = [
     'Nombre: ' + sanitizeValue_(row[CRM_COL.NOMBRE - 1]),
     'Fecha limite historica: ' + displayCell_(row[CRM_COL.FECHA_LIMITE - 1]),
     'Mes desarrollo historico: ' + displayCell_(row[CRM_COL.FECHA_DESARROLLO - 1]),
     'Tipo premio historico: ' + displayCell_(row[CRM_COL.TIPO_PREMIO - 1]),
     'Detalle premio historico: ' + displayCell_(row[CRM_COL.DETALLE_PREMIO - 1]),
-    'Link historico: ' + displayCell_(row[CRM_COL.LINK2 - 1]),
-    'URL principal actual: ' + (urlPrincipal || 'No disponible')
+    'Dirigido a historico: ' + displayCell_(row[CRM_COL.DIRIGIDO_A - 1]),
+    'Municipio historico: ' + displayCell_(row[CRM_COL.MUNICIPIO - 1]),
+    'Provincia historica: ' + displayCell_(row[CRM_COL.PROVINCIA - 1]),
+    'Pais historico: ' + displayCell_(row[CRM_COL.PAIS - 1]),
+    'Email historico: ' + displayCell_(row[CRM_COL.EMAIL - 1]),
+    'Telefono historico: ' + displayCell_(row[CRM_COL.TELEFONO - 1]),
+    'Links para contraste: ' + fuentes
   ].join('\n');
 
   return (
-    'Analiza este concurso y devuelve el JSON solicitado.\n' +
-    'Si no encuentras fecha exacta del ano actual, estima en formato "ESTIMADO: DD/MM/YYYY".\n' +
-    'fechasDesarrollo debe ser solo un mes (por ejemplo: "Abril" o "ESTIMADO: Abril").\n' +
-    'Si no hay datos, usa "No publicado".\n\n' +
+    'Analiza este concurso con criterio humano, logico y abierto. Devuelve JSON estricto.\n' +
+    'PRIORIDADES DE DATOS:\n' +
+    '1) Si existe base oficial del ano actual, usa ese dato como fuente principal.\n' +
+    '2) Si no existe dato oficial actual, usa historico y estima con logica.\n' +
+    '3) fechaLimite nunca vacia: fecha oficial DD/MM/YYYY o "ESTIMADO: DD/MM/YYYY".\n' +
+    '4) fechasDesarrollo solo mes (Enero..Diciembre) o "ESTIMADO: Mes".\n' +
+    '5) tipoPremio SOLO: ECONOMICO, SERVICIO, ACTUACION, RESIDENCIA o VARIOS.\n' +
+    '6) Prioriza link1 como bases actuales; link2 historico; link3 complementario.\n' +
+    '7) Si falta cualquier dato, usa "' + CRM_NO_DATA + '".\n' +
+    '8) En _razonamiento_logico explica de donde sale cada dato y por que fue estimado.\n\n' +
     historico
   );
 }
@@ -770,7 +1137,7 @@ function procesarNuevos_(ss, sheetConcursos, sheetNuevos, props, startTime) {
     }
 
     try {
-      const webObj = extraerWeb_(rawUrl);
+      const webObj = extraerWebProfundo_([rawUrl]);
       const ai = llamarIA_(
         'Extrae TODOS los datos de este concurso nuevo. URL de origen: ' + rawUrl,
         webObj,
@@ -808,10 +1175,10 @@ function procesarNuevos_(ss, sheetConcursos, sheetNuevos, props, startTime) {
         mergeValue_(ai.dirigidoA, ''),
         mergeValue_(ai.municipio, ''),
         mergeValue_(ai.provincia, ''),
-        mergeValue_(ai.pais, '') || 'Espana',
-        link1 || 'No publicado',
-        normalizarUrl_(ai.link2) || 'No publicado',
-        normalizarUrl_(ai.link3) || 'No publicado',
+        mergeValue_(ai.pais, '') || 'España',
+        link1 || CRM_NO_DATA,
+        normalizarUrl_(ai.link2) || CRM_NO_DATA,
+        normalizarUrl_(ai.link3) || CRM_NO_DATA,
         mergeValue_(ai.email, ''),
         mergeValue_(ai.telefono, ''),
         mergeValue_(ai.notas, '')
@@ -857,38 +1224,42 @@ function getSetNombres_(sheetConcursos) {
 // -----------------------------------------------------------------------------
 
 function procesarRadar_(ss, sheetConcursos, props, startTime) {
-  const budget = checkBudget_(props, startTime);
-  if (budget === 'STOP') return 'STOP';
-  if (budget === 'TIMEOUT') {
-    setPaused_(props, 'Pausa de seguridad en Fase 3');
-    return 'TIMEOUT';
-  }
-
   props.setProperty('FASE_ACTUAL', 'Fase 3: Radar de oportunidades');
-  bumpProgress_(props);
 
+  const objetivo = 5;
+  const maxIntentos = 5;
   const existentes = getSetNombres_(sheetConcursos);
-  const nombresMuestra = Array.from(existentes).slice(0, 80).join(', ');
-  const prompt = [
-    'Busca 5 concursos o ayudas musicales vigentes en Espana.',
-    'No repitas estos nombres: ' + (nombresMuestra || 'Ninguno'),
-    'Devuelve solo resultados con informacion minimamente verificable.',
-    'Si no estas seguro, devuelve menos elementos, pero no inventes.'
-  ].join('\n');
+  const rowsToInsert = [];
+  const notes = [];
+  const states = [];
+  let intentos = 0;
 
-  try {
-    const arr = llamarIA_(prompt, { type: 'none' }, true);
-    if (!arr || !Array.isArray(arr) || arr.length === 0) {
-      logCRM_('Radar sin resultados.', 'warning');
-      return 'DONE';
+  while (rowsToInsert.length < objetivo && intentos < maxIntentos) {
+    const budget = checkBudget_(props, startTime);
+    if (budget === 'STOP') return 'STOP';
+    if (budget === 'TIMEOUT') {
+      setPaused_(props, 'Pausa de seguridad en Fase 3');
+      return 'TIMEOUT';
     }
 
-    const rowsToInsert = [];
-    const notes = [];
-    const states = [];
+    intentos++;
+    const faltan = objetivo - rowsToInsert.length;
+    const nombresMuestra = Array.from(existentes).slice(0, 120).join(', ');
+    const prompt = [
+      'Busca EXACTAMENTE ' + faltan + ' concursos o ayudas musicales vigentes para bandas de cualquier parte del mundo.',
+      'No repitas estos nombres: ' + (nombresMuestra || 'Ninguno'),
+      'Prioriza resultados con links reales y verificables.',
+      'Si falta un dato, usa "' + CRM_NO_DATA + '".'
+    ].join('\n');
 
-    for (let i = 0; i < arr.length; i++) {
-      const r = arr[i];
+    const arr = llamarIA_(prompt, { type: 'none' }, true);
+    if (!arr || !Array.isArray(arr) || arr.length === 0) {
+      logCRM_('Radar intento ' + intentos + ' sin resultados.', 'warning');
+      continue;
+    }
+
+    for (let i = 0; i < arr.length && rowsToInsert.length < objetivo; i++) {
+      const r = arr[i] || {};
       const nombre = sanitizeValue_(r.nombreConcurso);
       if (!nombre || existentes.has(nombre.toUpperCase())) continue;
 
@@ -907,10 +1278,10 @@ function procesarRadar_(ss, sheetConcursos, props, startTime) {
         mergeValue_(r.dirigidoA, ''),
         mergeValue_(r.municipio, ''),
         mergeValue_(r.provincia, ''),
-        mergeValue_(r.pais, '') || 'Espana',
-        normalizarUrl_(r.link1) || 'No publicado',
-        normalizarUrl_(r.link2) || 'No publicado',
-        normalizarUrl_(r.link3) || 'No publicado',
+        mergeValue_(r.pais, '') || 'España',
+        normalizarUrl_(r.link1) || CRM_NO_DATA,
+        normalizarUrl_(r.link2) || CRM_NO_DATA,
+        normalizarUrl_(r.link3) || CRM_NO_DATA,
         mergeValue_(r.email, ''),
         mergeValue_(r.telefono, ''),
         mergeValue_(r.notas, '')
@@ -918,23 +1289,48 @@ function procesarRadar_(ss, sheetConcursos, props, startTime) {
       notes.push(sanitizeValue_(r._razonamiento_logico));
       states.push(ins);
       existentes.add(nombre.toUpperCase());
+      bumpProgress_(props);
     }
+  }
 
-    if (rowsToInsert.length > 0) {
-      const startRow = sheetConcursos.getLastRow() + 1;
-      sheetConcursos.getRange(startRow, 1, rowsToInsert.length, 17).setValues(rowsToInsert);
-      for (let j = 0; j < rowsToInsert.length; j++) {
-        if (notes[j]) {
-          sheetConcursos.getRange(startRow + j, CRM_COL.FECHA_LIMITE).setNote('Radar:\n' + notes[j]);
-        }
-        aplicarFormatoFila_(sheetConcursos, startRow + j, states[j], ss.getSpreadsheetTimeZone());
+  while (Number(props.getProperty('CURRENT_ROW') || '0') < Number(props.getProperty('TOTAL_ROWS') || '0') && rowsToInsert.length < objetivo) {
+    // Mantiene progresion visual cuando el radar no llega a 5.
+    bumpProgress_(props);
+    rowsToInsert.push([
+      'Radar pendiente de validacion manual [' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM HH:mm') + ' #' + (rowsToInsert.length + 1) + ']',
+      CRM_ESTADO.NUEVO_DESCUBRIMIENTO,
+      CRM_INSCRIPCION.SIN_PUBLICAR,
+      'SIN PUBLICAR',
+      CRM_NO_DATA,
+      'VARIOS',
+      CRM_NO_DATA,
+      CRM_NO_DATA,
+      CRM_NO_DATA,
+      CRM_NO_DATA,
+      'España',
+      CRM_NO_DATA,
+      CRM_NO_DATA,
+      CRM_NO_DATA,
+      CRM_NO_DATA,
+      CRM_NO_DATA,
+      'Insertado automaticamente por radar al no alcanzar 5 resultados verificables.'
+    ]);
+    notes.push('Resultado de relleno para mantener 5 entradas en radar.');
+    states.push(CRM_INSCRIPCION.SIN_PUBLICAR);
+  }
+
+  if (rowsToInsert.length > 0) {
+    const startRow = sheetConcursos.getLastRow() + 1;
+    sheetConcursos.getRange(startRow, 1, rowsToInsert.length, 17).setValues(rowsToInsert);
+    for (let j = 0; j < rowsToInsert.length; j++) {
+      if (notes[j]) {
+        sheetConcursos.getRange(startRow + j, CRM_COL.FECHA_LIMITE).setNote('Radar:\n' + notes[j]);
       }
-      logCRM_('Radar agrego ' + rowsToInsert.length + ' concursos.', 'success');
-    } else {
-      logCRM_('Radar no encontro concursos nuevos.', 'warning');
+      aplicarFormatoFila_(sheetConcursos, startRow + j, states[j], ss.getSpreadsheetTimeZone());
     }
-  } catch (err) {
-    logCRM_('Error en Radar: ' + err.message, 'error');
+    logCRM_('Radar agrego ' + rowsToInsert.length + ' concursos.', 'success');
+  } else {
+    logCRM_('Radar sin resultados insertables.', 'warning');
   }
 
   return 'DONE';
@@ -1015,9 +1411,9 @@ function llamarIA_(prompt, webObj, asArray) {
     '2) fechasDesarrollo solo mes (ej: "Abril" o "ESTIMADO: Abril").',
     '3) tipoPremio solo: ECONOMICO, SERVICIO, ACTUACION, RESIDENCIA, VARIOS.',
     '4) Rellena municipio, provincia, pais cuando exista evidencia.',
-    '5) Enlace bases actuales en link1 si existe.',
+    '5) Prioriza link1 como bases actuales, link2 historico y link3 complementario.',
     '6) No menciones que eres IA.',
-    '7) Cuando no exista un dato, usa "No publicado".'
+    '7) Cuando no exista un dato, usa "' + CRM_NO_DATA + '".'
   ].join('\n');
 
   const parts = [{ text: prompt }];
@@ -1201,9 +1597,7 @@ function mostrarDialogoBoletinSeguro_() {
   </div>
   <script>
     function enviar() {
-      if (!confirm('Se enviara el boletin a todas las bandas con email valido usando solo concursos ABIERTA. ?Continuar?
-
-DESARROLLADOR: RUBEN COTON')) return;
+      if (!confirm('Se enviara el boletin a todas las bandas con email valido usando solo concursos ABIERTA. ¿Continuar?\\n\\nDESARROLLADOR: RUBEN COTON')) return;
       const pwd = document.getElementById('pwd').value || '';
       const status = document.getElementById('status');
       status.textContent = 'Enviando...';
@@ -1286,7 +1680,7 @@ function enviarBoletin_() {
       '<h2 style="margin-bottom:8px;">Hola ' + escapeHtml_(name) + '</h2>',
       '<p style="line-height:1.6;">' + escapeHtml_(baseMsg) + '</p>',
       '<p style="font-size:13px;background:#fff8e1;border-left:4px solid #f9a825;padding:10px 12px;">',
-      '<strong>Regla del CRM:</strong> solo enviamos concursos con inscripcion ABIERTA (desde 3 meses antes de la fecha limite, inclusive, hasta la fecha limite).',
+      '<strong>Regla del CRM:</strong> solo enviamos concursos con inscripcion ABIERTA (desde 2 meses antes de la fecha limite, inclusive, hasta la fecha limite).',
       '</p>',
       bloques.join('\n'),
       '<p style="margin-top:28px;font-size:12px;color:#666;">Mensaje generado desde tu CRM de ayudas y subvenciones.</p>',
@@ -1357,7 +1751,7 @@ function aplicarDiseno_(sheetConcursos, sheetNuevos) {
   const maxCols = sheetConcursos.getMaxColumns();
   const header = sheetConcursos.getRange(1, 1, 1, maxCols);
   header
-    .setBackground('#8B0000')
+    .setBackground('#6B0018')
     .setFontColor('#FFFFFF')
     .setFontWeight('bold')
     .setHorizontalAlignment('center')
@@ -1370,6 +1764,12 @@ function aplicarDiseno_(sheetConcursos, sheetNuevos) {
   }
   sheetConcursos.getRange(1, 1, Math.max(2, sheetConcursos.getLastRow()), maxCols).createFilter();
 
+  if (sheetConcursos.getLastRow() > 1) {
+    sheetConcursos.getRange(2, 1, sheetConcursos.getLastRow() - 1, 17)
+      .setBackground('#F2F2F2')
+      .setFontColor('#212121');
+  }
+
   aplicarValidaciones_(sheetConcursos);
 
   if (sheetNuevos) {
@@ -1377,7 +1777,7 @@ function aplicarDiseno_(sheetConcursos, sheetNuevos) {
     if (colsN > 0) {
       sheetNuevos
         .getRange(1, 1, 1, colsN)
-        .setBackground('#8B0000')
+        .setBackground('#6B0018')
         .setFontColor('#FFFFFF')
         .setFontWeight('bold')
         .setHorizontalAlignment('center');
@@ -1392,8 +1792,7 @@ function aplicarValidaciones_(sheetConcursos) {
     CRM_ESTADO.REVISAR,
     CRM_ESTADO.REVISADO_IA,
     CRM_ESTADO.REVISADO_HUMANO,
-    CRM_ESTADO.NUEVO_DESCUBRIMIENTO,
-    CRM_ESTADO_LEGACY.NUEVO_DESCUBRIMIENTOS
+    CRM_ESTADO.NUEVO_DESCUBRIMIENTO
   ];
   const ruleEstado = SpreadsheetApp.newDataValidation()
     .requireValueInList(estados, true)
@@ -1425,9 +1824,9 @@ function aplicarFormatoFila_(sheet, rowN, inscripcion, tz) {
 
   const ins = sanitizeValue_(inscripcion).toUpperCase();
   let bg = '#FFFFFF';
-  if (ins === CRM_INSCRIPCION.ABIERTA) bg = '#d9ead3';
-  else if (ins === CRM_INSCRIPCION.CERRADA) bg = '#f4cccc';
-  else if (ins === CRM_INSCRIPCION.SIN_PUBLICAR) bg = '#fff2cc';
+  if (ins === CRM_INSCRIPCION.ABIERTA) bg = '#D9EAD3';
+  else if (ins === CRM_INSCRIPCION.CERRADA) bg = '#F4CCCC';
+  else if (ins === CRM_INSCRIPCION.SIN_PUBLICAR) bg = '#FFF2CC';
   rowRange.setBackground(bg);
 
   sheet.getRange(rowN, CRM_COL.NOMBRE).setFontWeight('bold').setFontSize(11).setFontColor('#000000');
@@ -1474,7 +1873,7 @@ function normalizarTipoPremio_(value) {
   if (raw.indexOf('SERVICIO') !== -1) return 'SERVICIO';
   if (raw.indexOf('ACTUACION') !== -1 || raw.indexOf('ACTUACI') !== -1) return 'ACTUACION';
   if (raw.indexOf('RESIDENCIA') !== -1) return 'RESIDENCIA';
-  return CRM_TIPO_PREMIO.indexOf(raw) !== -1 ? raw : 'VARIOS';
+  return CRM_TIPO_PREMIO_SET[raw] ? raw : 'VARIOS';
 }
 
 function normalizarUrl_(value) {
@@ -1483,28 +1882,65 @@ function normalizarUrl_(value) {
   return '';
 }
 
-function firstUrl_(a, b) {
-  const u1 = normalizarUrl_(a);
-  if (u1) return u1;
-  const u2 = normalizarUrl_(b);
-  return u2 || '';
+function firstUrl_(a, b, c) {
+  const urls = collectUrls_(a, b, c);
+  return urls.length ? urls[0] : '';
 }
 
+function collectUrls_(a, b, c) {
+  const raw = [a, b, c];
+  const out = [];
+  for (let i = 0; i < raw.length; i++) {
+    const u = normalizarUrl_(raw[i]);
+    if (u && out.indexOf(u) === -1) out.push(u);
+  }
+  return out;
+}
+
+function extraerWebProfundo_(urlList) {
+  const lista = Array.isArray(urlList) ? urlList : collectUrls_(urlList);
+  if (!lista.length) return { type: 'none' };
+
+  const bloques = [];
+  const fuentes = [];
+  for (let i = 0; i < lista.length && i < 3; i++) {
+    const web = extraerWeb_(lista[i]);
+    if (!web || web.type === 'none') continue;
+    if (web.type === 'pdf') return web;
+    if (web.type === 'text' && sanitizeValue_(web.content)) {
+      bloques.push(web.content);
+      fuentes.push(web.url || lista[i]);
+    }
+  }
+
+  if (!bloques.length) return { type: 'none' };
+  return {
+    type: 'text',
+    content: bloques.join('\n\n').substring(0, 120000),
+    url: fuentes.join(' | ')
+  };
+}
 function sanitizeValue_(value) {
   if (value === null || value === undefined) return '';
   return String(value).trim();
 }
 
-function mergeValue_(newValue, oldValue) {
+function mergeValue_(newValue, oldValue, fallbackValue) {
   const n = sanitizeValue_(newValue);
-  if (!n) return sanitizeValue_(oldValue);
-  const l = n.toLowerCase();
-  if (l === 'no publicado' || l === 'sin publicar' || l === 'n/a' || l === 'null') {
-    return sanitizeValue_(oldValue);
-  }
-  return n;
-}
+  const o = sanitizeValue_(oldValue);
+  const fallback = fallbackValue === undefined ? CRM_NO_DATA : sanitizeValue_(fallbackValue);
 
+  if (n) {
+    const l = n.toLowerCase();
+    if (l === 'no publicado' || l === 'sin publicar' || l === 'n/a' || l === 'null' || l === CRM_NO_DATA.toLowerCase()) {
+      return o || fallback;
+    }
+    return n;
+  }
+
+  if (o) return o;
+  return fallback;
+}
 function displayCell_(value) {
   if (value instanceof Date) {
     return Utilities.formatDate(value, Session.getScriptTimeZone(), 'dd/MM/yyyy');
@@ -1555,7 +1991,7 @@ function estadoInscripcionDesdeFecha_(fechaValue) {
 
   const fLimite = new Date(parsed.date.getFullYear(), parsed.date.getMonth(), parsed.date.getDate(), 23, 59, 59, 999);
   const inicioVentana = new Date(fLimite);
-  inicioVentana.setMonth(inicioVentana.getMonth() - 3);
+  inicioVentana.setMonth(inicioVentana.getMonth() - 2);
   inicioVentana.setHours(0, 0, 0, 0);
 
   const hoy = new Date();
