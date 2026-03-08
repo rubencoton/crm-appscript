@@ -1587,6 +1587,7 @@ function getModels_(apiKey) {
     if (discovered.length) {
       props.setProperty('GEMINI_MODELS_CACHE_JSON', JSON.stringify(discovered));
       props.setProperty('GEMINI_MODELS_CACHE_TS', String(Date.now()));
+      logCRM_('Modelos Gemini detectados: ' + discovered.slice(0, 8).join(', '), 'system');
       return discovered;
     }
   } catch (err) {
@@ -2225,6 +2226,8 @@ function escapeHtml_(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
+
 
 
 
