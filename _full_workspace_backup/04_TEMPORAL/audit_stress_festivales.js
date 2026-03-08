@@ -1,7 +1,7 @@
 ﻿const fs = require('fs');
 const vm = require('vm');
 
-const file = 'C:/Users/elrub/Desktop/CARPETA CODEX/01_PROYECTOS/festivales-github/Código.js';
+const file = 'C:/Users/elrub/Desktop/CARPETA CODEX/01_PROYECTOS/festivales-github/CRM_FESTIVALES_ENGINE.gs';
 const code = fs.readFileSync(file, 'utf8');
 
 const fnMatches = [...code.matchAll(/function\s+([A-Za-z0-9_]+)\s*\(/g)].map((m) => m[1]);
@@ -119,3 +119,4 @@ if (!failures.length) {
   failures.forEach((f, i) => console.log(`${i + 1}. ${f}`));
   process.exitCode = 2;
 }
+

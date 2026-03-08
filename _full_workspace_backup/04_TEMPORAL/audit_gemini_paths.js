@@ -1,6 +1,6 @@
 ﻿const fs = require('fs');
 const vm = require('vm');
-const file = 'C:/Users/elrub/Desktop/CARPETA CODEX/01_PROYECTOS/festivales-github/Código.js';
+const file = 'C:/Users/elrub/Desktop/CARPETA CODEX/01_PROYECTOS/festivales-github/CRM_FESTIVALES_ENGINE.gs';
 const code = fs.readFileSync(file, 'utf8');
 
 let fetchMode = 'throw';
@@ -55,3 +55,4 @@ run('200bad', true);
 run('200ok', false);
 
 console.log('OK: rutas de error Gemini toleradas sin throws fatales.');
+

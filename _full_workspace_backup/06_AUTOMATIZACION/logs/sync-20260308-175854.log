@@ -25,3 +25,17 @@ SerializationVersion: 1.1.0.1
 ====================================================
 [INFO] Repo: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
 [INFO] clasp pull in: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github
+[INFO] clasp pull in: C:\Users\elrub\Desktop\CARPETA CODEX\01_PROYECTOS\festivales-github\crm-ayudas-subvenciones
+[INFO] git pull --rebase --autostash
+[INFO] Changes detected. Committing...
+
+====================== SUMMARY ======================
+[INFO] Repos detected: 1
+[INFO] Repos synced:   1
+[INFO] Repos changed:  1
+[INFO] Repos failed:   0
+[INFO] Log file:       C:\Users\elrub\Desktop\CARPETA CODEX\06_AUTOMATIZACION\logs\sync-20260308-175854.log
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20260308175914
+**********************

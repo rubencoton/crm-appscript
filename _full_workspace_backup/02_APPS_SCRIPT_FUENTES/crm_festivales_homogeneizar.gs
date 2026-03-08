@@ -64,10 +64,10 @@ function crearMenuCRMFestivales_() {
     .addItem('🧭 Auditar genero + tamano S/L/XL (seguro)', 'menuAuditarClasificacionCRMFestivales')
     .addItem('💥 Modo auditor extremo (stress test)', 'menuAuditorExtremoCRMFestivales')
     .addSeparator()
-    .addItem('⚙️ Instalar trigger de menu', 'instalarTriggerMenuCRMFestivales')
-    .addItem('🧹 Limpiar triggers de menu', 'limpiarTriggersMenuCRMFestivales')
+    .addItem('⚙️ Instalar trigger de menu (seguro)', 'menuInstalarTriggerCRMFestivales')
+    .addItem('🧹 Limpiar triggers de menu (seguro)', 'menuLimpiarTriggersCRMFestivales')
     .addSeparator()
-    .addItem('📚 Guia de arquitectura', 'mostrarGuiaIntegracionCRMFestivales')
+    .addItem('📚 Guia de arquitectura (seguro)', 'menuGuiaArquitecturaCRMFestivales')
     .addToUi();
 }
 
@@ -175,6 +175,18 @@ function menuAuditarClasificacionCRMFestivales() {
 
 function menuAuditorExtremoCRMFestivales() {
   ejecutarConPassword_(auditoriaEstresCRMFestivales, 'Modo auditor extremo (stress test)');
+}
+
+function menuInstalarTriggerCRMFestivales() {
+  ejecutarConPassword_(instalarTriggerMenuCRMFestivales, 'Instalar trigger de menu');
+}
+
+function menuLimpiarTriggersCRMFestivales() {
+  ejecutarConPassword_(limpiarTriggersMenuCRMFestivales, 'Limpiar triggers de menu');
+}
+
+function menuGuiaArquitecturaCRMFestivales() {
+  ejecutarConPassword_(mostrarGuiaIntegracionCRMFestivales, 'Guia de arquitectura');
 }
 
 /**
@@ -413,7 +425,6 @@ function auditoriaEstresCRMFestivales() {
   const failures = [];
   const warnings = [];
   const notes = [];
-
   const check = (ok, label, detail) => {
     if (!ok) failures.push(label + (detail ? ' -> ' + detail : ''));
   };
@@ -452,10 +463,11 @@ function auditoriaEstresCRMFestivales() {
     'menuAuditarEstructuraCRMFestivales',
     'menuAuditarClasificacionCRMFestivales',
     'menuAuditorExtremoCRMFestivales',
-    'instalarTriggerMenuCRMFestivales',
-    'limpiarTriggersMenuCRMFestivales',
-    'mostrarGuiaIntegracionCRMFestivales'
+    'menuInstalarTriggerCRMFestivales',
+    'menuLimpiarTriggersCRMFestivales',
+    'menuGuiaArquitecturaCRMFestivales'
   ];
+
   for (let i = 0; i < handlers.length; i++) {
     const fn = handlers[i];
     if (typeof this[fn] !== 'function') failures.push('Handler no encontrado: ' + fn);

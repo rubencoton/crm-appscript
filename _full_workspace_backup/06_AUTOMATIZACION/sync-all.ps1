@@ -1,20 +1,21 @@
 ﻿param(
-    [ValidateSet("backup","full")]
+    [ValidateSet("backup", "full")]
     [string]$Mode = "backup",
     [string]$WorkspaceRoot = "C:\Users\elrub\Desktop\CARPETA CODEX",
-    [string]$ProjectsRoot = ""
+    [string]$ProjectsRoot = "",
+    [int]$MaxAutoCommitFiles = 200
 )
 
 $ErrorActionPreference = "Stop"
 
 if ([string]::IsNullOrWhiteSpace($ProjectsRoot)) {
-    $ProjectsRoot = Join-Path $WorkspaceRoot "01_PROYECTOS"
+    $ProjectsRoot = $WorkspaceRoot
 }
 
 # Ensure Node.js is available for clasp under scheduled execution.
 $nodeDir = Join-Path $env:ProgramFiles "nodejs"
 if (Test-Path $nodeDir) {
-    $env:Path = $nodeDir + ";" + $env:Path
+    $env:Path = "$nodeDir;$env:Path"
 }
 
 $autoDir = Join-Path $WorkspaceRoot "06_AUTOMATIZACION"
@@ -93,10 +94,7 @@ function Invoke-Git {
     }
 
     if ($AllowedExitCodes -contains $exitCode) {
-        return [PSCustomObject]@{
-            ExitCode = $exitCode
-            Output   = $output
-        }
+        return [PSCustomObject]@{ ExitCode = $exitCode; Output = $output }
     }
 
     $joined = ($output | Out-String).Trim()
@@ -115,11 +113,9 @@ function Invoke-Git {
         }
 
         if ($AllowedExitCodes -contains $exitCode) {
-            return [PSCustomObject]@{
-                ExitCode = $exitCode
-                Output   = $output
-            }
+            return [PSCustomObject]@{ ExitCode = $exitCode; Output = $output }
         }
+
         $joined = ($output | Out-String).Trim()
     }
 
@@ -135,16 +131,20 @@ function Ensure-LocalExclude {
     param([string]$RepoPath)
 
     $excludeFile = Join-Path $RepoPath ".git\info\exclude"
-    if (-not (Test-Path $excludeFile)) {
-        return
-    }
+    if (-not (Test-Path $excludeFile)) { return }
 
     $wanted = @(
         "node_modules/",
-        "**/node_modules/"
+        "**/node_modules/",
+        "_full_workspace_backup/",
+        "**/_full_workspace_backup/",
+        "06_AUTOMATIZACION/logs/",
+        "**/logs/",
+        "*.log",
+        "sync.lock"
     )
-    $existing = Get-Content -Path $excludeFile -ErrorAction SilentlyContinue
 
+    $existing = Get-Content -Path $excludeFile -ErrorAction SilentlyContinue
     foreach ($pattern in $wanted) {
         if (-not ($existing -contains $pattern)) {
             Add-Content -Path $excludeFile -Value $pattern
@@ -165,20 +165,31 @@ function Invoke-ClaspPull {
 
     $claspDirs = Get-ChildItem -Path $RepoPath -Filter ".clasp.json" -File -Recurse -ErrorAction SilentlyContinue |
         ForEach-Object { $_.DirectoryName } |
+        Where-Object {
+            ($_ -notmatch "\\node_modules\\") -and
+            ($_ -notmatch "\\_full_workspace_backup\\") -and
+            ($_ -notmatch "\\06_AUTOMATIZACION\\logs\\")
+        } |
         Sort-Object -Unique
 
     foreach ($dir in $claspDirs) {
         Write-Host "[INFO] clasp pull in: $dir"
         Push-Location $dir
         try {
-            $claspOut = cmd /c ('"' + $ClaspCommand + '" pull') 2>&1
-            if ($LASTEXITCODE -ne 0) {
-                $joined = ($claspOut | Out-String).Trim()
-                Write-Host "[WARN] clasp pull failed in ${dir}. ExitCode=$LASTEXITCODE. $joined"
+            $oldEap = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = "Continue"
+                $claspOut = cmd /c ('"' + $ClaspCommand + '" pull') 2>&1
+                $claspExit = $LASTEXITCODE
             }
-        }
-        catch {
-            Write-Host "[WARN] clasp pull failed in ${dir}: $($_.Exception.Message)"
+            finally {
+                $ErrorActionPreference = $oldEap
+            }
+
+            if ($claspExit -ne 0) {
+                $joined = ($claspOut | Out-String).Trim()
+                Write-Host "[WARN] clasp pull failed in ${dir}. ExitCode=$claspExit. $joined"
+            }
         }
         finally {
             Pop-Location
@@ -210,43 +221,53 @@ try {
 
         try {
             Ensure-LocalExclude -RepoPath $repo
-            Invoke-ClaspPull -RepoPath $repo -ClaspCommand $claspCmd
+            if ($Mode -eq "full") {
+                Invoke-ClaspPull -RepoPath $repo -ClaspCommand $claspCmd
+            }
+            else {
+                Write-Host "[INFO] backup mode: skipping clasp pull"
+            }
 
             $remoteText = Get-GitText (Invoke-Git -RepoPath $repo -GitArgs @("remote"))
             $hasOrigin = ($remoteText -split "`r?`n" | Where-Object { $_ -eq "origin" }).Count -gt 0
 
-            $branch = Get-GitText (Invoke-Git -RepoPath $repo -GitArgs @("branch","--show-current"))
-            $upstreamProbe = Invoke-Git -RepoPath $repo -GitArgs @("rev-parse","--abbrev-ref","--symbolic-full-name","@{u}") -AllowedExitCodes @(0,128)
+            $branch = Get-GitText (Invoke-Git -RepoPath $repo -GitArgs @("branch", "--show-current"))
+            $upstreamProbe = Invoke-Git -RepoPath $repo -GitArgs @("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}") -AllowedExitCodes @(0, 128)
             $hasUpstream = $upstreamProbe.ExitCode -eq 0
 
             if ($hasOrigin -and $hasUpstream) {
                 Write-Host "[INFO] git pull --rebase --autostash"
-                Invoke-Git -RepoPath $repo -GitArgs @("pull","--rebase","--autostash") | Out-Null
+                Invoke-Git -RepoPath $repo -GitArgs @("pull", "--rebase", "--autostash") | Out-Null
             }
             elseif ($hasOrigin) {
                 Write-Host "[INFO] No upstream configured. Running git fetch origin."
-                Invoke-Git -RepoPath $repo -GitArgs @("fetch","origin") | Out-Null
+                Invoke-Git -RepoPath $repo -GitArgs @("fetch", "origin") | Out-Null
             }
             else {
                 Write-Host "[WARN] No origin remote found. Backup will stay local for this repo."
             }
 
-            $status = Get-GitText (Invoke-Git -RepoPath $repo -GitArgs @("status","--porcelain"))
+            $status = Get-GitText (Invoke-Git -RepoPath $repo -GitArgs @("status", "--porcelain"))
             if (-not [string]::IsNullOrWhiteSpace($status)) {
-                Write-Host "[INFO] Changes detected. Committing..."
-                Invoke-Git -RepoPath $repo -GitArgs @("add","-A") | Out-Null
+                $changedFilesCount = (($status -split "`r?`n") | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count
+                if ($changedFilesCount -gt $MaxAutoCommitFiles) {
+                    throw "Safety stop: $changedFilesCount files changed in $repo (max allowed: $MaxAutoCommitFiles). Review manually before auto-commit."
+                }
 
-                $postAddStatus = Get-GitText (Invoke-Git -RepoPath $repo -GitArgs @("status","--porcelain"))
+                Write-Host "[INFO] Changes detected. Committing..."
+                Invoke-Git -RepoPath $repo -GitArgs @("add", "-A") | Out-Null
+
+                $postAddStatus = Get-GitText (Invoke-Git -RepoPath $repo -GitArgs @("status", "--porcelain"))
                 if (-not [string]::IsNullOrWhiteSpace($postAddStatus)) {
                     $msg = "auto-sync " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss") + " [" + $env:COMPUTERNAME + "]"
-                    Invoke-Git -RepoPath $repo -GitArgs @("commit","-m",$msg) | Out-Null
+                    Invoke-Git -RepoPath $repo -GitArgs @("commit", "-m", $msg) | Out-Null
 
                     if ($hasOrigin) {
                         if ($hasUpstream) {
                             Invoke-Git -RepoPath $repo -GitArgs @("push") | Out-Null
                         }
                         elseif (-not [string]::IsNullOrWhiteSpace($branch)) {
-                            Invoke-Git -RepoPath $repo -GitArgs @("push","-u","origin",$branch) | Out-Null
+                            Invoke-Git -RepoPath $repo -GitArgs @("push", "-u", "origin", $branch) | Out-Null
                         }
                         else {
                             Write-Host "[WARN] Cannot detect current branch. Commit created but not pushed."
@@ -281,7 +302,8 @@ try {
 finally {
     Stop-Transcript | Out-Null
     if (Test-Path $lockFile) {
-        Remove-Item -Path $lockFile -Force
+        Remove-Item -Path $lockFile -Force -ErrorAction SilentlyContinue
     }
 }
+
 
