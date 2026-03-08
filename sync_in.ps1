@@ -1,4 +1,10 @@
-﻿$ErrorActionPreference = "Stop"
+﻿param(
+  [switch]$DryRun,
+  [switch]$AllowDirty,
+  [switch]$SkipCrmProject
+)
+
+$ErrorActionPreference = "Stop"
 
 function Ensure-ToolPath {
   $candidates = @(
@@ -52,6 +58,20 @@ function Invoke-Clasp {
   throw "No se encontro clasp.cmd ni npx.cmd"
 }
 
+function Run-OrDry {
+  param(
+    [string]$Title,
+    [scriptblock]$Action
+  )
+  Write-Host $Title
+  if ($DryRun) {
+    Write-Host "[DRYRUN] $Title"
+    return 0
+  }
+  & $Action
+  return $LASTEXITCODE
+}
+
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $crmPath = Join-Path $repoRoot "crm-ayudas-subvenciones"
 
@@ -59,22 +79,37 @@ Ensure-ToolPath
 $git = Get-GitCmd
 Set-Location $repoRoot
 
-Write-Host "[1/3] git pull --ff-only"
-try {
-  & $git -C $repoRoot pull --ff-only origin main
-  if ($LASTEXITCODE -ne 0) { throw "git pull --ff-only devolvio codigo $LASTEXITCODE" }
-} catch {
-  Write-Host "ERROR de Git (sin forzar nada)."
-  Write-Host "Elige: resolver conflictos manualmente, o revisar estado con 'git status'."
-  throw
+if ((-not $DryRun) -and (-not $AllowDirty)) {
+  $dirty = & $git -c "safe.directory=$repoRoot" -C $repoRoot status --porcelain
+  if (-not [string]::IsNullOrWhiteSpace(($dirty | Out-String))) {
+    throw "Hay cambios locales. Usa -AllowDirty o limpia el arbol antes de sync_in."
+  }
 }
 
-Write-Host "[2/3] clasp pull (Festivales)"
-$code = Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $repoRoot -Action "pull"
+$code = Run-OrDry -Title "[1/3] git pull --ff-only" -Action {
+  & $git -c "safe.directory=$repoRoot" -C $repoRoot pull --ff-only origin main
+}
+if ($code -ne 0) {
+  Write-Host "ERROR de Git (sin forzar nada)."
+  Write-Host "Elige: resolver conflictos manualmente, o revisar estado con 'git status'."
+  throw "git pull --ff-only devolvio codigo $code"
+}
+
+$code = Run-OrDry -Title "[2/3] clasp pull (Festivales)" -Action {
+  Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $repoRoot -Action "pull"
+}
 if ($code -ne 0) { throw "clasp pull en Festivales fallo" }
 
-Write-Host "[3/3] clasp pull (CRM AYUDAS Y SUBVENCIONES)"
-$code = Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $crmPath -Action "pull"
-if ($code -ne 0) { throw "clasp pull en CRM fallo" }
+if ($SkipCrmProject) {
+  Write-Host "[3/3] omitido por -SkipCrmProject"
+} else {
+  if (-not (Test-Path -LiteralPath (Join-Path $crmPath ".clasp.json"))) {
+    throw "No existe .clasp.json en proyecto CRM secundario: $crmPath"
+  }
+  $code = Run-OrDry -Title "[3/3] clasp pull (CRM AYUDAS Y SUBVENCIONES)" -Action {
+    Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $crmPath -Action "pull"
+  }
+  if ($code -ne 0) { throw "clasp pull en CRM fallo" }
+}
 
 Write-Host "OK sync_in completado"
