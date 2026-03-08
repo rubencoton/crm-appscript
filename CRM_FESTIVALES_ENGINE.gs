@@ -139,6 +139,56 @@ const FEST_GENRE_DROPDOWN = [
   '🎷 JAZZ', '💃 FLAM', '🪘 RUMBA', '🎼 MEC', '🌄 MFR'
 ];
 
+const FEST_PROJECT_HANDOFF_NOTES = [
+  '[IDENTIDAD]',
+  'Proyecto: CRM FESTIVALES',
+  'Arquitecto: RUBEN COTON',
+  '',
+  '[ARCHIVO PRINCIPAL]',
+  'CRM_FESTIVALES_ENGINE.gs',
+  '',
+  '[OBJETIVO]',
+  'CRM simple, visual y rapido para festivales en Espana.',
+  'Prioridad maxima en calidad de datos de contacto.',
+  '',
+  '[COLUMNAS A:J]',
+  'A NOMBRE FESTIVAL',
+  'B GENERO',
+  'C AFORO',
+  'D UBICACION',
+  'E PROVINCIA',
+  'F CCAA',
+  'G EMAIL',
+  'H TELEFONO',
+  'I NOMBRE CONTACTO',
+  'J OBSERVACIONES',
+  '',
+  '[GENERO]',
+  'URBAN, POP, INDIE, ROCK, ELECTR, JAZZ, FLAM, RUMBA, MEC, MFR, PTE',
+  '',
+  '[TAMANO POR AFORO]',
+  'S = 0..1000',
+  'L = 1001..9999',
+  'XL = 10000..infinito',
+  '',
+  '[SEGURIDAD]',
+  'Password operativa: +rubencoton26',
+  'Menu protegido por sesion segura en cache.',
+  '',
+  '[IA GEMINI]',
+  'Modelo preferente: gemini-3.1-pro-preview',
+  'Fallback: 2.5-pro -> 3-flash-preview -> 2.5-flash -> 2.5-flash-lite -> gemini-flash-latest',
+  '',
+  '[RUTA SENCILLA RECOMENDADA]',
+  '1) Escaner total + homogeneizar',
+  '2) Depurar contactos local',
+  '3) Depurar contactos con Gemini (lotes)',
+  '4) Auditar estructura y clasificacion',
+  '',
+  '[NOTA PARA OTRO CHAT]',
+  'Antes de tocar reglas, leer este bloque y ejecutar auditoria.'
+].join('\n');
+
 // Si no tienes otro onOpen en el proyecto, este ya deja el menu automatico.
 
 /**
@@ -161,6 +211,7 @@ function onOpenFestivalesHomogeneidad_() {
 function crearMenuCRMFestivales_() {
   SpreadsheetApp.getUi()
     .createMenu('🚀 CRM FESTIVALES | RUBEN COTON')
+    .addItem('\uD83E\uDDF7 Selector facil (paso a paso)', 'menuSelectorFacilCRMFestivales')
     .addItem('🚀 Escaner total + homogeneizar (seguro)', 'menuHomogeneizarCRMFestivales')
     .addItem('🎨 Solo armonizar diseno visual (seguro)', 'menuAplicarDisenoCRMFestivales')
     .addItem('📧 Depurar contactos local (seguro)', 'menuDepurarContactosCRMFestivales')
@@ -173,6 +224,7 @@ function crearMenuCRMFestivales_() {
     .addItem('🧹 Limpiar triggers de menu (seguro)', 'menuLimpiarTriggersCRMFestivales')
     .addSeparator()
     .addItem('📚 Guia de arquitectura (seguro)', 'menuGuiaArquitecturaCRMFestivales')
+    .addItem('\uD83D\uDCC2\uFE0F Notas del proyecto', 'menuNotasProyectoCRMFestivales')
     .addToUi();
 }
 
@@ -312,10 +364,171 @@ function menuGuiaArquitecturaCRMFestivales() {
   ejecutarConPassword_(mostrarGuiaIntegracionCRMFestivales, 'Guia de arquitectura');
 }
 
+function menuSelectorFacilCRMFestivales() {
+  mostrarSelectorFacilCRMFestivales_();
+}
+
+function menuNotasProyectoCRMFestivales() {
+  mostrarNotasProyectoCRMFestivales_();
+}
+
 /**
- * 1) Unifica TODAS las pestanas de festivales al mismo orden de columnas.
- * 2) Aplica diseno visual consistente para una lectura comoda.
+ * Selector visual ultra-simple para ejecutar el CRM sin complicaciones.
+ * Muestra en grande y en negrita que se va a ejecutar en cada accion.
  */
+function mostrarSelectorFacilCRMFestivales_() {
+  const html = [
+    '<!DOCTYPE html><html><head><meta charset="utf-8">',
+    '<style>',
+    'body{font-family:Arial,sans-serif;background:#f6f7fb;color:#1f1f1f;margin:0;padding:16px;}',
+    '.title{font-size:32px;font-weight:900;letter-spacing:.3px;margin:0 0 4px;}',
+    '.sub{font-size:16px;font-weight:700;margin:0 0 12px;}',
+    '.tip{background:#fff3cd;border:1px solid #ffdd7a;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;margin-bottom:12px;}',
+    '.panel{background:#ffffff;border:1px solid #d9dbe1;border-radius:14px;padding:12px;box-shadow:0 2px 12px rgba(0,0,0,.05);}',
+    '.line{display:flex;gap:10px;align-items:center;margin-bottom:12px;}',
+    'input{flex:1;padding:11px;border-radius:10px;border:1px solid #cfd3dc;font-size:14px;}',
+    '.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}',
+    '.card{background:#fff;border:1px solid #d9dbe1;border-radius:12px;padding:12px;}',
+    '.card h2{margin:0 0 8px;font-size:20px;font-weight:900;line-height:1.1;}',
+    '.card p{margin:0 0 6px;font-size:13px;}',
+    '.card ul{margin:0 0 10px 18px;padding:0;font-size:13px;line-height:1.4;}',
+    '.btn{width:100%;padding:11px;border:0;border-radius:10px;font-weight:800;cursor:pointer;}',
+    '.b1{background:#8B0000;color:#fff;}',
+    '.b2{background:#1f6feb;color:#fff;}',
+    '.b3{background:#0a7f39;color:#fff;}',
+    '.b4{background:#7a3ec8;color:#fff;}',
+    '.status{margin-top:12px;padding:10px;border-radius:10px;background:#f0f3f9;border:1px solid #d9dbe1;font-size:13px;font-weight:700;}',
+    '.notes{margin-top:10px;background:#fff;border:1px dashed #bbb;border-radius:10px;padding:10px;font-size:12px;}',
+    '@media (max-width:880px){.grid{grid-template-columns:1fr;}}',
+    '</style></head><body>',
+    '<div class="title">\uD83E\uDDF7 SELECTOR CRM FESTIVALES</div>',
+    '<div class="sub"><b>ELIGE UNA ACCION Y VERAS CLARO QUE VA A HACER.</b></div>',
+    '<div class="tip">Modo chupete: una password, un boton, una accion clara.</div>',
+    '<div class="panel">',
+      '<div class="line">',
+        '<input id="pass" type="password" placeholder="Introduce la contrasena (+rubencoton26)">',
+        '<button class="btn b2" style="max-width:220px" onclick="openNotes()">\uD83D\uDCC2\uFE0F Ver notas del proyecto</button>',
+      '</div>',
+      '<div class="grid">',
+        '<div class="card">',
+          '<h2>1) \uD83D\uDE80 REVISAR Y OPTIMIZAR TODO</h2>',
+          '<p><b>QUE VA A HACER:</b></p>',
+          '<ul><li>Homogeneizar columnas A:J</li><li>Aplicar diseno visual</li><li>Depurar contactos local</li><li>Auditar estructura y clasificacion</li></ul>',
+          '<button class="btn b1" onclick="runAction(\'FULL\')">\u25B6\uFE0F Ejecutar flujo completo</button>',
+        '</div>',
+        '<div class="card">',
+          '<h2>2) \uD83E\uDDE0 DEPURAR CONTACTOS CON GEMINI</h2>',
+          '<p><b>QUE VA A HACER:</b></p>',
+          '<ul><li>Revisa filas dudosas</li><li>Refina email/telefono/contacto</li><li>Mantiene formato CRM</li></ul>',
+          '<button class="btn b4" onclick="runAction(\'GEMINI\')">\u25B6\uFE0F Ejecutar Gemini</button>',
+        '</div>',
+        '<div class="card">',
+          '<h2>3) \uD83C\uDFA8 SOLO ARMONIZAR DISENO</h2>',
+          '<p><b>QUE VA A HACER:</b></p>',
+          '<ul><li>Cabeceras corporativas</li><li>Filtros/anchos/colores</li><li>Validacion de genero</li></ul>',
+          '<button class="btn b2" onclick="runAction(\'DISENO\')">\u25B6\uFE0F Aplicar diseno</button>',
+        '</div>',
+        '<div class="card">',
+          '<h2>4) \uD83D\uDCA5 MODO AUDITOR EXTREMO</h2>',
+          '<p><b>QUE VA A HACER:</b></p>',
+          '<ul><li>Stress test interno</li><li>Chequeo de reglas S/L/XL</li><li>Deteccion de datos sospechosos</li></ul>',
+          '<button class="btn b3" onclick="runAction(\'AUDITOR\')">\u25B6\uFE0F Lanzar auditoria</button>',
+        '</div>',
+      '</div>',
+      '<div id="status" class="status">Listo para ejecutar.</div>',
+      '<div class="notes"><b>Tip:</b> si vas con prisa, usa primero "REVISAR Y OPTIMIZAR TODO".</div>',
+    '</div>',
+    '<script>',
+      'function setStatus(msg,isOk){var el=document.getElementById("status");el.textContent=msg;el.style.color=isOk?"#0a7f39":"#b3261e";}',
+      'function getPass(){return (document.getElementById("pass").value||"").trim();}',
+      'function runAction(actionId){',
+        'var pass=getPass();',
+        'if(!pass){setStatus("Introduce la contrasena antes de ejecutar.", false);return;}',
+        'setStatus("Ejecutando... espera a que termine.", true);',
+        'google.script.run',
+          '.withSuccessHandler(function(res){',
+            'if(!res){setStatus("No se recibio respuesta del servidor.", false);return;}',
+            'setStatus(res.message || "Operacion finalizada.", !!res.ok);',
+          '})',
+          '.withFailureHandler(function(err){setStatus("Error: "+(err&&err.message?err.message:String(err)), false);})',
+          '.ejecutarAccionSelectorCRMFestivales_(actionId, pass);',
+      '}',
+      'function openNotes(){google.script.run.menuNotasProyectoCRMFestivales();}',
+    '</script></body></html>'
+  ].join('');
+
+  SpreadsheetApp.getUi().showModelessDialog(
+    HtmlService.createHtmlOutput(html).setWidth(980).setHeight(720),
+    'Selector facil CRM Festivales'
+  );
+}
+
+function ejecutarAccionSelectorCRMFestivales_(accionId, pass) {
+  const inputPass = cleanText_(pass);
+  if (inputPass !== FEST_SECURITY_PASSWORD) {
+    return { ok: false, message: 'Contrasena incorrecta.' };
+  }
+
+  activarSesionSegura_();
+  const action = cleanText_(accionId).toUpperCase();
+
+  try {
+    if (action === 'FULL') {
+      homogeneizarCRMFestivales();
+      depurarContactosCRMFestivales();
+      auditarEstructuraCRMFestivales();
+      auditarClasificacionGeneroTamanoCRMFestivales();
+      return { ok: true, message: 'Flujo completo terminado: homogeneizar + depurar + auditorias.' };
+    }
+
+    if (action === 'GEMINI') {
+      depurarContactosConGeminiCRMFestivales();
+      return { ok: true, message: 'Depuracion con Gemini ejecutada.' };
+    }
+
+    if (action === 'DISENO') {
+      aplicarDisenoCRMFestivales();
+      return { ok: true, message: 'Diseno visual aplicado.' };
+    }
+
+    if (action === 'AUDITOR') {
+      auditoriaEstresCRMFestivales();
+      return { ok: true, message: 'Auditoria extrema ejecutada.' };
+    }
+
+    return { ok: false, message: 'Accion no reconocida: ' + action };
+  } catch (err) {
+    return { ok: false, message: 'Error en ejecucion: ' + cleanText_(err && err.message ? err.message : err) };
+  }
+}
+
+function mostrarNotasProyectoCRMFestivales_() {
+  const notes = escapeHtml_(FEST_PROJECT_HANDOFF_NOTES);
+  const html = [
+    '<div style="font-family:Arial,sans-serif;padding:14px;line-height:1.4;color:#222;">',
+    '<h2 style="margin-top:0;font-size:28px;font-weight:900;">\uD83D\uDCC2\uFE0F NOTAS MAESTRAS DEL PROYECTO</h2>',
+    '<p style="font-size:14px;"><b>Usa este bloque para handoff entre chats.</b></p>',
+    '<pre style="white-space:pre-wrap;background:#f6f7fb;border:1px solid #d9dbe1;border-radius:10px;padding:12px;font-size:12px;">' + notes + '</pre>',
+    '<p style="font-size:12px;color:#555;"><b>Prompt sugerido para otro chat:</b> "Abre CRM_FESTIVALES_ENGINE.gs y revisa FEST_PROJECT_HANDOFF_NOTES antes de proponer cambios".</p>',
+    '</div>'
+  ].join('');
+
+  SpreadsheetApp.getUi().showModelessDialog(
+    HtmlService.createHtmlOutput(html).setWidth(820).setHeight(650),
+    'Notas maestras CRM Festivales'
+  );
+}
+
+function escapeHtml_(txt) {
+  const t = String(txt === null || txt === undefined ? '' : txt);
+  return t
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /**
  * MODULO PRINCIPAL DE NORMALIZACION.
  * - Recorre todas las pestanas de festivales validas.
