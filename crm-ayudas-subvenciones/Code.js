@@ -1750,7 +1750,7 @@ function construirBloqueConcursoHtml_(row, tz) {
 // -----------------------------------------------------------------------------
 
 function aplicarDiseno_(sheetConcursos, sheetNuevos) {
-  const maxCols = sheetConcursos.getMaxColumns();
+  const maxCols = 17;
   const header = sheetConcursos.getRange(1, 1, 1, maxCols);
   header
     .setBackground('#6B0018')
@@ -1789,7 +1789,7 @@ function aplicarDiseno_(sheetConcursos, sheetNuevos) {
 }
 
 function aplicarValidaciones_(sheetConcursos) {
-  const maxRows = Math.max(2, sheetConcursos.getMaxRows());
+  const maxRows = Math.max(sheetConcursos.getLastRow() + 300, 1000);
   const estados = [
     CRM_ESTADO.REVISAR,
     CRM_ESTADO.REVISADO_IA,
@@ -2075,6 +2075,7 @@ function escapeHtml_(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
 
 
 
