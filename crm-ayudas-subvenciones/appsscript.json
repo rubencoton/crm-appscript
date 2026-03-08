@@ -1,7 +1,6 @@
 {
   "timeZone": "Europe/Madrid",
-  "dependencies": {
-  },
-  "exceptionLogging": "STACKDRIVER",
+  "dependencies": {},
+  "exceptionLogging": "CLOUD",
   "runtimeVersion": "V8"
 }
