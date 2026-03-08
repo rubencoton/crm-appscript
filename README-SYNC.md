@@ -1,13 +1,23 @@
 ﻿# README-SYNC
 
-## Uso diario (muy simple)
-1. Doble clic en `sync_in.bat` para traer cambios de GitHub y Apps Script.
-2. Edita tus archivos.
-3. Doble clic en `sync_out.bat` para subir a Apps Script y GitHub.
-4. Si quieres hacerlo de una vez, usa `sync_full.bat`.
+## 1) Traer cambios (antes de editar)
+- Doble clic en `sync_in.bat`
 
-## Regla de oro
-Antes de editar en cualquier dispositivo, ejecuta siempre `sync_in` primero.
+## 2) Subir cambios (despues de editar)
+- Doble clic en `sync_out.bat`
 
-## Conflictos Git
-Si aparece conflicto, no fuerces nada. Resuelve manualmente o aborta rebase con `git rebase --abort`.
+## 3) Hacer todo junto
+- Doble clic en `sync_full.bat`
+
+## 4) Desde terminal
+- Entrada: `powershell -ExecutionPolicy Bypass -File .\sync_in.ps1`
+- Salida: `powershell -ExecutionPolicy Bypass -File .\sync_out.ps1`
+- Completo: `powershell -ExecutionPolicy Bypass -File .\sync_full.ps1`
+
+## 5) Regla de seguridad
+- Si Git muestra conflicto/rebase bloqueado, no forzar.
+- Resolver manualmente o abortar con `git rebase --abort`.
+
+## 6) Automatizacion
+- Tarea cada 5 minutos: `CodexSyncInFestivales_Every5Min`
+- Inicio de sesion (fallback): `C:\Users\elrub\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\CodexSyncInOnLogon.bat`
