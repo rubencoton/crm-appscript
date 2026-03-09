@@ -2,6 +2,15 @@
 // CRM AYUDAS - CAPA DE DECISION INSTANTANEA
 // =============================================================================
 
+/*
+ CONTEXTO DE ESTA CAPA
+ - Esta capa convierte el CRM en una herramienta de decision inmediata.
+ - Se encarga de:
+   1) Autocompletar campos calculados en cuanto el usuario edita.
+   2) Bloquear celdas sensibles para evitar errores manuales.
+   3) Mantener un panel de escenarios (conservador/base/ambicioso).
+ - Objetivo: que una persona no tecnica pueda entender "situacion actual" y "siguiente paso" con un vistazo.
+*/
 const CRM_MODE_PROP = 'INSTANT_MODE';
 const CRM_LOCK_PREFIX = 'CRM_LOCKED_AUTOFILL';
 
@@ -17,6 +26,8 @@ const CRM_DECISION = {
   LOCKED_COLUMNS: [CRM_COL.ESTADO, CRM_COL.INSCRIPCION, CRM_COL.FECHA_DESARROLLO]
 };
 
+// Punto de entrada de negocio para "dejar la hoja lista para decidir".
+// Prepara estructura, bloqueos y panel de escenarios en una sola accion.
 function prepararHojaDecisionInteligente() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   prepararEntornoDecision_(ss, true);
@@ -70,6 +81,8 @@ function onEscaneoFinalizadoDecision_(ss) {
   }
 }
 
+// Se ejecuta desde onEdit y aplica el modo instantaneo:
+// rellena campos derivados, recolorea la fila y refresca el panel sin esperar temporizadores.
 function actualizarEdicionInstantaneaCRM_(sheet, rowN, editedCol, ss) {
   if (!sheet || sheet.getName() !== CRM_CONFIG.SHEET_CONCURSOS || rowN < 2) return false;
   const estado = autocompletarFilaDecision_(sheet, rowN, editedCol);
@@ -546,6 +559,8 @@ function construirDecisionEscenarioDecision_(oportunidades, carga, riesgo) {
   };
 }
 
+// Protege columnas autocalculadas para que no se rompan formulas/reglas por edicion manual.
+// forceReset=true recrea protecciones desde cero.
 function asegurarBloqueosCalculados_(sheet, forceReset) {
   if (!sheet) return;
 

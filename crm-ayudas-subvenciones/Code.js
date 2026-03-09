@@ -3,6 +3,19 @@
 // Lista para pegar en Google Apps Script
 // =============================================================================
 
+/*
+ CONTEXTO GENERAL (LEER ANTES DE TOCAR ESTE ARCHIVO)
+ - Este CRM esta pensado para gestionar ayudas/subvenciones para bandas y artistas.
+ - El objetivo principal es tomar decisiones rapidas con datos incompletos, sin bloquear el flujo.
+ - Regla clave de negocio: la FECHA LIMITE DE INSCRIPCION es el dato mas importante.
+ - Si no existe fecha oficial, el sistema estima una fecha y la marca como "ESTIMADO".
+ - Estado de inscripcion:
+   * ABIERTA  -> hoy entre (fecha limite - 3 meses) y fecha limite.
+   * CERRADA  -> fecha limite en el pasado.
+   * SIN PUBLICAR -> no hay evidencia suficiente para fechar.
+ - UX esperada: al editar datos en la hoja, el resultado debe verse al instante.
+ - Este archivo contiene la orquestacion principal, la capa IA y normalizacion de datos.
+*/
 const CRM_CONFIG = {
   SHEET_CONCURSOS: 'CONCURSOS',
   SHEET_NUEVOS: 'NUEVOS CONCURSOS',
@@ -353,6 +366,9 @@ function obtenerEstadoTecnico_() {
     props: snapshot
   };
 }
+// onEdit es el motor de "respuesta instantanea" en la hoja.
+// Se protege con lock para evitar pisados cuando hay varias ediciones simultaneas.
+// Regla: solo procesa ediciones de una sola celda en CONCURSOS para minimizar riesgo de bucles.
 function onEdit(e) {
   const lock = LockService.getDocumentLock();
   if (!lock.tryLock(250)) return;
@@ -1133,6 +1149,9 @@ function procesarMatriz_(ss, sheetConcursos, props, startTime) {
   return 'DONE';
 }
 
+// Construye el prompt de una fila usando historico + fuentes externas.
+// Aqui se fuerza el criterio de negocio: priorizar fecha limite y explicacion razonada.
+// El texto del prompt no es decorativo: define el comportamiento de la IA en produccion.
 function construirPromptFila_(row, urls) {
   const fuentes = (Array.isArray(urls) && urls.length) ? urls.join(' | ') : 'No disponible';
   const historico = [
@@ -1468,6 +1487,11 @@ function extraerWeb_(url) {
   }
 }
 
+// Capa de llamada a IA con hardening:
+// - Reintentos con backoff progresivo.
+// - Rotacion de modelo cuando el endpoint responde con errores recuperables.
+// - Parseo defensivo de JSON para evitar roturas por respuestas mal formadas.
+// - Normalizacion obligatoria para devolver siempre una estructura util al CRM.
 function llamarIA_(prompt, webObj, asArray) {
   const apiKey = getApiKey_();
   const models = getModels_();
@@ -2281,6 +2305,10 @@ function displayCell_(value) {
   return sanitizeValue_(value);
 }
 
+// Normaliza fecha limite con prioridad de negocio:
+// 1) Fecha nueva valida.
+// 2) Si no, fecha previa valida.
+// 3) Si no hay ninguna, estimacion por defecto para no bloquear decisiones.
 function normalizarFechaLimite_(newValue, oldValue) {
   const newStr = sanitizeValue_(newValue);
   const oldStr = displayCell_(oldValue);
@@ -2324,6 +2352,8 @@ function estimarFechaLimitePorDefecto_() {
   return 'ESTIMADO: ' + formatDate_(dt);
 }
 
+// Traduce una fecha limite a estado operativo de inscripcion.
+// Esta funcion materializa la regla central del CRM (ventana activa de 3 meses).
 function estadoInscripcionDesdeFecha_(fechaValue) {
   const parsed = parseFechaLimite_(fechaValue);
   if (!parsed) return CRM_INSCRIPCION.SIN_PUBLICAR;
