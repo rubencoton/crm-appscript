@@ -1,4 +1,7 @@
-﻿const fs = require('fs');
+﻿/* ARCHIVED_JS_TEMPLATE
+Este archivo queda archivado como referencia historica. No se ejecuta.
+
+const fs = require('fs');
 const path = 'C:/Users/elrub/Desktop/CARPETA CODEX/02_APPS_SCRIPT_FUENTES/crm_ayudas_prod/Code.gs';
 let s = fs.readFileSync(path, 'utf8');
 
@@ -349,3 +352,5 @@ s = s.replace(
 
 fs.writeFileSync(path, s, 'utf8');
 console.log('PATCH_OK');
+
+*/

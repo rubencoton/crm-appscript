@@ -97,8 +97,10 @@ const AI_REQUIRED_FIELDS = [
   'notas'
 ];
 
-const GEMINI_API_KEY_FIJA = 'AIzaSyC2AnnQuFgKOR_qGNl4jTrsoWF672bnK0M';
-const CRM_PASSWORD_FIJA = '+rubencoton26';
+// IMPORTANTE: no dejar secretos reales en repositorio publico.
+// Estas constantes son solo fallback local y deben quedarse vacias en git.
+const GEMINI_API_KEY_FIJA = '';
+const CRM_PASSWORD_FIJA = '';
 const DESARROLLADOR_APP = 'RUBEN COTON';
 const FIRMA_APP = 'DESARROLLADOR: RUBEN COTON';
 
@@ -109,6 +111,8 @@ const FIRMA_APP = 'DESARROLLADOR: RUBEN COTON';
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('🚀 CRM: Ayudas')
+    .addItem('⚙️ Configurar API y password', 'configurarSistema')
+    .addSeparator()
     .addItem('🚀 Escaner total (con consola)', 'lanzarModoTotal')
     .addItem('🔍 Auditar matriz (con consola)', 'lanzarModoActualizar')
     .addItem('Nuevos + Radar (con consola)', 'lanzarModoNuevas')
@@ -130,7 +134,8 @@ function onOpen() {
 }
 
 function configurarSistema() {
-  SpreadsheetApp.getUi().alert('Configuracion deshabilitada. Este CRM usa API y password fijas en el codigo.\n' + FIRMA_APP);
+  // Se habilita configuracion segura para evitar credenciales hardcodeadas.
+  mostrarPanelConfiguracion_();
 }
 
 function buildScriptEditorUrl_() {
@@ -514,7 +519,21 @@ function mostrarPanelConfiguracion_() {
 }
 
 function guardarConfiguracionSegura_(apiKey, password, modelsCsv) {
-  throw new Error('La configuracion manual esta deshabilitada en esta version.');
+  const props = PropertiesService.getScriptProperties();
+  const key = sanitizeValue_(apiKey);
+  const pass = sanitizeValue_(password);
+  const models = sanitizeValue_(modelsCsv);
+
+  if (!key) throw new Error('Debes indicar GEMINI_API_KEY.');
+  if (!pass || pass.length < 6) throw new Error('La password debe tener al menos 6 caracteres.');
+
+  props.setProperty('GEMINI_API_KEY', key);
+  props.setProperty('CRM_PASSWORD', pass);
+
+  if (models) props.setProperty('GEMINI_MODELS_CSV', models);
+  else props.deleteProperty('GEMINI_MODELS_CSV');
+
+  return 'Configuracion guardada correctamente.\\n' + FIRMA_APP;
 }
 
 function mostrarConsolaSegura_(mode, titleText) {
@@ -703,7 +722,7 @@ function mostrarConsolaSegura_(mode, titleText) {
 }
 
 function validarPasswordServidor(pass) {
-  return String(pass || '').trim() === CRM_PASSWORD_FIJA;
+  return sanitizeValue_(pass) === getPassword_();
 }
 
 function iniciarEscanerDesdePanel_(mode) {
@@ -769,9 +788,9 @@ function limpiarTriggersEjecucion_() {
   }
 }
 function validarConfiguracionMinima_() {
-  if (!GEMINI_API_KEY_FIJA || !CRM_PASSWORD_FIJA) {
-    throw new Error('Faltan API o password fijas en el codigo.');
-  }
+  // Fuerza validacion temprana de credenciales para fallar con mensaje claro.
+  getApiKey_();
+  getPassword_();
 }
 
 function sanitizeHtml_(text) {
@@ -858,7 +877,7 @@ function logCRM_(message, type) {
 function ejecutarConPassword_(mode, allowResume) {
   const ui = SpreadsheetApp.getUi();
   const props = PropertiesService.getScriptProperties();
-  const storedPass = CRM_PASSWORD_FIJA;
+  const storedPass = getPassword_();
 
   const prompt = ui.prompt('Seguridad', 'Introduce la password del CRM:', ui.ButtonSet.OK_CANCEL);
   if (prompt.getSelectedButton() !== ui.Button.OK) return;
@@ -1811,11 +1830,21 @@ function construirRazonamientoFuerte_(raw) {
 }
 
 function getApiKey_() {
-  const key = String(GEMINI_API_KEY_FIJA || '').trim();
+  const props = PropertiesService.getScriptProperties();
+  const key = sanitizeValue_(props.getProperty('GEMINI_API_KEY')) || sanitizeValue_(GEMINI_API_KEY_FIJA);
   if (!key) {
-    throw new Error('GEMINI_API_KEY_FIJA no configurada.');
+    throw new Error('Falta GEMINI_API_KEY. Usa "Configurar API y password" en el menu.');
   }
   return key;
+}
+
+function getPassword_() {
+  const props = PropertiesService.getScriptProperties();
+  const pass = sanitizeValue_(props.getProperty('CRM_PASSWORD')) || sanitizeValue_(CRM_PASSWORD_FIJA);
+  if (!pass) {
+    throw new Error('Falta CRM_PASSWORD. Usa "Configurar API y password" en el menu.');
+  }
+  return pass;
 }
 
 function getModels_() {
@@ -2327,7 +2356,13 @@ function normalizarFechaLimite_(newValue, oldValue) {
 }
 
 function parseFechaLimite_(value) {
-  if (value instanceof Date) return { date: value, estimated: false };
+  if (value instanceof Date) {
+    if (isNaN(value.getTime())) return null;
+    return {
+      date: new Date(value.getFullYear(), value.getMonth(), value.getDate(), 12, 0, 0, 0),
+      estimated: false
+    };
+  }
   const raw = sanitizeValue_(value);
   if (!raw) return null;
   const estimated = raw.toUpperCase().indexOf('ESTIMADO') !== -1;
@@ -2339,6 +2374,11 @@ function parseFechaLimite_(value) {
   const y = Number(match[3]);
   const dt = new Date(y, m, d, 12, 0, 0, 0);
   if (isNaN(dt.getTime())) return null;
+  // Validacion estricta para impedir que JS "autocorrija" fechas invalidas
+  // (ej: 32/01 -> 01/02), que alteraria estados y decisiones del CRM.
+  if (dt.getFullYear() !== y || dt.getMonth() !== m || dt.getDate() !== d) {
+    return null;
+  }
   return { date: dt, estimated: estimated };
 }
 
@@ -2359,8 +2399,7 @@ function estadoInscripcionDesdeFecha_(fechaValue) {
   if (!parsed) return CRM_INSCRIPCION.SIN_PUBLICAR;
 
   const fLimite = new Date(parsed.date.getFullYear(), parsed.date.getMonth(), parsed.date.getDate(), 23, 59, 59, 999);
-  const inicioVentana = new Date(fLimite);
-  inicioVentana.setMonth(inicioVentana.getMonth() - 3);
+  const inicioVentana = restarMesesSeguro_(fLimite, 3);
   inicioVentana.setHours(0, 0, 0, 0);
 
   const hoy = new Date();
@@ -2369,6 +2408,15 @@ function estadoInscripcionDesdeFecha_(fechaValue) {
   if (hoy > fLimite) return CRM_INSCRIPCION.CERRADA;
   if (hoy >= inicioVentana && hoy <= fLimite) return CRM_INSCRIPCION.ABIERTA;
   return CRM_INSCRIPCION.SIN_PUBLICAR;
+}
+
+function restarMesesSeguro_(dateObj, months) {
+  const base = new Date(dateObj);
+  const day = base.getDate();
+  const targetFirst = new Date(base.getFullYear(), base.getMonth() - Number(months || 0), 1, 12, 0, 0, 0);
+  const lastDay = new Date(targetFirst.getFullYear(), targetFirst.getMonth() + 1, 0).getDate();
+  const safeDay = Math.min(day, lastDay);
+  return new Date(targetFirst.getFullYear(), targetFirst.getMonth(), safeDay, 12, 0, 0, 0);
 }
 
 function normalizarMesDesarrollo_(value) {
@@ -2442,6 +2490,8 @@ function escapeHtml_(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
+
 
 
 

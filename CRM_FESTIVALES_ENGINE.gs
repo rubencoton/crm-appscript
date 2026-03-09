@@ -27,8 +27,9 @@ const FEST_HOMO = {
   }
 };
 
-const FEST_SECURITY_PASSWORD = '+rubencoton26';
-const FEST_GEMINI_API_KEY = 'AIzaSyC2AnnQuFgKOR_qGNl4jTrsoWF672bnK0M';
+// IMPORTANTE: mantener vacio en repositorio publico.
+const FEST_SECURITY_PASSWORD = '';
+const FEST_GEMINI_API_KEY = '';
 const FEST_GEMINI_MODELS = [
   'gemini-3.1-pro-preview',
   'gemini-2.5-pro',
@@ -47,6 +48,32 @@ const FEST_GENRE_DROPDOWN = [
 ];
 
 // Si no tienes otro onOpen en el proyecto, este ya deja el menu automatico.
+
+/*
+ Credenciales y seguridad de este motor:
+ - FEST_SECURITY_PASSWORD y FEST_GEMINI_API_KEY se guardan en Script Properties.
+ - El menu "Configurar credenciales Gemini" permite cargarlas sin exponerlas en codigo.
+ - Las constantes locales deben permanecer vacias en repositorio publico.
+*/
+function getFestScriptProperty_(key) {
+  try {
+    return cleanText_(PropertiesService.getScriptProperties().getProperty(key));
+  } catch (err) {
+    return '';
+  }
+}
+
+function getFestSecurityPassword_() {
+  const pass = getFestScriptProperty_('FEST_SECURITY_PASSWORD') || cleanText_(FEST_SECURITY_PASSWORD);
+  if (!pass) {
+    throw new Error('Falta FEST_SECURITY_PASSWORD. Usa el menu: "Configurar credenciales Gemini".');
+  }
+  return pass;
+}
+
+function getFestGeminiApiKey_() {
+  return getFestScriptProperty_('FEST_GEMINI_API_KEY') || cleanText_(FEST_GEMINI_API_KEY);
+}
 
 function onOpen(e) {
   crearMenuCRMFestivales_();
@@ -67,6 +94,7 @@ function crearMenuCRMFestivales_() {
     .addItem('🛰️ Auditar estructura (seguro)', 'menuAuditarEstructuraCRMFestivales')
     .addItem('🧭 Auditar genero + tamano S/L/XL (seguro)', 'menuAuditarClasificacionCRMFestivales')
     .addItem('💥 Modo auditor extremo (stress test)', 'menuAuditorExtremoCRMFestivales')
+    .addItem('Configurar credenciales Gemini', 'menuConfigurarCredencialesCRMFestivales')
     .addSeparator()
     .addItem('⚙️ Instalar trigger de menu (seguro)', 'menuInstalarTriggerCRMFestivales')
     .addItem('🧹 Limpiar triggers de menu (seguro)', 'menuLimpiarTriggersCRMFestivales')
@@ -123,7 +151,16 @@ function ejecutarConPassword_(accionFn, etiqueta) {
 
   if (prompt.getSelectedButton() !== ui.Button.OK) return;
   const pass = cleanText_(prompt.getResponseText());
-  if (pass !== FEST_SECURITY_PASSWORD) {
+
+  let expectedPass = '';
+  try {
+    expectedPass = getFestSecurityPassword_();
+  } catch (err) {
+    ui.alert(err && err.message ? err.message : 'No se pudo validar la password de seguridad.');
+    return;
+  }
+
+  if (pass !== expectedPass) {
     ui.alert('Contrasena incorrecta. Accion cancelada.');
     return;
   }
@@ -191,6 +228,41 @@ function menuLimpiarTriggersCRMFestivales() {
 
 function menuGuiaArquitecturaCRMFestivales() {
   ejecutarConPassword_(mostrarGuiaIntegracionCRMFestivales, 'Guia de arquitectura');
+}
+
+function menuConfigurarCredencialesCRMFestivales() {
+  configurarCredencialesCRMFestivales_();
+}
+
+function configurarCredencialesCRMFestivales_() {
+  const ui = SpreadsheetApp.getUi();
+
+  const keyPrompt = ui.prompt(
+    'Configurar Gemini',
+    'Pega la API Key de Gemini (opcional si ya existe). Se guardara en Script Properties.',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (keyPrompt.getSelectedButton() !== ui.Button.OK) return;
+
+  const passPrompt = ui.prompt(
+    'Configurar Seguridad',
+    'Define la password interna FEST_SECURITY_PASSWORD (minimo 6 caracteres).',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (passPrompt.getSelectedButton() !== ui.Button.OK) return;
+
+  const apiKey = cleanText_(keyPrompt.getResponseText());
+  const pass = cleanText_(passPrompt.getResponseText());
+  if (!pass || pass.length < 6) {
+    ui.alert('La password debe tener al menos 6 caracteres.');
+    return;
+  }
+
+  const props = PropertiesService.getScriptProperties();
+  props.setProperty('FEST_SECURITY_PASSWORD', pass);
+  if (apiKey) props.setProperty('FEST_GEMINI_API_KEY', apiKey);
+
+  ui.alert('Credenciales guardadas en Script Properties.\nNo quedan expuestas en el codigo.');
 }
 
 /**
@@ -1108,7 +1180,7 @@ function buildGeminiResponseCacheKey_(prompt, responseSchema) {
 }
 
 function invocarGeminiConFallback_(prompt, responseSchema) {
-  const apiKey = cleanText_(FEST_GEMINI_API_KEY);
+  const apiKey = getFestGeminiApiKey_();
   if (!apiKey) return null;
 
   const payload = {
