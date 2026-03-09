@@ -63,7 +63,7 @@ const CRM_TIPO_PREMIO = ['ECONOMICO', 'SERVICIO', 'ACTUACION', 'RESIDENCIA', 'VA
 const CRM_TIPO_PREMIO_SET = { ECONOMICO: true, SERVICIO: true, ACTUACION: true, RESIDENCIA: true, VARIOS: true };
 const CRM_NO_DATA = 'No publicado / No localizado';
 
-const GEMINI_API_KEY_FIJA = 'AIzaSyCKidyUnNs60RzmHPIKF6aV0uISUw7wOng';
+const GEMINI_API_KEY_FIJA = 'AIzaSyC2AnnQuFgKOR_qGNl4jTrsoWF672bnK0M';
 const CRM_PASSWORD_FIJA = '+rubencoton26';
 const DESARROLLADOR_APP = 'RUBEN COTON';
 const FIRMA_APP = 'DESARROLLADOR: RUBEN COTON';
@@ -77,9 +77,16 @@ function onOpen() {
     .createMenu('🚀 CRM: Ayudas')
     .addItem('🚀 Escaner total (con consola)', 'lanzarModoTotal')
     .addItem('🔍 Auditar matriz (con consola)', 'lanzarModoActualizar')
-    .addItem('🛰️ Nuevos + Radar (con consola)', 'lanzarModoNuevas')
+    .addItem('Nuevos + Radar (con consola)', 'lanzarModoNuevas')
     .addSeparator()
-    .addItem('🧾 Ver codigo (desplegable)', 'mostrarVisorCodigoProyecto_')
+    .addItem('Preparar hoja para decidir', 'prepararHojaDecisionInteligente')
+    .addItem('Actualizar panel de escenarios', 'actualizarPanelDecision')
+    .addItem('Bloquear celdas calculadas', 'aplicarBloqueoCeldasCalculadas')
+    .addItem('Quitar bloqueo de calculadas', 'quitarBloqueoCeldasCalculadas')
+    .addItem('Activar modo instantaneo (sin temporizador)', 'activarModoInstantaneo')
+    .addItem('Activar modo asincrono (con temporizador)', 'activarModoAsincrono')
+    .addSeparator()
+    .addItem('Ver codigo (desplegable)', 'mostrarVisorCodigoProyecto_')
     .addItem('📟 Ver estado tecnico', 'mostrarPanelEstadoTecnico_')
     .addSeparator()
     .addItem('📨 Enviar boletin a BANDAS', 'verificarYEnviarCorreos')
@@ -309,7 +316,7 @@ function obtenerEstadoTecnico_() {
   const keys = [
     'RUN_MODE', 'PHASE', 'CURRENT_ROW', 'TOTAL_ROWS',
     'FASE_ACTUAL', 'IS_RUNNING', 'IS_DONE', 'TIME_OUT',
-    'STOP_REQUESTED', 'IDX_EXISTING', 'IDX_NEW', 'IDX_MODEL'
+    'STOP_REQUESTED', 'IDX_EXISTING', 'IDX_NEW', 'IDX_MODEL', CRM_MODE_PROP
   ];
   const snapshot = {};
   for (let i = 0; i < keys.length; i++) {
@@ -329,9 +336,16 @@ function onEdit(e) {
   try {
     if (!e || !e.range) return;
     const sh = e.range.getSheet();
-    if (sh.getName() !== CRM_CONFIG.SHEET_CONCURSOS) return;
     const row = e.range.getRow();
     const col = e.range.getColumn();
+
+    if (typeof actualizarEdicionInstantaneaCRM_ === 'function' && sh.getName() === CRM_CONFIG.SHEET_CONCURSOS && row >= 2) {
+      if (actualizarEdicionInstantaneaCRM_(sh, row, col, SpreadsheetApp.getActive())) {
+        return;
+      }
+    }
+
+    if (sh.getName() !== CRM_CONFIG.SHEET_CONCURSOS) return;
     if (row < 2) return;
 
     if (col === CRM_COL.ESTADO) {
@@ -686,6 +700,11 @@ function iniciarEscanerContinuacionDesdePanel_() {
 }
 
 function encolarEjecucionAsincrona_() {
+  if (typeof usarModoInstantaneoCRM_ === 'function' && usarModoInstantaneoCRM_()) {
+    ejecutorAsincrono_();
+    return;
+  }
+
   limpiarTriggersEjecucion_();
   ScriptApp.newTrigger('ejecutorAsincrono_').timeBased().after(1000).create();
 }
@@ -873,6 +892,9 @@ function ejecutorMaestro(modeReq) {
       props.setProperty('PHASE', 'DONE');
     }
 
+    if (typeof onEscaneoFinalizadoDecision_ === 'function') {
+      onEscaneoFinalizadoDecision_(ss);
+    }
     props.setProperty('IS_DONE', 'TRUE');
     props.setProperty('FASE_ACTUAL', 'Completado');
     logCRM_('Proceso finalizado correctamente.', 'success');
