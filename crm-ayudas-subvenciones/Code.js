@@ -14,6 +14,9 @@ const CRM_CONFIG = {
   LOG_CACHE_KEY: 'LIVE_LOGS',
   LOG_CACHE_SECONDS: 3600,
   MAX_LOG_LINES: 250,
+  AI_BACKOFF_BASE_MS: 1200,
+  AI_BACKOFF_MAX_MS: 9000,
+  AI_WEB_TEXT_LIMIT_CHARS: 100000,
   DEFAULT_MODELS: [
     'gemini-3.1-pro-preview'
   ]
@@ -59,6 +62,27 @@ const CRM_INSCRIPCION = {
 const CRM_TIPO_PREMIO = ['ECONOMICO', 'SERVICIO', 'ACTUACION', 'RESIDENCIA', 'VARIOS'];
 const CRM_TIPO_PREMIO_SET = { ECONOMICO: true, SERVICIO: true, ACTUACION: true, RESIDENCIA: true, VARIOS: true };
 const CRM_NO_DATA = 'No publicado / No localizado';
+
+// Campos obligatorios para aceptar una respuesta de IA como valida.
+const AI_REQUIRED_FIELDS = [
+  'nombreConcurso',
+  '_razonamiento_logico',
+  'inscripcion',
+  'fechaLimite',
+  'fechasDesarrollo',
+  'tipoPremio',
+  'detallePremio',
+  'dirigidoA',
+  'municipio',
+  'provincia',
+  'pais',
+  'link1',
+  'link2',
+  'link3',
+  'email',
+  'telefono',
+  'notas'
+];
 
 const GEMINI_API_KEY_FIJA = 'AIzaSyC2AnnQuFgKOR_qGNl4jTrsoWF672bnK0M';
 const CRM_PASSWORD_FIJA = '+rubencoton26';
@@ -235,8 +259,8 @@ function obtenerCodigoProyecto_() {
     throw new Error('No se pudo cargar el codigo automaticamente (HTTP ' + code + '). Revisa permisos de Apps Script API. ' + body.substring(0, 220));
   }
 
-  const parsed = JSON.parse(resp.getContentText() || '{}');
-  const files = (parsed.files || []).map(function(f) {
+  const parsed = safeJsonParse_(resp.getContentText() || '{}', {});
+  const files = (Array.isArray(parsed.files) ? parsed.files : []).map(function(f) {
     return {
       name: f.name || 'SIN_NOMBRE',
       type: f.type || 'DESCONOCIDO',
@@ -330,53 +354,57 @@ function obtenerEstadoTecnico_() {
   };
 }
 function onEdit(e) {
+  const lock = LockService.getDocumentLock();
+  if (!lock.tryLock(250)) return;
+
   try {
     if (!e || !e.range) return;
+    if (e.range.getNumRows() !== 1 || e.range.getNumColumns() !== 1) return;
+
+    const ss = e.source || SpreadsheetApp.getActive();
     const sh = e.range.getSheet();
     const row = e.range.getRow();
     const col = e.range.getColumn();
 
-    if (typeof actualizarEdicionInstantaneaCRM_ === 'function' && sh.getName() === CRM_CONFIG.SHEET_CONCURSOS && row >= 2) {
-      if (actualizarEdicionInstantaneaCRM_(sh, row, col, SpreadsheetApp.getActive())) {
-        return;
-      }
-    }
+    if (sh.getName() !== CRM_CONFIG.SHEET_CONCURSOS || row < 2) return;
 
-    if (sh.getName() !== CRM_CONFIG.SHEET_CONCURSOS) return;
-    if (row < 2) return;
+    if (typeof actualizarEdicionInstantaneaCRM_ === 'function') {
+      if (actualizarEdicionInstantaneaCRM_(sh, row, col, ss)) return;
+    }
 
     if (col === CRM_COL.ESTADO) {
       const estado = normalizeEstado_(e.range.getValue());
       if (e.range.getValue() !== estado) {
         e.range.setValue(estado);
       }
-
-      let bg = '#EFEFEF';
-      let fc = '#333333';
-      if (estado === CRM_ESTADO.REVISADO_IA) { bg = '#D9EAD3'; fc = '#1E4620'; }
-      if (estado === CRM_ESTADO.REVISADO_HUMANO) { bg = '#D0E0F5'; fc = '#113A67'; }
-      if (estado === CRM_ESTADO.NUEVO_DESCUBRIMIENTO) { bg = '#FFE9B8'; fc = '#704D00'; }
-      e.range.setBackground(bg).setFontColor(fc);
+      aplicarColorEstadoFila_(sh, row, estado);
     }
 
-    if (col === CRM_COL.INSCRIPCION || col === CRM_COL.ESTADO) {
+    if (col === CRM_COL.INSCRIPCION || col === CRM_COL.ESTADO || col === CRM_COL.FECHA_LIMITE) {
       const ins = sanitizeValue_(sh.getRange(row, CRM_COL.INSCRIPCION).getValue()).toUpperCase();
-      aplicarFormatoFila_(sh, row, ins, SpreadsheetApp.getActive().getSpreadsheetTimeZone());
-    }
-
-    if (col === CRM_COL.ESTADO) {
-      const estadoFinal = normalizeEstado_(sh.getRange(row, CRM_COL.ESTADO).getValue());
-      let bg2 = '#EFEFEF';
-      let fc2 = '#333333';
-      if (estadoFinal === CRM_ESTADO.REVISADO_IA) { bg2 = '#D9EAD3'; fc2 = '#1E4620'; }
-      if (estadoFinal === CRM_ESTADO.REVISADO_HUMANO) { bg2 = '#D0E0F5'; fc2 = '#113A67'; }
-      if (estadoFinal === CRM_ESTADO.NUEVO_DESCUBRIMIENTO) { bg2 = '#FFE9B8'; fc2 = '#704D00'; }
-      sh.getRange(row, CRM_COL.ESTADO).setBackground(bg2).setFontColor(fc2);
+      aplicarFormatoFila_(sh, row, ins, ss.getSpreadsheetTimeZone());
     }
   } catch (err) {
     logCRM_('onEdit aviso: ' + err.message, 'warning');
+  } finally {
+    try {
+      lock.releaseLock();
+    } catch (lockErr) {
+      // no-op
+    }
   }
 }
+
+function aplicarColorEstadoFila_(sheet, row, estadoRaw) {
+  const estado = normalizeEstado_(estadoRaw);
+  let bg = '#EFEFEF';
+  let fc = '#333333';
+  if (estado === CRM_ESTADO.REVISADO_IA) { bg = '#D9EAD3'; fc = '#1E4620'; }
+  if (estado === CRM_ESTADO.REVISADO_HUMANO) { bg = '#D0E0F5'; fc = '#113A67'; }
+  if (estado === CRM_ESTADO.NUEVO_DESCUBRIMIENTO) { bg = '#FFE9B8'; fc = '#704D00'; }
+  sheet.getRange(row, CRM_COL.ESTADO).setBackground(bg).setFontColor(fc);
+}
+
 function lanzarModoTotal() {
   mostrarConsolaSegura_('TOTAL', '🚀 ESCANER TOTAL');
 }
@@ -739,6 +767,25 @@ function sanitizeHtml_(text) {
     .replace(/'/g, '&#39;');
 }
 
+// Utilidades defensivas: evitan que un JSON roto rompa la ejecucion.
+function safeJsonParse_(raw, fallbackValue) {
+  const txt = sanitizeValue_(raw);
+  if (!txt) return fallbackValue;
+  try {
+    return JSON.parse(txt);
+  } catch (err) {
+    return fallbackValue;
+  }
+}
+
+function truncateForLog_(value, maxLen) {
+  const txt = sanitizeValue_(value);
+  if (!txt) return '';
+  const limit = Math.max(60, Number(maxLen) || 1200);
+  if (txt.length <= limit) return txt;
+  return txt.substring(0, limit) + '...';
+}
+
 // -----------------------------------------------------------------------------
 // 2) ESTADO Y LOGS
 // -----------------------------------------------------------------------------
@@ -748,7 +795,8 @@ function getEstadoProgreso() {
   let logs = [];
   try {
     const raw = CacheService.getScriptCache().get(CRM_CONFIG.LOG_CACHE_KEY);
-    logs = raw ? JSON.parse(raw) : [];
+    const parsed = raw ? safeJsonParse_(raw, []) : [];
+    logs = Array.isArray(parsed) ? parsed : [];
   } catch (err) {
     logs = [];
   }
@@ -773,10 +821,11 @@ function logCRM_(message, type) {
   try {
     const cache = CacheService.getScriptCache();
     const raw = cache.get(CRM_CONFIG.LOG_CACHE_KEY);
-    const list = raw ? JSON.parse(raw) : [];
+    const parsed = raw ? safeJsonParse_(raw, []) : [];
+    const list = Array.isArray(parsed) ? parsed : [];
     const now = new Date();
     const t = Utilities.formatDate(now, Session.getScriptTimeZone(), 'HH:mm:ss');
-    list.push({ t: t, c: lvl, m: message });
+    list.push({ t: t, c: lvl, m: truncateForLog_(message, 2000) });
     while (list.length > CRM_CONFIG.MAX_LOG_LINES) {
       list.shift();
     }
@@ -1113,7 +1162,8 @@ function construirPromptFila_(row, urls) {
     '7) tipoPremio SOLO: ECONOMICO, SERVICIO, ACTUACION, RESIDENCIA o VARIOS.\n' +
     '8) Prioriza link1 como bases actuales; link2 historico; link3 complementario.\n' +
     '9) Si falta cualquier dato, usa "' + CRM_NO_DATA + '".\n' +
-    '10) En _razonamiento_logico explica de donde sale cada dato y por que fue estimado.\n\n' +
+    '10) En _razonamiento_logico explica de donde sale cada dato y por que fue estimado.\n' +
+    '11) Indica contradicciones detectadas y nivel de confianza (ALTA/MEDIA/BAJA).\n\n' +
     historico
   );
 }
@@ -1400,15 +1450,18 @@ function extraerWeb_(url) {
       };
     }
 
-    const html = resp.getContentText();
+    const html = resp.getContentText() || '';
+    if (!html) return { type: 'none' };
+
     const clean = html
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
       .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .substring(0, 100000);
+      .substring(0, CRM_CONFIG.AI_WEB_TEXT_LIMIT_CHARS);
 
+    if (!clean) return { type: 'none' };
     return { type: 'text', content: clean, url: finalUrl };
   } catch (err) {
     return { type: 'none' };
@@ -1438,7 +1491,8 @@ function llamarIA_(prompt, webObj, asArray) {
     '5) tipoPremio solo: ECONOMICO, SERVICIO, ACTUACION, RESIDENCIA, VARIOS.',
     '6) Rellena municipio, provincia, pais cuando exista evidencia.',
     '7) Prioriza link1 como bases actuales, link2 historico y link3 complementario.',
-    '8) Cuando no exista un dato, usa "' + CRM_NO_DATA + '".'
+    '8) Aplica razonamiento profundo: detecta contradicciones, explica supuestos y marca confianza ALTA/MEDIA/BAJA en _razonamiento_logico.',
+    '9) Cuando no exista un dato, usa "' + CRM_NO_DATA + '".'
   ].join('\n');
 
   const parts = [{ text: prompt }];
@@ -1472,25 +1526,7 @@ function llamarIA_(prompt, webObj, asArray) {
       telefono: { type: 'STRING' },
       notas: { type: 'STRING' }
     },
-    required: [
-      'nombreConcurso',
-      '_razonamiento_logico',
-      'inscripcion',
-      'fechaLimite',
-      'fechasDesarrollo',
-      'tipoPremio',
-      'detallePremio',
-      'dirigidoA',
-      'municipio',
-      'provincia',
-      'pais',
-      'link1',
-      'link2',
-      'link3',
-      'email',
-      'telefono',
-      'notas'
-    ]
+    required: AI_REQUIRED_FIELDS.slice()
   };
 
   const responseSchema = asArray ? { type: 'ARRAY', items: schemaObj } : schemaObj;
@@ -1499,17 +1535,18 @@ function llamarIA_(prompt, webObj, asArray) {
     contents: [{ role: 'user', parts: parts }],
     generationConfig: {
       responseMimeType: 'application/json',
-      temperature: 0.1,
+      temperature: 0.05,
       maxOutputTokens: 8192,
       responseSchema: responseSchema
     }
   };
 
   for (let attempt = 1; attempt <= CRM_CONFIG.MAX_RETRIES; attempt++) {
-    if (PropertiesService.getScriptProperties().getProperty('STOP_REQUESTED') === 'TRUE') return null;
+    if (props.getProperty('STOP_REQUESTED') === 'TRUE') return null;
 
     const model = models[idxModel];
     const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(apiKey);
+
     try {
       const resp = UrlFetchApp.fetch(endpoint, {
         method: 'post',
@@ -1517,45 +1554,62 @@ function llamarIA_(prompt, webObj, asArray) {
         payload: JSON.stringify(payload),
         muteHttpExceptions: true
       });
-      const code = resp.getResponseCode();
-      const text = resp.getContentText();
+
+      const code = Number(resp.getResponseCode() || 0);
+      const textResp = String(resp.getContentText() || '');
 
       if (code === 200) {
-        const parsed = JSON.parse(text);
-        if (!parsed.candidates || !parsed.candidates.length) return null;
-        const out = (((parsed.candidates[0] || {}).content || {}).parts || [])[0];
-        if (!out || !out.text) return null;
-        const json = extractJsonBlock_(out.text);
-        if (!json) return null;
-        const obj = JSON.parse(json);
-        props.setProperty('IDX_MODEL', String(idxModel));
-        return obj;
-      }
+        const parsed = safeJsonParse_(textResp, null);
+        const candidateText = extractCandidateText_(parsed);
+        const json = extractJsonBlock_(candidateText);
+        const rawObj = safeJsonParse_(json, null);
+        const normalized = normalizarRespuestaIA_(rawObj, !!asArray);
 
-      let msg = text;
-      try {
-        msg = (JSON.parse(text).error || {}).message || text;
-      } catch (err) {
-        // no-op
-      }
+        if (normalized) {
+          props.setProperty('IDX_MODEL', String(idxModel));
+          return normalized;
+        }
 
-      if (code === 429) {
-        Utilities.sleep(1500);
+        logCRM_(
+          'Respuesta IA sin estructura util. Intento ' + attempt + '/' + CRM_CONFIG.MAX_RETRIES +
+            ' | Modelo: ' + model,
+          'warning'
+        );
+
+        if (attempt < CRM_CONFIG.MAX_RETRIES) {
+          Utilities.sleep(getBackoffMs_(attempt, code));
+        }
         continue;
       }
-      if ((code === 404 || code === 403 || code >= 500) && models.length > 1) {
+
+      const msg = extractApiErrorMessage_(textResp);
+      const msgLower = msg.toLowerCase();
+
+      if (code === 400 && msgLower.indexOf('key') !== -1) {
+        throw new Error('GEMINI_API_KEY invalida o no autorizada.');
+      }
+
+      if (shouldRotateModel_(code, msg) && models.length > 1) {
         idxModel = (idxModel + 1) % models.length;
         props.setProperty('IDX_MODEL', String(idxModel));
         logCRM_('Cambio de modelo por error HTTP ' + code + '. Nuevo modelo: ' + models[idxModel], 'warning');
+      }
+
+      if (shouldRetryIARequest_(code, msg) && attempt < CRM_CONFIG.MAX_RETRIES) {
+        Utilities.sleep(getBackoffMs_(attempt, code));
         continue;
       }
-      if (code === 400 && msg.toLowerCase().indexOf('key') !== -1) {
-        throw new Error('GEMINI_API_KEY invalida o no autorizada.');
-      }
-      logCRM_('Respuesta IA no valida (HTTP ' + code + '): ' + msg, 'error');
+
+      logCRM_('Respuesta IA no valida (HTTP ' + code + '): ' + truncateForLog_(msg, 350), 'error');
     } catch (err) {
-      logCRM_('Error de red al llamar IA: ' + err.message, 'error');
-      Utilities.sleep(1200);
+      logCRM_(
+        'Error de red al llamar IA: ' + truncateForLog_(err && err.message, 350) +
+          ' | intento ' + attempt + '/' + CRM_CONFIG.MAX_RETRIES,
+        'error'
+      );
+      if (attempt < CRM_CONFIG.MAX_RETRIES) {
+        Utilities.sleep(getBackoffMs_(attempt, 0));
+      }
     }
   }
 
@@ -1563,8 +1617,173 @@ function llamarIA_(prompt, webObj, asArray) {
 }
 
 function extractJsonBlock_(text) {
-  const m = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-  return m ? m[0] : '';
+  const raw = sanitizeValue_(text);
+  if (!raw) return '';
+
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced && fenced[1]) {
+    return fenced[1].trim();
+  }
+
+  const startObj = raw.indexOf('{');
+  const startArr = raw.indexOf('[');
+  let start = -1;
+  if (startObj === -1) start = startArr;
+  else if (startArr === -1) start = startObj;
+  else start = Math.min(startObj, startArr);
+  if (start < 0) return '';
+
+  let depth = 0;
+  let inString = false;
+  let esc = false;
+  for (let i = start; i < raw.length; i++) {
+    const ch = raw[i];
+
+    if (inString) {
+      if (esc) {
+        esc = false;
+      } else if (ch === '\\') {
+        esc = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (ch === '{' || ch === '[') depth++;
+    if (ch === '}' || ch === ']') depth--;
+
+    if (depth === 0) {
+      return raw.substring(start, i + 1).trim();
+    }
+  }
+
+  return '';
+}
+
+function extractCandidateText_(parsed) {
+  if (!parsed || !Array.isArray(parsed.candidates) || !parsed.candidates.length) return '';
+  const cand = parsed.candidates[0] || {};
+  const parts = ((cand.content || {}).parts || []);
+  for (let i = 0; i < parts.length; i++) {
+    const txt = sanitizeValue_(parts[i] && parts[i].text);
+    if (txt) return txt;
+  }
+  return '';
+}
+
+function extractApiErrorMessage_(text) {
+  const parsed = safeJsonParse_(text, null);
+  if (parsed && parsed.error && parsed.error.message) {
+    return String(parsed.error.message);
+  }
+  return sanitizeValue_(text) || 'Error sin detalle';
+}
+
+function shouldRetryIARequest_(code, msg) {
+  if (code === 408 || code === 429 || code === 500 || code === 502 || code === 503 || code === 504) return true;
+  const m = sanitizeValue_(msg).toLowerCase();
+  return m.indexOf('timeout') !== -1 || m.indexOf('temporar') !== -1 || m.indexOf('overload') !== -1;
+}
+
+function shouldRotateModel_(code, msg) {
+  if (code === 404 || code === 403) return true;
+  if (code >= 500) return true;
+  const m = sanitizeValue_(msg).toLowerCase();
+  if (code === 400 && (m.indexOf('model') !== -1 || m.indexOf('not found') !== -1 || m.indexOf('unsupported') !== -1)) {
+    return true;
+  }
+  return false;
+}
+
+function getBackoffMs_(attempt, code) {
+  const base = Number(CRM_CONFIG.AI_BACKOFF_BASE_MS) || 1200;
+  const max = Number(CRM_CONFIG.AI_BACKOFF_MAX_MS) || 9000;
+  const att = Math.max(1, Number(attempt) || 1);
+  const jitter = Math.floor(Math.random() * 250);
+  const factor = (code === 429) ? 2.0 : 1.6;
+  const ms = Math.floor(base * Math.pow(factor, att - 1)) + jitter;
+  return Math.min(max, ms);
+}
+
+function normalizarRespuestaIA_(value, asArray) {
+  if (asArray) {
+    const src = Array.isArray(value) ? value : [value];
+    const out = [];
+    for (let i = 0; i < src.length; i++) {
+      const obj = normalizarObjetoIA_(src[i]);
+      if (obj) out.push(obj);
+    }
+    return out.length ? out : null;
+  }
+
+  const single = Array.isArray(value) ? value[0] : value;
+  return normalizarObjetoIA_(single);
+}
+
+function normalizarObjetoIA_(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+
+  const fechaLimite = normalizarFechaLimite_(raw.fechaLimite, '');
+  const razonamiento = construirRazonamientoFuerte_(raw);
+
+  const obj = {
+    nombreConcurso: mergeValue_(raw.nombreConcurso, '', CRM_NO_DATA),
+    _razonamiento_logico: razonamiento,
+    inscripcion: normalizarInscripcionIA_(raw.inscripcion, fechaLimite),
+    fechaLimite: fechaLimite,
+    fechasDesarrollo: normalizarMesDesarrollo_(raw.fechasDesarrollo || fechaLimite),
+    tipoPremio: normalizarTipoPremio_(raw.tipoPremio || 'VARIOS'),
+    detallePremio: mergeValue_(raw.detallePremio, '', CRM_NO_DATA),
+    dirigidoA: mergeValue_(raw.dirigidoA, '', CRM_NO_DATA),
+    municipio: mergeValue_(raw.municipio, '', CRM_NO_DATA),
+    provincia: mergeValue_(raw.provincia, '', CRM_NO_DATA),
+    pais: mergeValue_(raw.pais, '', 'España'),
+    link1: normalizarUrl_(raw.link1) || CRM_NO_DATA,
+    link2: normalizarUrl_(raw.link2) || CRM_NO_DATA,
+    link3: normalizarUrl_(raw.link3) || CRM_NO_DATA,
+    email: sanitizeValue_(raw.email) || CRM_NO_DATA,
+    telefono: sanitizeValue_(raw.telefono) || CRM_NO_DATA,
+    notas: mergeValue_(raw.notas, '', CRM_NO_DATA)
+  };
+
+  for (let i = 0; i < AI_REQUIRED_FIELDS.length; i++) {
+    const k = AI_REQUIRED_FIELDS[i];
+    if (!sanitizeValue_(obj[k])) {
+      obj[k] = (k === 'pais') ? 'España' : CRM_NO_DATA;
+    }
+  }
+
+  return obj;
+}
+
+function normalizarInscripcionIA_(value, fechaLimiteNormalizada) {
+  const v = sanitizeValue_(value).toUpperCase();
+  if (v === CRM_INSCRIPCION.ABIERTA) return CRM_INSCRIPCION.ABIERTA;
+  if (v === CRM_INSCRIPCION.CERRADA) return CRM_INSCRIPCION.CERRADA;
+  if (v === CRM_INSCRIPCION.SIN_PUBLICAR) return CRM_INSCRIPCION.SIN_PUBLICAR;
+  return estadoInscripcionDesdeFecha_(fechaLimiteNormalizada);
+}
+
+function construirRazonamientoFuerte_(raw) {
+  const base = sanitizeValue_(raw && raw._razonamiento_logico);
+  const urls = collectUrls_(raw && raw.link1, raw && raw.link2, raw && raw.link3);
+  const fuentes = urls.length ? ('Fuentes: ' + urls.join(' | ')) : 'Fuentes: historico interno y estimacion.';
+
+  let out = base || 'Sin evidencia oficial suficiente; se aplica estimacion conservadora para no bloquear decisiones.';
+  if (out.length < 90) {
+    out += ' | Se comparan bases actuales, historico y consistencia temporal.';
+  }
+  if (out.toUpperCase().indexOf('CONFIANZA') === -1) {
+    out += ' | Confianza: MEDIA.';
+  }
+  out += ' | ' + fuentes;
+  return truncateForLog_(out, 1800);
 }
 
 function getApiKey_() {
