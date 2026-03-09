@@ -63,7 +63,7 @@ const CRM_TIPO_PREMIO = ['ECONOMICO', 'SERVICIO', 'ACTUACION', 'RESIDENCIA', 'VA
 const CRM_TIPO_PREMIO_SET = { ECONOMICO: true, SERVICIO: true, ACTUACION: true, RESIDENCIA: true, VARIOS: true };
 const CRM_NO_DATA = 'No publicado / No localizado';
 
-const GEMINI_API_KEY_FIJA = 'AIzaSyC2AnnQuFgKOR_qGNl4jTrsoWF672bnK0M';
+const GEMINI_API_KEY_FIJA = 'AIzaSyCKidyUnNs60RzmHPIKF6aV0uISUw7wOng';
 const CRM_PASSWORD_FIJA = '+rubencoton26';
 const DESARROLLADOR_APP = 'RUBEN COTON';
 const FIRMA_APP = 'DESARROLLADOR: RUBEN COTON';
@@ -2075,6 +2075,7 @@ function escapeHtml_(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
 
 
 

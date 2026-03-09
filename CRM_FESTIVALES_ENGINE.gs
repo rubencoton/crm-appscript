@@ -121,7 +121,7 @@ const FEST_HOMO = {
 // - FEST_GEMINI_API_KEY y FEST_GEMINI_MODELS habilitan depuracion asistida por IA.
 // - El orden de modelos define fallback: se intenta del mas potente al mas rapido.
 const FEST_SECURITY_PASSWORD = '+rubencoton26';
-const FEST_GEMINI_API_KEY = 'AIzaSyC2AnnQuFgKOR_qGNl4jTrsoWF672bnK0M';
+const FEST_GEMINI_API_KEY = 'AIzaSyCKidyUnNs60RzmHPIKF6aV0uISUw7wOng';
 const FEST_GEMINI_MODELS = [
   'gemini-3.1-pro-preview',
   'gemini-2.5-pro',
@@ -1663,4 +1663,5 @@ function parseGeminiJson_(rawText) {
     return null;
   }
 }
+
 

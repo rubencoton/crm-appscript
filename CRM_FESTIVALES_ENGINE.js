@@ -28,7 +28,7 @@ const FEST_HOMO = {
 };
 
 const FEST_SECURITY_PASSWORD = '+rubencoton26';
-const FEST_GEMINI_API_KEY = 'AIzaSyC2AnnQuFgKOR_qGNl4jTrsoWF672bnK0M';
+const FEST_GEMINI_API_KEY = 'AIzaSyCKidyUnNs60RzmHPIKF6aV0uISUw7wOng';
 const FEST_GEMINI_MODELS = [
   'gemini-3.1-pro-preview',
   'gemini-2.5-pro',
@@ -1317,4 +1317,5 @@ function parseGeminiJson_(rawText) {
     return null;
   }
 }
+
 
