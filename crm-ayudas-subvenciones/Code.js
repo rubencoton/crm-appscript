@@ -15,10 +15,7 @@ const CRM_CONFIG = {
   LOG_CACHE_SECONDS: 3600,
   MAX_LOG_LINES: 250,
   DEFAULT_MODELS: [
-    'gemini-3.1-pro-preview',
-    'gemini-2.5-pro',
-    'gemini-2.5-flash',
-    'gemini-1.5-pro'
+    'gemini-3.1-pro-preview'
   ]
 };
 
@@ -1109,12 +1106,14 @@ function construirPromptFila_(row, urls) {
     'PRIORIDADES DE DATOS:\n' +
     '1) Si existe base oficial del ano actual, usa ese dato como fuente principal.\n' +
     '2) Si no existe dato oficial actual, usa historico y estima con logica.\n' +
-    '3) fechaLimite nunca vacia: fecha oficial DD/MM/YYYY o "ESTIMADO: DD/MM/YYYY".\n' +
-    '4) fechasDesarrollo solo mes (Enero..Diciembre) o "ESTIMADO: Mes".\n' +
-    '5) tipoPremio SOLO: ECONOMICO, SERVICIO, ACTUACION, RESIDENCIA o VARIOS.\n' +
-    '6) Prioriza link1 como bases actuales; link2 historico; link3 complementario.\n' +
-    '7) Si falta cualquier dato, usa "' + CRM_NO_DATA + '".\n' +
-    '8) En _razonamiento_logico explica de donde sale cada dato y por que fue estimado.\n\n' +
+    '3) fechaLimite es el dato mas importante y nunca puede quedar vacia.\n' +
+    '4) Si no hay fecha oficial clara, estimala como "ESTIMADO: DD/MM/YYYY".\n' +
+    '5) Inscripcion ABIERTA cuando hoy este entre (fechaLimite - 3 meses) y fechaLimite, inclusive.\n' +
+    '6) fechasDesarrollo solo mes (Enero..Diciembre) o "ESTIMADO: Mes".\n' +
+    '7) tipoPremio SOLO: ECONOMICO, SERVICIO, ACTUACION, RESIDENCIA o VARIOS.\n' +
+    '8) Prioriza link1 como bases actuales; link2 historico; link3 complementario.\n' +
+    '9) Si falta cualquier dato, usa "' + CRM_NO_DATA + '".\n' +
+    '10) En _razonamiento_logico explica de donde sale cada dato y por que fue estimado.\n\n' +
     historico
   );
 }
@@ -1429,15 +1428,17 @@ function llamarIA_(prompt, webObj, asArray) {
   const systemInstruction = [
     'Eres un equipo experto en management musical y convocatorias.',
     'Fecha de hoy: ' + hoy + ' | Ano: ' + year,
+    'Modelo prioritario: gemini-3.1-pro-preview.',
     'Debes devolver JSON valido y completo.',
     'Reglas:',
-    '1) fechaLimite nunca vacia. Si no existe fecha oficial, estima como "ESTIMADO: DD/MM/YYYY".',
-    '2) fechasDesarrollo solo mes (ej: "Abril" o "ESTIMADO: Abril").',
-    '3) tipoPremio solo: ECONOMICO, SERVICIO, ACTUACION, RESIDENCIA, VARIOS.',
-    '4) Rellena municipio, provincia, pais cuando exista evidencia.',
-    '5) Prioriza link1 como bases actuales, link2 historico y link3 complementario.',
-    '6) No menciones que eres IA.',
-    '7) Cuando no exista un dato, usa "' + CRM_NO_DATA + '".'
+    '1) fechaLimite es el dato mas importante y nunca puede quedar vacia.',
+    '2) Si no existe fecha oficial, estima de forma razonada como "ESTIMADO: DD/MM/YYYY".',
+    '3) Inscripcion ABIERTA cuando hoy esta entre (fechaLimite - 3 meses) y fechaLimite, inclusive.',
+    '4) fechasDesarrollo solo mes (ej: "Abril" o "ESTIMADO: Abril").',
+    '5) tipoPremio solo: ECONOMICO, SERVICIO, ACTUACION, RESIDENCIA, VARIOS.',
+    '6) Rellena municipio, provincia, pais cuando exista evidencia.',
+    '7) Prioriza link1 como bases actuales, link2 historico y link3 complementario.',
+    '8) Cuando no exista un dato, usa "' + CRM_NO_DATA + '".'
   ].join('\n');
 
   const parts = [{ text: prompt }];
@@ -1575,11 +1576,17 @@ function getApiKey_() {
 }
 
 function getModels_() {
+  const preferred = 'gemini-3.1-pro-preview';
   const props = PropertiesService.getScriptProperties();
   const custom = sanitizeValue_(props.getProperty('GEMINI_MODELS_CSV'));
-  if (!custom) return CRM_CONFIG.DEFAULT_MODELS.slice();
+  if (!custom) return [preferred];
+
   const arr = custom.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return !!s; });
-  return arr.length ? arr : CRM_CONFIG.DEFAULT_MODELS.slice();
+  const out = [preferred];
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] !== preferred && out.indexOf(arr[i]) === -1) out.push(arr[i]);
+  }
+  return out;
 }
 
 // -----------------------------------------------------------------------------
@@ -1704,8 +1711,9 @@ function enviarBoletin_() {
       '<h2 style="margin-bottom:8px;">Hola ' + escapeHtml_(name) + '</h2>',
       '<p style="line-height:1.6;">' + escapeHtml_(baseMsg) + '</p>',
       '<p style="font-size:13px;background:#fff8e1;border-left:4px solid #f9a825;padding:10px 12px;">',
-      '<strong>Regla del CRM:</strong> solo enviamos concursos con inscripcion ABIERTA (desde 2 meses antes de la fecha limite, inclusive, hasta la fecha limite).',
+      '<strong>Regla del CRM:</strong> solo enviamos concursos con inscripcion ABIERTA (desde 3 meses antes de la fecha limite, inclusive, hasta la fecha limite).',
       '</p>',
+      '<p style="font-size:12px;color:#555;margin:6px 0 14px 0;">Si la fecha exacta no esta publicada, el CRM muestra "ESTIMADO" para ayudarte a decidir sin frenar el flujo.</p>',
       bloques.join('\n'),
       '<p style="margin-top:28px;font-size:12px;color:#666;">Mensaje generado desde tu CRM de ayudas y subvenciones.</p>',
       '<p style="margin-top:4px;font-size:11px;color:#666;">DESARROLLADOR: RUBEN COTON</p>',
@@ -1795,6 +1803,7 @@ function aplicarDiseno_(sheetConcursos, sheetNuevos) {
   }
 
   aplicarValidaciones_(sheetConcursos);
+  aplicarFormatoCondicionalCalidad_(sheetConcursos);
 
   if (sheetNuevos) {
     const colsN = sheetNuevos.getMaxColumns();
@@ -1848,10 +1857,11 @@ function aplicarFormatoFila_(sheet, rowN, inscripcion, tz) {
 
   const ins = sanitizeValue_(inscripcion).toUpperCase();
   let bg = '#FFFFFF';
-  if (ins === CRM_INSCRIPCION.ABIERTA) bg = '#D9EAD3';
-  else if (ins === CRM_INSCRIPCION.CERRADA) bg = '#F4CCCC';
-  else if (ins === CRM_INSCRIPCION.SIN_PUBLICAR) bg = '#FFF2CC';
+  if (ins === CRM_INSCRIPCION.ABIERTA) bg = '#E3FCEF';
+  else if (ins === CRM_INSCRIPCION.CERRADA) bg = '#FDE2E2';
+  else if (ins === CRM_INSCRIPCION.SIN_PUBLICAR) bg = '#FFF4CC';
   rowRange.setBackground(bg);
+  marcarCamposCriticosFila_(sheet, rowN, bg);
 
   sheet.getRange(rowN, CRM_COL.NOMBRE).setFontWeight('bold').setFontSize(11).setFontColor('#000000');
   sheet.getRange(rowN, CRM_COL.ESTADO, 1, 4).setHorizontalAlignment('center');
@@ -1868,6 +1878,86 @@ function aplicarFormatoFila_(sheet, rowN, inscripcion, tz) {
     } else {
       c.setFontColor('#333333').setFontLine('none');
     }
+  }
+}
+
+function aplicarFormatoCondicionalCalidad_(sheetConcursos) {
+  const maxRows = Math.max(sheetConcursos.getLastRow(), 2);
+  const fullRange = sheetConcursos.getRange(2, 1, maxRows - 1, 17);
+
+  const ruleFecha = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=AND($A2<>"",$D2="")')
+    .setBackground('#FDE68A')
+    .setRanges([fullRange])
+    .build();
+
+  const ruleContacto = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=AND($A2<>"",$O2="",$P2="")')
+    .setBackground('#FECACA')
+    .setRanges([fullRange])
+    .build();
+
+  const ruleLinks = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=AND($A2<>"",$L2="",$M2="",$N2="")')
+    .setBackground('#FED7AA')
+    .setRanges([fullRange])
+    .build();
+
+  const ruleUbicacion = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=AND($A2<>"",$I2="",$J2="")')
+    .setBackground('#FEE2E2')
+    .setRanges([fullRange])
+    .build();
+
+  sheetConcursos.setConditionalFormatRules([ruleFecha, ruleContacto, ruleLinks, ruleUbicacion]);
+}
+
+function esDatoFaltanteCritico_(value) {
+  const v = sanitizeValue_(value).toUpperCase();
+  return !v || v === CRM_NO_DATA.toUpperCase() || v === 'SIN PUBLICAR' || v === 'NO PUBLICADO';
+}
+
+function marcarCamposCriticosFila_(sheet, rowN, fallbackBg) {
+  const bgBase = fallbackBg || '#FFFFFF';
+  const bgError = '#FEE2E2';
+  const bgWarn = '#FEF3C7';
+
+  const fechaCell = sheet.getRange(rowN, CRM_COL.FECHA_LIMITE);
+  fechaCell.setBackground(bgBase);
+  if (esDatoFaltanteCritico_(fechaCell.getValue())) {
+    fechaCell.setBackground(bgError).setFontWeight('bold');
+  } else {
+    fechaCell.setFontWeight('bold');
+  }
+
+  const tipoCell = sheet.getRange(rowN, CRM_COL.TIPO_PREMIO);
+  tipoCell.setBackground(bgBase);
+  if (esDatoFaltanteCritico_(tipoCell.getValue())) tipoCell.setBackground(bgWarn);
+
+  const muniCell = sheet.getRange(rowN, CRM_COL.MUNICIPIO);
+  const provCell = sheet.getRange(rowN, CRM_COL.PROVINCIA);
+  muniCell.setBackground(bgBase);
+  provCell.setBackground(bgBase);
+  if (esDatoFaltanteCritico_(muniCell.getValue()) && esDatoFaltanteCritico_(provCell.getValue())) {
+    muniCell.setBackground(bgWarn);
+    provCell.setBackground(bgWarn);
+  }
+
+  const emailCell = sheet.getRange(rowN, CRM_COL.EMAIL);
+  const telCell = sheet.getRange(rowN, CRM_COL.TELEFONO);
+  emailCell.setBackground(bgBase);
+  telCell.setBackground(bgBase);
+  if (esDatoFaltanteCritico_(emailCell.getValue()) && esDatoFaltanteCritico_(telCell.getValue())) {
+    emailCell.setBackground(bgError);
+    telCell.setBackground(bgError);
+  }
+
+  const linksRange = sheet.getRange(rowN, CRM_COL.LINK1, 1, 3);
+  linksRange.setBackground(bgBase);
+  const links = linksRange.getValues()[0];
+  const hasLink = links.some(function (v) { return !!normalizarUrl_(v); });
+  if (!hasLink) {
+    linksRange.setBackground(bgWarn);
   }
 }
 
@@ -1986,7 +2076,7 @@ function normalizarFechaLimite_(newValue, oldValue) {
     return parsedOld.estimated ? 'ESTIMADO: ' + formatDate_(parsedOld.date) : formatDate_(parsedOld.date);
   }
 
-  return 'SIN PUBLICAR';
+  return estimarFechaLimitePorDefecto_();
 }
 
 function parseFechaLimite_(value) {
@@ -2009,13 +2099,19 @@ function isFechaEstimada_(value) {
   return sanitizeValue_(value).toUpperCase().indexOf('ESTIMADO') !== -1;
 }
 
+function estimarFechaLimitePorDefecto_() {
+  const dt = new Date();
+  dt.setDate(dt.getDate() + 90);
+  return 'ESTIMADO: ' + formatDate_(dt);
+}
+
 function estadoInscripcionDesdeFecha_(fechaValue) {
   const parsed = parseFechaLimite_(fechaValue);
   if (!parsed) return CRM_INSCRIPCION.SIN_PUBLICAR;
 
   const fLimite = new Date(parsed.date.getFullYear(), parsed.date.getMonth(), parsed.date.getDate(), 23, 59, 59, 999);
   const inicioVentana = new Date(fLimite);
-  inicioVentana.setMonth(inicioVentana.getMonth() - 2);
+  inicioVentana.setMonth(inicioVentana.getMonth() - 3);
   inicioVentana.setHours(0, 0, 0, 0);
 
   const hoy = new Date();
