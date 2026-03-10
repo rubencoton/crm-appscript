@@ -22,6 +22,7 @@ function main() {
   section('Secrets', checkSecrets);
   section('Stress CRM ayudas', stressAyudas);
   section('Stress CRM festivales', stressFestivales);
+  section('Stress CRM festivales (.gs)', stressFestivalesGs);
 
   console.log('\nRESUMEN');
   console.log('Checks:', result.checks);
@@ -184,6 +185,70 @@ function stressFestivales() {
     assert(out && out.a === 1, 'no parseo fenced');
   });
 
+  check('fest parse multi-part candidate', () => {
+    const raw = JSON.stringify({
+      candidates: [{ content: { parts: [{ text: '{"a":' }, { text: '1}' }] } }]
+    });
+    const out = ctx.parseGeminiJson_(raw);
+    assert(out && out.a === 1, 'no parseo candidate multi-part');
+  });
+
+  check('fest parse second candidate fallback', () => {
+    const raw = JSON.stringify({
+      candidates: [
+        { content: { parts: [{ text: '' }] }, finishReason: 'MAX_TOKENS' },
+        { content: { parts: [{ text: '{"ok":true}' }] }, finishReason: 'STOP' }
+      ]
+    });
+    const out = ctx.parseGeminiJson_(raw);
+    assert(out && out.ok === true, 'no parseo segundo candidato');
+  });
+
+  check('fest invocar fallback retries with bigger token budget', () => {
+    let genCalls = 0;
+    ctx.UrlFetchApp.fetch = (url, opts) => {
+      fetchCalls++;
+      if (String(url).indexOf('/models?key=') !== -1) {
+        return {
+          getResponseCode: () => 200,
+          getContentText: () => JSON.stringify({ models: [{ name: 'models/gemini-3.1-pro-preview' }] })
+        };
+      }
+
+      const payload = JSON.parse(opts && opts.payload ? opts.payload : '{}');
+      const maxTok = Number((((payload || {}).generationConfig || {}).maxOutputTokens) || 0);
+      genCalls++;
+
+      if (maxTok <= 2048) {
+        return {
+          getResponseCode: () => 200,
+          getContentText: () => JSON.stringify({ candidates: [{ content: {}, finishReason: 'MAX_TOKENS' }] })
+        };
+      }
+
+      return {
+        getResponseCode: () => 200,
+        getContentText: () => JSON.stringify({
+          candidates: [{ content: { parts: [{ text: '{"email":"x@y.com","telefono":"","nombreContacto":"","observaciones":""}' }] }, finishReason: 'STOP' }]
+        })
+      };
+    };
+
+    const out = ctx.invocarGeminiConFallback_('test', {
+      type: 'OBJECT',
+      properties: {
+        email: { type: 'STRING' },
+        telefono: { type: 'STRING' },
+        nombreContacto: { type: 'STRING' },
+        observaciones: { type: 'STRING' }
+      },
+      required: ['email', 'telefono', 'nombreContacto', 'observaciones']
+    });
+
+    assert(out && out.data && out.data.email === 'x@y.com', 'no recupero salida tras reintento');
+    assert(genCalls >= 2, 'no hubo reintento');
+  });
+
   check('fest model filter works', () => {
     assert(ctx.isGeminiTextModelCandidate_('gemini-2.5-image') === false, 'no filtro image');
     assert(ctx.isGeminiTextModelCandidate_('gemini-3.1-pro-preview') === true, 'filtro modelo valido');
@@ -204,6 +269,73 @@ function stressFestivales() {
   });
 
   if (fetchCalls === 0) warn('No hubo llamadas fetch en stress festivales');
+}
+
+
+function stressFestivalesGs() {
+  const src = read(path.join(ROOT, 'CRM_FESTIVALES_ENGINE.gs'));
+  const ctx = makeGasContext({ FEST_GEMINI_API_KEY: 'DUMMY', FEST_SECURITY_PASSWORD: 'dummy-pass-123' });
+
+  let genCalls = 0;
+  ctx.UrlFetchApp = {
+    fetch: (url, opts) => {
+      if (String(url).indexOf(':generateContent?key=') === -1) {
+        return { getResponseCode: () => 500, getContentText: () => '{"error":{"message":"unexpected"}}' };
+      }
+
+      const payload = JSON.parse(opts && opts.payload ? opts.payload : '{}');
+      const maxTok = Number((((payload || {}).generationConfig || {}).maxOutputTokens) || 0);
+      genCalls++;
+
+      if (maxTok <= 2048) {
+        return {
+          getResponseCode: () => 200,
+          getContentText: () => JSON.stringify({ candidates: [{ content: {}, finishReason: 'MAX_TOKENS' }] })
+        };
+      }
+
+      return {
+        getResponseCode: () => 200,
+        getContentText: () => JSON.stringify({
+          candidates: [{ content: { parts: [{ text: '{"email":"x@y.com","telefono":"","nombreContacto":"","observaciones":""}' }] }, finishReason: 'STOP' }]
+        })
+      };
+    }
+  };
+
+  vm.createContext(ctx);
+  vm.runInContext(src, ctx, { timeout: 15000 });
+
+  check('fest gs parse multi-part candidate', () => {
+    const raw = JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"a":' }, { text: '1}' }] } }] });
+    const out = ctx.parseGeminiJson_(raw);
+    assert(out && out.a === 1, 'no parseo candidate multi-part en .gs');
+  });
+
+  check('fest gs invocar fallback retries with bigger token budget', () => {
+    const out = ctx.invocarGeminiConFallback_('test', {
+      type: 'OBJECT',
+      properties: {
+        email: { type: 'STRING' },
+        telefono: { type: 'STRING' },
+        nombreContacto: { type: 'STRING' },
+        observaciones: { type: 'STRING' }
+      },
+      required: ['email', 'telefono', 'nombreContacto', 'observaciones']
+    });
+
+    assert(out && out.data && out.data.email === 'x@y.com', 'no recupero salida tras reintento en .gs');
+    assert(genCalls >= 2, 'no hubo reintento en .gs');
+  });
+
+  check('fest gs fuzz parser no throw', () => {
+    for (let i = 0; i < 220; i++) {
+      const txt = Math.random().toString(36).repeat(rand(1, 5));
+      const payload = Math.random() < 0.5 ? txt : JSON.stringify({ candidates: [{ content: { parts: [{ text: txt }] } }] });
+      const out = ctx.parseGeminiJson_(payload);
+      if (out !== null) assert(typeof out === 'object', 'salida no valida .gs');
+    }
+  });
 }
 
 function makeGasContext(initialProps) {

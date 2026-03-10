@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // CRM FESTIVALES - MENU OPERATIVO + HOMOGENEIDAD + DISENO
 // Listo para Google Apps Script
 // =============================================================================
@@ -50,11 +50,13 @@ const FEST_GEMINI_MODEL_PREFERENCES = [
 const FEST_GEMINI_MODEL_CACHE_TTL_SEC = 6 * 60 * 60;
 const FEST_GEMINI_RESPONSE_CACHE_TTL_SEC = 6 * 60 * 60;
 const FEST_GEMINI_MAX_RETRIES_PER_MODEL = 2;
+const FEST_GEMINI_BASE_MAX_OUTPUT_TOKENS = 2048;
+const FEST_GEMINI_RETRY_MAX_OUTPUT_TOKENS = 4096;
 const FEST_MAX_RUNTIME_MS = 4.7 * 60 * 1000;
 const FEST_ARCHITECT = 'RUBEN COTON';
 const FEST_GENRE_DROPDOWN = [
-  '🧢 URBAN', '🎤 POP', '🎸 INDIE', '🤘 ROCK', '🎛️ ELECTR',
-  '🎷 JAZZ', '💃 FLAM', '🪘 RUMBA', '🎼 MEC', '🌄 MFR'
+  'URBAN', 'POP', 'INDIE', 'ROCK', 'ELECTR',
+  'JAZZ', 'FLAM', 'RUMBA', 'MEC', 'MFR'
 ];
 
 // Si no tienes otro onOpen en el proyecto, este ya deja el menu automatico.
@@ -96,20 +98,20 @@ function onOpenFestivalesHomogeneidad_() {
 
 function crearMenuCRMFestivales_() {
   SpreadsheetApp.getUi()
-    .createMenu('🚀 CRM FESTIVALES | RUBEN COTON')
-    .addItem('🚀 Escaner total + homogeneizar (seguro)', 'menuHomogeneizarCRMFestivales')
-    .addItem('🎨 Solo armonizar diseno visual (seguro)', 'menuAplicarDisenoCRMFestivales')
-    .addItem('📧 Depurar contactos local (seguro)', 'menuDepurarContactosCRMFestivales')
-    .addItem('🧠 Depurar contactos con Gemini (seguro)', 'menuDepurarContactosGeminiCRMFestivales')
-    .addItem('🛰️ Auditar estructura (seguro)', 'menuAuditarEstructuraCRMFestivales')
-    .addItem('🧭 Auditar genero + tamano S/L/XL (seguro)', 'menuAuditarClasificacionCRMFestivales')
-    .addItem('💥 Modo auditor extremo (stress test)', 'menuAuditorExtremoCRMFestivales')
+    .createMenu('CRM FESTIVALES | RUBEN COTON')
+    .addItem('Escaner total + homogeneizar (seguro)', 'menuHomogeneizarCRMFestivales')
+    .addItem('Solo armonizar diseno visual (seguro)', 'menuAplicarDisenoCRMFestivales')
+    .addItem('Depurar contactos local (seguro)', 'menuDepurarContactosCRMFestivales')
+    .addItem('Depurar contactos con Gemini (seguro)', 'menuDepurarContactosGeminiCRMFestivales')
+    .addItem('Auditar estructura (seguro)', 'menuAuditarEstructuraCRMFestivales')
+    .addItem('Auditar genero + tamano S/L/XL (seguro)', 'menuAuditarClasificacionCRMFestivales')
+    .addItem('Modo auditor extremo (stress test)', 'menuAuditorExtremoCRMFestivales')
     .addItem('Configurar credenciales Gemini', 'menuConfigurarCredencialesCRMFestivales')
     .addSeparator()
-    .addItem('⚙️ Instalar trigger de menu (seguro)', 'menuInstalarTriggerCRMFestivales')
-    .addItem('🧹 Limpiar triggers de menu (seguro)', 'menuLimpiarTriggersCRMFestivales')
+    .addItem('Instalar trigger de menu (seguro)', 'menuInstalarTriggerCRMFestivales')
+    .addItem('Limpiar triggers de menu (seguro)', 'menuLimpiarTriggersCRMFestivales')
     .addSeparator()
-    .addItem('📚 Guia de arquitectura (seguro)', 'menuGuiaArquitecturaCRMFestivales')
+    .addItem('Guia de arquitectura (seguro)', 'menuGuiaArquitecturaCRMFestivales')
     .addToUi();
 }
 
@@ -131,7 +133,7 @@ function instalarTriggerMenuCRMFestivales() {
   SpreadsheetApp.getUi().alert(
     'Trigger de menu instalado correctamente.\n' +
     'Triggers antiguos eliminados: ' + deleted + '\n\n' +
-    'A partir de ahora, al abrir la hoja, aparecera el menu 🚀 CRM FESTIVALES | RUBEN COTON.'
+    'A partir de ahora, al abrir la hoja, aparecera el menu CRM FESTIVALES | RUBEN COTON.'
   );
 }
 
@@ -433,7 +435,7 @@ function auditarEstructuraCRMFestivales() {
     }
   });
 
-  SpreadsheetApp.getUi().alert('🛰️ Auditoria de estructura\n\n' + lines.join('\n'));
+  SpreadsheetApp.getUi().alert('Auditoria de estructura\n\n' + lines.join('\n'));
 }
 
 function auditarClasificacionGeneroTamanoCRMFestivales() {
@@ -485,7 +487,7 @@ function auditarClasificacionGeneroTamanoCRMFestivales() {
   });
 
   const resumen = [
-    '🧭 Auditoria de clasificacion (' + FEST_ARCHITECT + ')',
+    'Auditoria de clasificacion (' + FEST_ARCHITECT + ')',
     '',
     'Filas revisadas: ' + totalRows,
     'Sin genero: ' + noGenero,
@@ -523,7 +525,7 @@ function auditoriaEstresCRMFestivales() {
   check(formatSpanishPhone_('612345678') === '+34 612 345 678', 'Formato telefono', '612345678');
   check(isValidEmailList_('a@b.com; c@d.es') === true, 'Email list', 'lista valida');
 
-  const fuzzInputs = [null, undefined, '', '   ', '🎤 POP', 'MUSICA REGIONAL', '0034612345678', -1, 0, 1000, 1001, 9999, 10000, {}, [], true, false];
+  const fuzzInputs = [null, undefined, '', '   ', 'POP', 'MUSICA REGIONAL', '0034612345678', -1, 0, 1000, 1001, 9999, 10000, {}, [], true, false];
   const fuzzFns = [
     cleanText_, normalizeHeader_, parseAforo_, normalizeAforoForDisplay_,
     normalizeEmailCell_, normalizePhoneCell_, formatSpanishPhone_,
@@ -605,7 +607,7 @@ function auditoriaEstresCRMFestivales() {
 
   const status = failures.length ? 'FAIL' : 'OK';
   const message = [
-    '💥 MODO AUDITOR EXTREMO (' + status + ')',
+    'MODO AUDITOR EXTREMO (' + status + ')',
     '',
     'Errores criticos: ' + failures.length,
     'Alertas: ' + warnings.length,
@@ -622,12 +624,12 @@ function auditoriaEstresCRMFestivales() {
 function mostrarGuiaIntegracionCRMFestivales() {
   const html = [
     '<div style="font-family:Arial,sans-serif;padding:14px;line-height:1.5;color:#222;">',
-    '<h2 style="margin-top:0;">🚀 Arquitectura CRM FESTIVALES</h2><p><b>ARQUITECTO:</b> ' + FEST_ARCHITECT + '</p>',
+    '<h2 style="margin-top:0;">Arquitectura CRM FESTIVALES</h2><p><b>ARQUITECTO:</b> ' + FEST_ARCHITECT + '</p>',
     '<p><b>1) En la propia hoja (Apps Script)</b><br>Extensiones -> Apps Script. Editas funciones y ejecutas desde menu o triggers.</p>',
     '<p><b>2) Con repositorio local (clasp)</b><br>Puedes sincronizar el proyecto de Apps Script con archivos .gs en tu ordenador y versionarlo con Git.</p>',
     '<p><b>3) Con APIs externas</b><br>Tu script puede llamar APIs (Gemini u otras) con UrlFetchApp y guardar resultados en celdas.</p>',
     '<p><b>4) Modificaciones seguras recomendadas</b><br>Crea copia de la hoja antes de cambios grandes, usa una pestana de pruebas, y luego aplicas a produccion.</p>',
-    '<p><b>5) Flujo recomendado para ti</b><br>Menu 🚀 CRM FESTIVALES -> escaner total -> depurar contactos -> auditorias de estructura y clasificacion.</p>',
+    '<p><b>5) Flujo recomendado para ti</b><br>Menu CRM FESTIVALES -> escaner total -> depurar contactos -> auditorias de estructura y clasificacion.</p>',
     '</div>'
   ].join('');
 
@@ -1287,7 +1289,7 @@ function invocarGeminiConFallback_(prompt, responseSchema) {
     ],
     generationConfig: {
       temperature: 0.1,
-      maxOutputTokens: 800,
+      maxOutputTokens: FEST_GEMINI_BASE_MAX_OUTPUT_TOKENS,
       responseMimeType: 'application/json',
       responseSchema: responseSchema
     }
@@ -1301,10 +1303,9 @@ function invocarGeminiConFallback_(prompt, responseSchema) {
     } catch (errCacheHit) {}
   }
 
-  const options = {
+  const baseOptions = {
     method: 'post',
     contentType: 'application/json',
-    payload: JSON.stringify(payload),
     muteHttpExceptions: true,
     headers: { 'User-Agent': 'CRM-FESTIVALES/1.0' }
   };
@@ -1317,6 +1318,15 @@ function invocarGeminiConFallback_(prompt, responseSchema) {
 
     for (let attempt = 0; attempt < FEST_GEMINI_MAX_RETRIES_PER_MODEL; attempt++) {
       try {
+        const maxTokens = (attempt > 0)
+          ? Math.max(FEST_GEMINI_BASE_MAX_OUTPUT_TOKENS, FEST_GEMINI_RETRY_MAX_OUTPUT_TOKENS)
+          : FEST_GEMINI_BASE_MAX_OUTPUT_TOKENS;
+        payload.generationConfig.maxOutputTokens = maxTokens;
+
+        const options = Object.assign({}, baseOptions, {
+          payload: JSON.stringify(payload)
+        });
+
         const res = UrlFetchApp.fetch(url, options);
         const code = res.getResponseCode();
         const raw = res.getContentText();
@@ -1331,6 +1341,13 @@ function invocarGeminiConFallback_(prompt, responseSchema) {
             }
             return { model: model, data: parsed };
           }
+
+          if (attempt < FEST_GEMINI_MAX_RETRIES_PER_MODEL - 1) {
+            Utilities.sleep(650 * Math.pow(2, attempt));
+            continue;
+          }
+
+          break;
         }
 
         if (code === 401 || code === 403) {
@@ -1356,38 +1373,53 @@ function invocarGeminiConFallback_(prompt, responseSchema) {
   return null;
 }
 
+function extractGeminiTextFromCandidate_(candidate) {
+  const parts = ((candidate && candidate.content) ? candidate.content.parts : []) || [];
+  const texts = [];
+  for (let i = 0; i < parts.length; i++) {
+    const t = cleanText_(parts[i] && parts[i].text);
+    if (t) texts.push(t);
+  }
+  return texts.join('\n').trim();
+}
+
 function parseGeminiJson_(rawText) {
   try {
     const root = JSON.parse(rawText);
-    if (!root || !root.candidates || !root.candidates.length) return null;
+    const candidates = Array.isArray(root && root.candidates) ? root.candidates : [];
+    if (!candidates.length) return null;
 
-    const part = root.candidates[0].content && root.candidates[0].content.parts
-      ? root.candidates[0].content.parts[0]
-      : null;
-    if (!part || !part.text) return null;
+    for (let c = 0; c < candidates.length; c++) {
+      const cleaned = String(extractGeminiTextFromCandidate_(candidates[c]) || '')
+        .replace(/`{3}json/gi, '')
+        .replace(/`{3}/g, '')
+        .trim();
 
-    const cleaned = String(part.text)
-      .replace(/`{3}json/gi, '')
-      .replace(/`{3}/g, '')
-      .trim();
+      if (!cleaned) continue;
 
-    if (!cleaned) return null;
+      try {
+        if (cleaned.charAt(0) === '{' || cleaned.charAt(0) === '[') {
+          const parsedDirect = JSON.parse(cleaned);
+          if (Array.isArray(parsedDirect)) return parsedDirect.length ? parsedDirect[0] : null;
+          return parsedDirect;
+        }
 
-    if (cleaned.charAt(0) === '{' || cleaned.charAt(0) === '[') {
-      const parsedDirect = JSON.parse(cleaned);
-      if (Array.isArray(parsedDirect)) return parsedDirect.length ? parsedDirect[0] : null;
-      return parsedDirect;
+        const match = cleaned.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+        if (!match) continue;
+
+        const parsed = JSON.parse(match[0]);
+        if (Array.isArray(parsed)) return parsed.length ? parsed[0] : null;
+        return parsed;
+      } catch (innerErr) {
+        // sigue con siguiente candidato
+      }
     }
 
-    const match = cleaned.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
-    if (!match) return null;
-
-    const parsed = JSON.parse(match[0]);
-    if (Array.isArray(parsed)) return parsed.length ? parsed[0] : null;
-    return parsed;
+    return null;
   } catch (err) {
     return null;
   }
 }
+
 
 
