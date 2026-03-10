@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // CRM AYUDAS Y SUBVENCIONES - VERSION ESTABLE V2
 // Lista para pegar en Google Apps Script
 // =============================================================================
@@ -2374,7 +2374,25 @@ function normalizarTipoPremio_(value) {
 
 function normalizarUrl_(value) {
   const v = sanitizeValue_(value);
+  if (!v) return '';
   if (isValidHttpUrl_(v)) return v;
+
+  // Autocorrige entradas de usuario tipicas (www.dominio.com o dominio.com/ruta)
+  // para no perder links utiles por ausencia de protocolo.
+  const compact = v.replace(/\s+/g, '');
+  if (/^www\./i.test(compact)) {
+    const candidate = 'https://' + compact;
+    if (isValidHttpUrl_(candidate)) return candidate;
+  }
+
+  if (
+    /^[A-Za-z0-9][A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:\/\S*)?$/.test(compact) &&
+    compact.indexOf('@') === -1
+  ) {
+    const candidate = 'https://' + compact;
+    if (isValidHttpUrl_(candidate)) return candidate;
+  }
+
   return '';
 }
 
@@ -2598,8 +2616,8 @@ function formatSpanishPhone_(raw) {
   } else {
     return '';
   }
-
-  if (!/^\d{9}$/.test(digits)) return '';
+  // Para evitar falsos positivos de calidad, solo se valida numeracion habitual ES.
+  if (!/^[6789]\d{8}$/.test(digits)) return '';
   return '+34 ' + digits.substring(0, 3) + ' ' + digits.substring(3, 6) + ' ' + digits.substring(6);
 }
 
@@ -2627,6 +2645,7 @@ function escapeHtml_(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
 
 
 

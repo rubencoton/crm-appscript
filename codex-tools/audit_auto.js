@@ -155,9 +155,16 @@ function stressAyudas() {
   check('ayudas format spanish phone', () => {
     assert(ctx.formatSpanishPhone_('612345678') === '+34 612 345 678', 'telefono nacional no formateado');
     assert(ctx.formatSpanishPhone_('+34 612 345 678') === '+34 612 345 678', 'telefono +34 no normalizado');
+    assert(ctx.formatSpanishPhone_('512345678') === '', 'telefono ES invalido (prefijo 5) no fue rechazado');
     assert(ctx.formatSpanishPhone_('12345') === '', 'telefono invalido no fue rechazado');
   });
 
+  check('ayudas normalizar url with missing protocol', () => {
+    assert(ctx.normalizarUrl_('https://ejemplo.com/base') === 'https://ejemplo.com/base', 'url valida alterada');
+    assert(ctx.normalizarUrl_('www.ejemplo.com/bases') === 'https://www.ejemplo.com/bases', 'no normalizo www sin protocolo');
+    assert(ctx.normalizarUrl_('convocatoria.es/bases') === 'https://convocatoria.es/bases', 'no normalizo dominio sin protocolo');
+    assert(ctx.normalizarUrl_('contacto@convocatoria.es') === '', 'correo confundido como url');
+  });
   check('ayudas metrics engine no throw and classify contact/link', () => {
     const data = [
       ['NOMBRE CONCURSO', 'ESTADO', 'INSCRIPCION', 'FECHA LIMITE', 'FECHA DESARROLLO', 'TIPO PREMIO', 'DETALLE PREMIO', 'DIRIGIDO A', 'MUNICIPIO', 'PROVINCIA', 'PAIS', 'LINK1', 'LINK2', 'LINK3', 'EMAIL', 'TELEFONO', 'NOTAS'],
@@ -682,3 +689,4 @@ function assert(cond, msg) { if (!cond) throw new Error(msg || 'assert'); }
 function rand(min, max) { return Math.floor(Math.random() * (max - min)) + min; }
 function p2(n) { return String(n).padStart(2, '0'); }
 function log(msg) { console.log('[INFO]', msg); }
+
