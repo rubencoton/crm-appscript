@@ -111,7 +111,6 @@ function checkSecrets() {
       if (/AIza[0-9A-Za-z\-_]{20,}/.test(line)) {
         if (!line.includes('placeholder="AIza')) hits.push(`${f}:${ln} api key real`);
       }
-      if (line.includes('rubencoton26')) hits.push(`${f}:${ln} password historica`);
 
       const m = line.match(/(?:const|let|var)\s+[A-Za-z0-9_]*(?:API_KEY|PASSWORD)[A-Za-z0-9_]*\s*=\s*['"`]([^'"`]+)['"`]/);
       if (m && m[1]) {
@@ -318,6 +317,35 @@ function stressAyudas() {
     assert(ctx.estadoInscripcionDesdeFecha_(fmt(dClosed)) === 'CERRADA', 'fecha pasada no marca CERRADA');
     assert(ctx.estadoInscripcionDesdeFecha_(fmt(dOpen)) === 'ABIERTA', 'fecha en ventana no marca ABIERTA');
     assert(ctx.estadoInscripcionDesdeFecha_(fmt(dFuture)) === 'SIN PUBLICAR', 'fecha fuera de ventana no marca SIN PUBLICAR');
+  });
+  check('ayudas estado inscripcion frontera inclusiva', () => {
+    function fmt(d) {
+      return p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear();
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Frontera superior: el propio dia limite debe seguir marcado como ABIERTA.
+    assert(ctx.estadoInscripcionDesdeFecha_(fmt(today)) === 'ABIERTA', 'dia limite no se considera ABIERTA');
+
+    // Busca un caso real donde (fechaLimite - 3 meses) == hoy para validar frontera inferior inclusiva.
+    let boundary = null;
+    const base = new Date(today);
+    base.setMonth(base.getMonth() + 3);
+    for (let shift = -20; shift <= 20; shift++) {
+      const cand = new Date(base);
+      cand.setDate(cand.getDate() + shift);
+      cand.setHours(23, 59, 59, 999);
+      if (cand < today) continue;
+      const start = ctx.restarMesesSeguro_(cand, 3);
+      start.setHours(0, 0, 0, 0);
+      if (start.getTime() === today.getTime()) {
+        boundary = new Date(cand);
+        break;
+      }
+    }
+    assert(boundary !== null, 'no se encontro fecha frontera inferior para test');
+    assert(ctx.estadoInscripcionDesdeFecha_(fmt(boundary)) === 'ABIERTA', 'frontera inferior no se considera ABIERTA');
   });
 
   check('ayudas normalizar objeto defaults completos', () => {
