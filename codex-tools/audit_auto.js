@@ -150,7 +150,49 @@ function stressAyudas() {
       assert(out.date.getDate() === d && out.date.getMonth() + 1 === m && out.date.getFullYear() === y, 'coercion ' + s);
     }
   });
+
+
+  check('ayudas model discovery/filter/cache', () => {
+    const prevFetch = ctx.UrlFetchApp.fetch;
+    let listCalls = 0;
+
+    try {
+      ctx.UrlFetchApp.fetch = (url) => {
+        if (String(url).indexOf('/v1beta/models?key=') !== -1) {
+          listCalls++;
+          return {
+            getResponseCode: () => 200,
+            getContentText: () => JSON.stringify({
+              models: [
+                { name: 'models/gemini-2.5-image' },
+                { name: 'models/gemini-2.5-pro' },
+                { name: 'models/gemini-3.1-pro-preview' },
+                { name: 'models/gemini-2.5-flash' }
+              ]
+            })
+          };
+        }
+
+        return { getResponseCode: () => 500, getContentText: () => '{}' };
+      };
+
+      const models1 = ctx.getModels_('dummy-key');
+      assert(Array.isArray(models1) && models1.length > 0, 'sin modelos');
+      assert(models1[0] === 'gemini-3.1-pro-preview', 'no prioriza modelo pro');
+      assert(models1.includes('gemini-2.5-pro'), 'no incorpora modelo descubierto');
+      assert(models1.includes('gemini-2.5-flash'), 'no incorpora fallback flash');
+      assert(!models1.some((m) => String(m).toLowerCase().indexOf('image') !== -1), 'no filtro modelos image');
+      assert(listCalls === 1, 'catalogo no consultado exactamente una vez');
+
+      const models2 = ctx.getModels_('dummy-key');
+      assert(Array.isArray(models2) && models2.length > 0, 'sin modelos en cache');
+      assert(listCalls === 1, 'no uso cache de modelos');
+    } finally {
+      ctx.UrlFetchApp.fetch = prevFetch;
+    }
+  });
 }
+
 
 function stressFestivales() {
   const src = read(path.join(ROOT, 'CRM_FESTIVALES_ENGINE.js'));
