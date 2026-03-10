@@ -1,35 +1,34 @@
-﻿{
-    "name":  "festivales-github",
-    "version":  "1.0.0",
-    "description":  "CRM Festivales conectado a Google Apps Script mediante clasp",
-    "main":  "Código.js",
-    "scripts":  {
-                    "gas:login":  "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action login",
-                    "gas:status":  "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action status",
-                    "gas:pull":  "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action pull",
-                    "gas:push":  "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action push",
-                    "gas:open":  "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action open",
-                    "gas:deploy":  "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action deploy",
-                    "sync:status":  "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\..\\\\..\\\\03_SCRIPTS_UTILIDAD\\\\sync_git_gas.ps1\" -Action status -RepoPath \"%cd%\"",
-                    "sync:down":  "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\..\\\\..\\\\03_SCRIPTS_UTILIDAD\\\\sync_git_gas.ps1\" -Action down -RepoPath \"%cd%\"",
-                    "sync:up":  "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\..\\\\..\\\\03_SCRIPTS_UTILIDAD\\\\sync_git_gas.ps1\" -Action up -RepoPath \"%cd%\"",
-                    "sync:audit":  "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\..\\\\..\\\\03_SCRIPTS_UTILIDAD\\\\sync_git_gas.ps1\" -Action audit -RepoPath \"%cd%\""
-                },
-    "repository":  {
-                       "type":  "git",
-                       "url":  "git+https://github.com/rubencoton/crm-appscript.git"
-                   },
-    "keywords":  [
-
-                 ],
-    "author":  "",
-    "license":  "ISC",
-    "type":  "commonjs",
-    "bugs":  {
-                 "url":  "https://github.com/rubencoton/crm-appscript/issues"
-             },
-    "homepage":  "https://github.com/rubencoton/crm-appscript#readme",
-    "devDependencies":  {
-                            "@google/clasp":  "^3.2.0"
-                        }
+{
+  "name": "festivales-github",
+  "version": "1.0.0",
+  "description": "CRM Festivales conectado a Google Apps Script mediante clasp",
+  "main": "Código.js",
+  "scripts": {
+    "gas:login": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action login",
+    "gas:status": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action status",
+    "gas:pull": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action pull",
+    "gas:push": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action push",
+    "gas:open": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action open",
+    "gas:deploy": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\gas_cmd.ps1\" -Action deploy",
+    "sync:status": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\..\\\\..\\\\03_SCRIPTS_UTILIDAD\\\\sync_git_gas.ps1\" -Action status -RepoPath \"%cd%\"",
+    "sync:down": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\..\\\\..\\\\03_SCRIPTS_UTILIDAD\\\\sync_git_gas.ps1\" -Action down -RepoPath \"%cd%\"",
+    "sync:up": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\..\\\\..\\\\03_SCRIPTS_UTILIDAD\\\\sync_git_gas.ps1\" -Action up -RepoPath \"%cd%\"",
+    "sync:audit": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\..\\\\..\\\\03_SCRIPTS_UTILIDAD\\\\sync_git_gas.ps1\" -Action audit -RepoPath \"%cd%\"",
+    "audit:auto": "node .\\codex-tools\\audit_auto.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rubencoton/crm-appscript.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/rubencoton/crm-appscript/issues"
+  },
+  "homepage": "https://github.com/rubencoton/crm-appscript#readme",
+  "devDependencies": {
+    "@google/clasp": "^3.2.0"
+  }
 }
