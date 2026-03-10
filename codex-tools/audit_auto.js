@@ -191,6 +191,127 @@ function stressAyudas() {
       ctx.UrlFetchApp.fetch = prevFetch;
     }
   });
+
+  check('ayudas estado inscripcion ventana 3 meses', () => {
+    function fmt(d) {
+      return p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear();
+    }
+
+    const dClosed = new Date();
+    dClosed.setDate(dClosed.getDate() - 1);
+
+    const dOpen = new Date();
+    dOpen.setDate(dOpen.getDate() + 20);
+
+    const dFuture = new Date();
+    dFuture.setMonth(dFuture.getMonth() + 5);
+
+    assert(ctx.estadoInscripcionDesdeFecha_(fmt(dClosed)) === 'CERRADA', 'fecha pasada no marca CERRADA');
+    assert(ctx.estadoInscripcionDesdeFecha_(fmt(dOpen)) === 'ABIERTA', 'fecha en ventana no marca ABIERTA');
+    assert(ctx.estadoInscripcionDesdeFecha_(fmt(dFuture)) === 'SIN PUBLICAR', 'fecha fuera de ventana no marca SIN PUBLICAR');
+  });
+
+  check('ayudas normalizar objeto defaults completos', () => {
+    const out = ctx.normalizarObjetoIA_({});
+    assert(out && typeof out === 'object', 'normalizarObjetoIA_ devolvio null');
+    assert(String(out.fechaLimite || '').indexOf('ESTIMADO:') === 0, 'fecha estimada no aplicada');
+    assert(['ABIERTA', 'CERRADA', 'SIN PUBLICAR'].includes(String(out.inscripcion || '')), 'inscripcion invalida');
+    assert(out.pais === 'Espa?a', 'pais por defecto invalido');
+    assert(String(out._razonamiento_logico || '').indexOf('Confianza:') !== -1, 'razonamiento sin confianza');
+
+    const keys = ['nombreConcurso', 'tipoPremio', 'detallePremio', 'dirigidoA', 'municipio', 'provincia', 'link1', 'link2', 'link3', 'email', 'telefono', 'notas'];
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i];
+      assert(!!String(out[k] || '').trim(), 'campo vacio tras normalizacion: ' + k);
+    }
+  });
+
+  check('ayudas llamarIA rota modelo y recupera salida', () => {
+    const props = ctx.PropertiesService.getScriptProperties();
+    props.setProperty('GEMINI_API_KEY', 'dummy-key');
+    props.setProperty('IDX_MODEL', '0');
+    props.deleteProperty('STOP_REQUESTED');
+
+    const prevFetch = ctx.UrlFetchApp.fetch;
+    let listCalls = 0;
+    let genCalls = 0;
+
+    try {
+      const aiObj = {
+        nombreConcurso: 'Concurso X',
+        _razonamiento_logico: 'Razonamiento base. Confianza: ALTA.',
+        inscripcion: 'ABIERTA',
+        fechaLimite: '15/12/2030',
+        fechasDesarrollo: 'Diciembre',
+        tipoPremio: 'ECONOMICO',
+        detallePremio: '1000 EUR',
+        dirigidoA: 'Bandas',
+        municipio: 'Madrid',
+        provincia: 'Madrid',
+        pais: 'Espa?a',
+        link1: 'https://ejemplo.com/bases',
+        link2: '',
+        link3: '',
+        email: 'info@ejemplo.com',
+        telefono: '+34 600 000 000',
+        notas: 'ok'
+      };
+
+      ctx.UrlFetchApp.fetch = (url) => {
+        const u = String(url || '');
+
+        if (u.indexOf('/v1beta/models?key=') !== -1) {
+          listCalls++;
+          return {
+            getResponseCode: () => 200,
+            getContentText: () => JSON.stringify({
+              models: [
+                { name: 'models/gemini-3.1-pro-preview' },
+                { name: 'models/gemini-2.5-pro' }
+              ]
+            })
+          };
+        }
+
+        if (u.indexOf('/models/gemini-3.1-pro-preview:generateContent') !== -1) {
+          genCalls++;
+          return {
+            getResponseCode: () => 404,
+            getContentText: () => JSON.stringify({ error: { message: 'model not found' } })
+          };
+        }
+
+        if (u.indexOf('/models/gemini-2.5-pro:generateContent') !== -1) {
+          genCalls++;
+          return {
+            getResponseCode: () => 200,
+            getContentText: () => JSON.stringify({
+              candidates: [{ content: { parts: [{ text: JSON.stringify(aiObj) }] }, finishReason: 'STOP' }]
+            })
+          };
+        }
+
+        return {
+          getResponseCode: () => 500,
+          getContentText: () => JSON.stringify({ error: { message: 'endpoint inesperado' } })
+        };
+      };
+
+      const out = ctx.llamarIA_('PROMPT_TEST', { type: 'none' }, false);
+      assert(out && out.nombreConcurso === 'Concurso X', 'llamarIA_ no devolvio salida util');
+      assert(props.getProperty('IDX_MODEL') === '1', 'no persistio rotacion de modelo');
+      assert(listCalls >= 1, 'no consulto catalogo de modelos');
+      assert(genCalls >= 2, 'no intento fallback de modelo');
+    } finally {
+      ctx.UrlFetchApp.fetch = prevFetch;
+    }
+  });
+
+  check('ayudas prompt reglas criticas intactas', () => {
+    assert(src.includes('fechaLimite es el dato mas importante'), 'falta regla critica fechaLimite');
+    assert(src.includes('Inscripcion ABIERTA cuando hoy esta entre (fechaLimite - 3 meses) y fechaLimite, inclusive.'), 'falta regla ventana de inscripcion');
+    assert(src.includes('No hay contenido externo confiable. Usa historico y marca estimado cuando aplique.'), 'falta fallback de evidencia externa');
+  });
 }
 
 
@@ -301,6 +422,11 @@ function stressFestivales() {
     assert(Array.isArray(models) && models.length > 0, 'sin modelos');
   });
 
+  check('fest prompt reglas criticas intactas', () => {
+    assert(src.includes('Nunca inventes datos no presentes en la entrada.'), 'falta regla no inventar');
+    assert(src.includes('Responde SOLO en JSON valido, sin markdown.'), 'falta regla JSON estricto');
+  });
+
   check('fest fuzz parser no throw', () => {
     for (let i = 0; i < 260; i++) {
       const t = Math.random().toString(36).repeat(rand(1, 6));
@@ -368,6 +494,11 @@ function stressFestivalesGs() {
 
     assert(out && out.data && out.data.email === 'x@y.com', 'no recupero salida tras reintento en .gs');
     assert(genCalls >= 2, 'no hubo reintento en .gs');
+  });
+
+  check('fest gs prompt reglas criticas intactas', () => {
+    assert(src.includes('Nunca inventes datos no presentes en la entrada.'), 'falta regla no inventar en .gs');
+    assert(src.includes('Responde SOLO en JSON valido, sin markdown.'), 'falta regla JSON estricto en .gs');
   });
 
   check('fest gs fuzz parser no throw', () => {
