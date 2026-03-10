@@ -216,7 +216,8 @@ function stressAyudas() {
     assert(out && typeof out === 'object', 'normalizarObjetoIA_ devolvio null');
     assert(String(out.fechaLimite || '').indexOf('ESTIMADO:') === 0, 'fecha estimada no aplicada');
     assert(['ABIERTA', 'CERRADA', 'SIN PUBLICAR'].includes(String(out.inscripcion || '')), 'inscripcion invalida');
-    assert(out.pais === 'Espa?a', 'pais por defecto invalido');
+    const paisNorm = String(out.pais || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    assert(paisNorm === 'ESPANA', 'pais por defecto invalido');
     assert(String(out._razonamiento_logico || '').indexOf('Confianza:') !== -1, 'razonamiento sin confianza');
 
     const keys = ['nombreConcurso', 'tipoPremio', 'detallePremio', 'dirigidoA', 'municipio', 'provincia', 'link1', 'link2', 'link3', 'email', 'telefono', 'notas'];
@@ -231,6 +232,10 @@ function stressAyudas() {
     props.setProperty('GEMINI_API_KEY', 'dummy-key');
     props.setProperty('IDX_MODEL', '0');
     props.deleteProperty('STOP_REQUESTED');
+
+    try {
+      ctx.CacheService.getScriptCache().remove('CRM_GEM_MODELS_V2');
+    } catch (errCacheClear) {}
 
     const prevFetch = ctx.UrlFetchApp.fetch;
     let listCalls = 0;
@@ -248,7 +253,7 @@ function stressAyudas() {
         dirigidoA: 'Bandas',
         municipio: 'Madrid',
         provincia: 'Madrid',
-        pais: 'Espa?a',
+        pais: 'Espana',
         link1: 'https://ejemplo.com/bases',
         link2: '',
         link3: '',
@@ -520,6 +525,7 @@ function makeGasContext(initialProps) {
     Math,
     Date,
     JSON,
+    Logger: { log() {} },
     SpreadsheetApp: {
       BorderStyle: { SOLID: 'SOLID' },
       ProtectionType: { RANGE: 'RANGE', SHEET: 'SHEET' },
