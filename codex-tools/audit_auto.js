@@ -152,6 +152,108 @@ function stressAyudas() {
   });
 
 
+  check('ayudas format spanish phone', () => {
+    assert(ctx.formatSpanishPhone_('612345678') === '+34 612 345 678', 'telefono nacional no formateado');
+    assert(ctx.formatSpanishPhone_('+34 612 345 678') === '+34 612 345 678', 'telefono +34 no normalizado');
+    assert(ctx.formatSpanishPhone_('12345') === '', 'telefono invalido no fue rechazado');
+  });
+
+  check('ayudas metrics engine no throw and classify contact/link', () => {
+    const data = [
+      ['NOMBRE CONCURSO', 'ESTADO', 'INSCRIPCION', 'FECHA LIMITE', 'FECHA DESARROLLO', 'TIPO PREMIO', 'DETALLE PREMIO', 'DIRIGIDO A', 'MUNICIPIO', 'PROVINCIA', 'PAIS', 'LINK1', 'LINK2', 'LINK3', 'EMAIL', 'TELEFONO', 'NOTAS'],
+      ['Concurso X', 'REVISAR', 'ABIERTA', '15/12/2030', 'Diciembre', 'ECONOMICO', '1000', 'Bandas', '', '', 'Espa?a', 'https://ejemplo.com/bases', '', '', '', '612345678', 'ok']
+    ];
+
+    const fakeSheet = {
+      getLastRow: () => data.length,
+      getRange: (r, c, nr, nc) => ({
+        getValues: () => {
+          const out = [];
+          for (let i = 0; i < nr; i++) {
+            const row = [];
+            for (let j = 0; j < nc; j++) row.push(data[r - 1 + i][c - 1 + j]);
+            out.push(row);
+          }
+          return out;
+        }
+      })
+    };
+
+    const m = ctx.calcularMetricasConcursosDecision_(fakeSheet);
+    assert(m && typeof m === 'object', 'metricas no devueltas');
+    assert(m.total === 1, 'total esperado 1');
+    assert(m.contactoOK === 1, 'telefono valido no contado como contacto');
+    assert(m.linksOK === 1, 'link valido no contado');
+  });
+
+  check('ayudas row color by inscripcion status', () => {
+    function makeSheet(baseRow) {
+      const data = [
+        ['NOMBRE CONCURSO', 'ESTADO', 'INSCRIPCION', 'FECHA LIMITE', 'FECHA DESARROLLO', 'TIPO PREMIO', 'DETALLE PREMIO', 'DIRIGIDO A', 'MUNICIPIO', 'PROVINCIA', 'PAIS', 'LINK1', 'LINK2', 'LINK3', 'EMAIL', 'TELEFONO', 'NOTAS'],
+        baseRow.slice()
+      ];
+
+      const bg = {};
+
+      function setBg(r, c, nr, nc, color) {
+        for (let i = 0; i < nr; i++) {
+          for (let j = 0; j < nc; j++) bg[(r + i) + ',' + (c + j)] = color;
+        }
+      }
+
+      function range(r, c, nr, nc) {
+        const rows = nr || 1;
+        const cols = nc || 1;
+        return {
+          setFontFamily() { return this; },
+          setFontSize() { return this; },
+          setFontWeight() { return this; },
+          setFontColor() { return this; },
+          setVerticalAlignment() { return this; },
+          setWrap() { return this; },
+          setBorder() { return this; },
+          setHorizontalAlignment() { return this; },
+          setFontLine() { return this; },
+          setBackground(color) { setBg(r, c, rows, cols, color); return this; },
+          getValues() {
+            const out = [];
+            for (let i = 0; i < rows; i++) {
+              const row = [];
+              for (let j = 0; j < cols; j++) row.push(data[r - 1 + i][c - 1 + j]);
+              out.push(row);
+            }
+            return out;
+          },
+          getValue() { return data[r - 1][c - 1]; },
+          setValue(v) { data[r - 1][c - 1] = v; return this; }
+        };
+      }
+
+      return {
+        getRange: range,
+        __getBg: (r, c) => bg[r + ',' + c] || ''
+      };
+    }
+
+    const row = ['Concurso X', 'REVISAR', 'ABIERTA', '15/12/2030', 'Diciembre', 'ECONOMICO', '1000', 'Bandas', 'Madrid', 'Madrid', 'Espa?a', 'https://ejemplo.com/bases', '', '', 'info@x.com', '', ''];
+
+    const cases = [
+      ['ABIERTA', '#E3FCEF'],
+      ['CERRADA', '#FDE2E2'],
+      ['SIN PUBLICAR', '#FFF4CC']
+    ];
+
+    for (let i = 0; i < cases.length; i++) {
+      const ins = cases[i][0];
+      const expected = cases[i][1];
+      const r = row.slice();
+      r[2] = ins;
+      const sh = makeSheet(r);
+      ctx.aplicarFormatoFila_(sh, 2, ins, 'Europe/Madrid');
+      assert(sh.__getBg(2, 1) === expected, 'color incorrecto para ' + ins + ' => ' + sh.__getBg(2, 1));
+    }
+  });
+
   check('ayudas model discovery/filter/cache', () => {
     const prevFetch = ctx.UrlFetchApp.fetch;
     let listCalls = 0;

@@ -2576,6 +2576,33 @@ function isValidHttpUrl_(url) {
   return /^https?:\/\/\S+/i.test(u);
 }
 
+function formatSpanishPhone_(raw) {
+  const src = sanitizeValue_(raw);
+  if (!src) return '';
+
+  let digits = src.replace(/[^\d+]/g, '');
+  if (digits.charAt(0) === '+') {
+    digits = '+' + digits.substring(1).replace(/\D/g, '');
+  } else {
+    digits = digits.replace(/\D/g, '');
+  }
+
+  if (digits.indexOf('00') === 0) digits = '+' + digits.substring(2);
+
+  if (digits.indexOf('+34') === 0) {
+    digits = digits.substring(3);
+  } else if (digits.indexOf('34') === 0 && digits.length === 11) {
+    digits = digits.substring(2);
+  } else if (digits.length === 9) {
+    // numero nacional sin prefijo
+  } else {
+    return '';
+  }
+
+  if (!/^\d{9}$/.test(digits)) return '';
+  return '+34 ' + digits.substring(0, 3) + ' ' + digits.substring(3, 6) + ' ' + digits.substring(6);
+}
+
 function isValidEmail_(email) {
   const e = sanitizeValue_(email);
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
