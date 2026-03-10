@@ -1379,7 +1379,7 @@ function parseGeminiJson_(rawText) {
       return parsedDirect;
     }
 
-    const match = cleaned.match(/{[sS]*}|[[sS]*]/);
+    const match = cleaned.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
     if (!match) return null;
 
     const parsed = JSON.parse(match[0]);
