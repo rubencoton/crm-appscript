@@ -14,7 +14,8 @@
     "sync:down": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\..\\\\..\\\\03_SCRIPTS_UTILIDAD\\\\sync_git_gas.ps1\" -Action down -RepoPath \"%cd%\"",
     "sync:up": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\..\\\\..\\\\03_SCRIPTS_UTILIDAD\\\\sync_git_gas.ps1\" -Action up -RepoPath \"%cd%\"",
     "sync:audit": "powershell -NoProfile -ExecutionPolicy Bypass -File \".\\\\..\\\\..\\\\03_SCRIPTS_UTILIDAD\\\\sync_git_gas.ps1\" -Action audit -RepoPath \"%cd%\"",
-    "audit:auto": "node .\\codex-tools\\audit_auto.js"
+    "audit:auto": "node .\\codex-tools\\audit_auto.js",
+    "audit:ultra": "node .\\codex-tools\\audit_ultra.js"
   },
   "repository": {
     "type": "git",
