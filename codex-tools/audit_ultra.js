@@ -9,6 +9,9 @@ const { execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const GIT = findGit();
+const LIVE_RETRYABLE_STATUS = { 0: true, 408: true, 409: true, 425: true, 429: true, 500: true, 502: true, 503: true, 504: true };
+const LIVE_MAX_RETRIES = 4;
+const LIVE_BASE_DELAY_MS = 600;
 
 const result = { checks: 0, pass: 0, fail: 0, warnings: [] };
 
@@ -329,7 +332,7 @@ async function liveApiValidation() {
   });
   if (!key) return;
 
-  const list = await httpReq('GET', 'https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(key));
+  const list = await httpReqWithRetry('GET', 'https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(key));
   await checkAsync('live list models returns HTTP 200', async () => {
     assert(list.status === 200, 'HTTP ' + list.status + ' | ' + truncate(String(list.body), 240));
   });
@@ -370,7 +373,7 @@ async function liveApiValidation() {
         contents: [{ role: 'user', parts: [{ text: 'Responde solo OK' }] }],
         generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
       };
-      const res = await httpReq('POST', 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key), body);
+      const res = await httpReqWithRetry('POST', 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key), body);
       assert(res.status === 200, 'HTTP ' + res.status + ' | ' + truncate(String(res.body), 220));
       const txt = extractCandidateTextFromRaw(res.body);
       assert(!!txt, 'respuesta vacia');
@@ -386,7 +389,7 @@ async function liveApiValidation() {
           maxOutputTokens: 2048
         }
       };
-      const res = await httpReq('POST', 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key), body);
+      const res = await httpReqWithRetry('POST', 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key), body);
       assert(res.status === 200, 'HTTP ' + res.status + ' | ' + truncate(String(res.body), 220));
       const txt = extractCandidateTextFromRaw(res.body);
       assert(!!txt, 'respuesta json vacia');
@@ -483,6 +486,22 @@ function httpReq(method, url, body) {
   });
 }
 
+async function httpReqWithRetry(method, url, body, maxRetries) {
+  const tries = Number(maxRetries || LIVE_MAX_RETRIES);
+  let res = null;
+  for (let i = 1; i <= tries; i++) {
+    res = await httpReq(method, url, body);
+    if (res && Number(res.status || 0) === 200) return res;
+    const code = Number((res && res.status) || 0);
+    if (!LIVE_RETRYABLE_STATUS[code] || i >= tries) break;
+    await sleepMs(LIVE_BASE_DELAY_MS * i + rand(40, 160));
+  }
+  return res || { status: 0, body: 'retry-exhausted' };
+}
+
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
+}
 function makeGasContext(initialProps) {
   const props = new Map(Object.entries(initialProps || {}).map(([k, v]) => [k, String(v)]));
   const cache = new Map();
