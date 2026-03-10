@@ -30,8 +30,14 @@ const CRM_CONFIG = {
   AI_BACKOFF_BASE_MS: 1200,
   AI_BACKOFF_MAX_MS: 9000,
   AI_WEB_TEXT_LIMIT_CHARS: 100000,
+  AI_MODEL_CACHE_KEY: 'CRM_GEM_MODELS_V2',
+  AI_MODEL_CACHE_SECONDS: 6 * 60 * 60,
   DEFAULT_MODELS: [
-    'gemini-3.1-pro-preview'
+    'gemini-3.1-pro-preview',
+    'gemini-2.5-pro',
+    'gemini-3-pro-preview',
+    'gemini-pro-latest',
+    'gemini-2.5-flash'
   ]
 };
 
@@ -1513,7 +1519,7 @@ function extraerWeb_(url) {
 // - Normalizacion obligatoria para devolver siempre una estructura util al CRM.
 function llamarIA_(prompt, webObj, asArray) {
   const apiKey = getApiKey_();
-  const models = getModels_();
+  const models = getModels_(apiKey);
   const props = PropertiesService.getScriptProperties();
   const now = new Date();
   const hoy = Utilities.formatDate(now, Session.getScriptTimeZone(), 'dd/MM/yyyy');
@@ -1524,7 +1530,7 @@ function llamarIA_(prompt, webObj, asArray) {
   const systemInstruction = [
     'Eres un equipo experto en management musical y convocatorias.',
     'Fecha de hoy: ' + hoy + ' | Ano: ' + year,
-    'Modelo prioritario: gemini-3.1-pro-preview.',
+    'Modelo prioritario: ' + (models[0] || 'gemini-3.1-pro-preview') + '.',
     'Debes devolver JSON valido y completo.',
     'Reglas:',
     '1) fechaLimite es el dato mas importante y nunca puede quedar vacia.',
@@ -1847,21 +1853,125 @@ function getPassword_() {
   return pass;
 }
 
-function getModels_() {
-  const preferred = 'gemini-3.1-pro-preview';
-  const props = PropertiesService.getScriptProperties();
-  const custom = sanitizeValue_(props.getProperty('GEMINI_MODELS_CSV'));
-  if (!custom) return [preferred];
+function normalizeGeminiModelName_(name) {
+  return sanitizeValue_(name).replace(/^models\//i, '');
+}
 
-  const arr = custom.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return !!s; });
-  const out = [preferred];
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i] !== preferred && out.indexOf(arr[i]) === -1) out.push(arr[i]);
+function isGeminiTextModelCandidate_(name) {
+  const model = normalizeGeminiModelName_(name).toLowerCase();
+  if (!model || model.indexOf('gemini') !== 0) return false;
+  if (/(image|audio|tts|embedding|aqa|veo|imagen|gemma|robotics|computer-use|deep-research)/i.test(model)) {
+    return false;
   }
+  return true;
+}
+
+function scoreGeminiModelPriority_(name) {
+  const m = normalizeGeminiModelName_(name).toLowerCase();
+  if (!isGeminiTextModelCandidate_(m)) return -999;
+  let score = 0;
+  if (m.indexOf('pro') !== -1) score += 100;
+  if (m.indexOf('3.1') !== -1) score += 80;
+  else if (m.indexOf('2.5') !== -1) score += 60;
+  else if (m.indexOf('2.') !== -1) score += 40;
+  if (m.indexOf('preview') !== -1) score += 10;
+  if (m.indexOf('flash-lite') !== -1) score -= 20;
+  else if (m.indexOf('flash') !== -1) score -= 10;
+  return score;
+}
+
+function mergeModelLists_(discovered, customCsv, fallback) {
+  const out = [];
+  const seen = {};
+
+  function pushModel_(name) {
+    const model = normalizeGeminiModelName_(name);
+    if (!model || seen[model]) return;
+    if (!isGeminiTextModelCandidate_(model)) return;
+    seen[model] = true;
+    out.push(model);
+  }
+
+  for (let i = 0; i < discovered.length; i++) pushModel_(discovered[i]);
+
+  const customArr = sanitizeValue_(customCsv)
+    .split(',')
+    .map(function (x) { return sanitizeValue_(x); })
+    .filter(function (x) { return !!x; });
+  for (let i = 0; i < customArr.length; i++) pushModel_(customArr[i]);
+
+  for (let i = 0; i < fallback.length; i++) pushModel_(fallback[i]);
+
+  if (!out.length) out.push('gemini-3.1-pro-preview');
+
+  out.sort(function (a, b) {
+    return scoreGeminiModelPriority_(b) - scoreGeminiModelPriority_(a);
+  });
+
   return out;
 }
 
-// -----------------------------------------------------------------------------
+function getModels_(apiKey) {
+  const props = PropertiesService.getScriptProperties();
+  const customCsv = sanitizeValue_(props.getProperty('GEMINI_MODELS_CSV'));
+  const fallback = Array.isArray(CRM_CONFIG.DEFAULT_MODELS) && CRM_CONFIG.DEFAULT_MODELS.length
+    ? CRM_CONFIG.DEFAULT_MODELS.slice()
+    : ['gemini-3.1-pro-preview'];
+
+  const cacheKey = sanitizeValue_(CRM_CONFIG.AI_MODEL_CACHE_KEY) || 'CRM_GEM_MODELS_V2';
+  const cacheTtl = Math.max(300, Number(CRM_CONFIG.AI_MODEL_CACHE_SECONDS) || (6 * 60 * 60));
+
+  try {
+    const cache = CacheService.getScriptCache();
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      const parsed = safeJsonParse_(cached, []);
+      if (Array.isArray(parsed) && parsed.length) {
+        return mergeModelLists_(parsed, customCsv, fallback);
+      }
+    }
+  } catch (errCacheRead) {
+    // no-op
+  }
+
+  let discovered = [];
+  try {
+    const key = sanitizeValue_(apiKey);
+    if (key) {
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(key);
+      const res = UrlFetchApp.fetch(url, {
+        method: 'get',
+        muteHttpExceptions: true,
+        headers: { 'User-Agent': 'CRM-AYUDAS/1.0' }
+      });
+
+      if (Number(res.getResponseCode() || 0) === 200) {
+        const root = safeJsonParse_(res.getContentText() || '{}', {});
+        const models = Array.isArray(root.models) ? root.models : [];
+        discovered = models
+          .map(function (m) { return normalizeGeminiModelName_(m && m.name); })
+          .filter(function (m) { return isGeminiTextModelCandidate_(m); });
+
+        discovered.sort(function (a, b) {
+          return scoreGeminiModelPriority_(b) - scoreGeminiModelPriority_(a);
+        });
+      }
+    }
+  } catch (errFetchModels) {
+    // no-op
+  }
+
+  const out = mergeModelLists_(discovered, customCsv, fallback);
+
+  try {
+    CacheService.getScriptCache().put(cacheKey, JSON.stringify(out), cacheTtl);
+  } catch (errCacheWrite) {
+    // no-op
+  }
+
+  return out;
+}
+
 // 8) BOLETIN A BANDAS
 // -----------------------------------------------------------------------------
 

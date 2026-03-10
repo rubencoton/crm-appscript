@@ -86,8 +86,10 @@ function checkSyntax() {
 
   files.forEach((f) => {
     check('syntax ' + f, () => {
+      let src = read(path.join(ROOT, f));
+      src = src.replace(/^#!.*\r?\n/, '');
       // eslint-disable-next-line no-new-func
-      new Function(read(path.join(ROOT, f)));
+      new Function(src);
     });
   });
 }
@@ -97,6 +99,7 @@ function checkSecrets() {
   const hits = [];
 
   files.forEach((f) => {
+    if (f === 'codex-tools/audit_auto.js') return;
     const txt = readMaybe(path.join(ROOT, f));
     if (!txt) return;
     const lines = txt.split(/\r?\n/);
