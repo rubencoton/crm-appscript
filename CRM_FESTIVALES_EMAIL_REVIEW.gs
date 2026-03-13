@@ -340,17 +340,33 @@ function asegurarColumnaRevisionEmailEnSheet_(sheet) {
   const currentMaxCol = Math.max(sheet.getLastColumn(), FEST_HOMO.HEADER.length);
   const firstRow = sheet.getRange(1, 1, 1, currentMaxCol).getValues()[0];
   const map = buildHeaderMap_(firstRow);
-  const reviewCol = map.reviewEmail + 1;
   let created = false;
+  const reviewHeader = normalizeHeader_(valueAt_(firstRow, map.reviewEmail));
+  const mergeHeader = cleanText_(valueAt_(firstRow, map.mergeStatus));
+  const inOrder = isHeaderInCanonicalOrder_(firstRow);
+  const hasReviewHeader = reviewHeader === 'REVISION EMAIL';
+  const hasMergeHeader = mergeHeader === FEST_MERGE_STATUS_HEADER;
 
-  if (sheet.getMaxColumns() < reviewCol) {
-    sheet.insertColumnsAfter(sheet.getMaxColumns(), reviewCol - sheet.getMaxColumns());
+  if (!hasReviewHeader || !hasMergeHeader || !inOrder) {
+    const data = sheet.getDataRange().getValues();
+    const normalizedRows = normalizeSheetRows_(data, sheet.getName());
+    rewriteSheet_(sheet, normalizedRows);
+    applyVisualDesignToSheet_(sheet);
     created = true;
   }
 
-  const headerCell = cleanText_(sheet.getRange(1, reviewCol).getValue()).toUpperCase();
-  if (headerCell !== 'REVISION EMAIL') {
+  const finalMaxCol = Math.max(sheet.getLastColumn(), FEST_HOMO.HEADER.length);
+  const finalHeader = sheet.getRange(1, 1, 1, finalMaxCol).getValues()[0];
+  const finalMap = buildHeaderMap_(finalHeader);
+  const reviewCol = finalMap.reviewEmail + 1;
+  const mergeCol = finalMap.mergeStatus + 1;
+
+  if (normalizeHeader_(sheet.getRange(1, reviewCol).getValue()) !== 'REVISION EMAIL') {
     sheet.getRange(1, reviewCol).setValue('REVISION EMAIL');
+    created = true;
+  }
+  if (cleanText_(sheet.getRange(1, mergeCol).getValue()) !== FEST_MERGE_STATUS_HEADER) {
+    sheet.getRange(1, mergeCol).setValue(FEST_MERGE_STATUS_HEADER);
     created = true;
   }
 
@@ -359,15 +375,7 @@ function asegurarColumnaRevisionEmailEnSheet_(sheet) {
     sheet.getRange(2, reviewCol, lastRow - 1, 1).setDataValidation(buildEmailReviewValidationRule_());
   }
 
-  if (created) {
-    try {
-      applyVisualDesignToSheet_(sheet);
-    } catch (err) {
-      // no-op
-    }
-  }
-
-  return { map: buildHeaderMap_(sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), FEST_HOMO.HEADER.length)).getValues()[0]), created: created };
+  return { map: finalMap, created: created };
 }
 
 function extraerEmailsValidos_(rawEmail) {
