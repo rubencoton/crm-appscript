@@ -1,4 +1,4 @@
-﻿param(
+param(
   [switch]$DryRun,
   [switch]$SkipCrmProject,
   [switch]$SkipGitPush,
@@ -7,6 +7,10 @@
 )
 
 $ErrorActionPreference = "Stop"
+
+$ExpectedPrimaryScriptId = "1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea"
+$ExpectedSpreadsheetId = "1kRrdCwd0n6FwVp-8rKP3gEeYT-TBXc1JL8sa_xzp1IM"
+$ExpectedOrigin = "https://github.com/rubencoton/crm-appscript.git"
 
 function Get-WinGetNodeDir {
   $packagesRoot = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages"
@@ -137,7 +141,7 @@ function Invoke-GitPushWithRetry {
     [string]$RepoRoot
   )
 
-  Write-Host "[5/5] git push (intento 1)"
+  Write-Host "[4/4] git push (intento 1)"
   & $Git -c "safe.directory=$RepoRoot" -C $RepoRoot push origin main
   if ($LASTEXITCODE -eq 0) {
     return
@@ -149,19 +153,47 @@ function Invoke-GitPushWithRetry {
     throw "git pull --rebase fallo durante auto-recuperacion (codigo $LASTEXITCODE). Resolver manualmente."
   }
 
-  Write-Host "[5/5] git push (intento 2)"
+  Write-Host "[4/4] git push (intento 2)"
   & $Git -c "safe.directory=$RepoRoot" -C $RepoRoot push origin main
   if ($LASTEXITCODE -ne 0) {
     throw "git push fallo tras reintento (codigo $LASTEXITCODE)."
   }
 }
 
+function Assert-RepoScope {
+  param(
+    [string]$RepoRoot,
+    [string]$Git
+  )
+
+  $claspPath = Join-Path $RepoRoot ".clasp.json"
+  if (-not (Test-Path -LiteralPath $claspPath)) {
+    throw "Falta .clasp.json en repo principal."
+  }
+
+  $claspJson = Get-Content $claspPath -Raw | ConvertFrom-Json
+  $currentScriptId = [string]$claspJson.scriptId
+  if ($currentScriptId -ne $ExpectedPrimaryScriptId) {
+    throw "Scope bloqueado: scriptId actual '$currentScriptId' no coincide con '$ExpectedPrimaryScriptId' (hoja $ExpectedSpreadsheetId)."
+  }
+
+  $origin = & $Git -c "safe.directory=$RepoRoot" -C $RepoRoot remote get-url origin
+  if ([string]$origin -ne $ExpectedOrigin) {
+    throw "Scope bloqueado: origin actual '$origin' no coincide con '$ExpectedOrigin'."
+  }
+}
+
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$crmPath = Join-Path $repoRoot "crm-ayudas-subvenciones"
 
 Ensure-ToolPath
 $git = Get-GitCmd
 Set-Location $repoRoot
+
+Assert-RepoScope -RepoRoot $repoRoot -Git $git
+Write-Host "Scope OK | sheet=$ExpectedSpreadsheetId | script=$ExpectedPrimaryScriptId"
+if ($SkipCrmProject) {
+  Write-Host "Nota: -SkipCrmProject recibido. Modo hoja unica ya lo omite por defecto."
+}
 
 if (-not $DryRun) {
   $untracked = & $git -c "safe.directory=$repoRoot" -C $repoRoot status --porcelain | Where-Object { $_ -like "?? *" }
@@ -183,38 +215,26 @@ if (-not $DryRun) {
   }
 }
 
-Invoke-Step -Title "[1/5] clasp push (Festivales)" -ErrorMessage "clasp push en Festivales fallo" -Action {
+Invoke-Step -Title "[1/4] clasp push (CRM: FESTIVALES)" -ErrorMessage "clasp push en CRM FESTIVALES fallo" -Action {
   Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $repoRoot -Action "push"
 }
 
-if ($SkipCrmProject) {
-  Write-Host "[2/5] omitido por -SkipCrmProject"
-} else {
-  if (-not (Test-Path -LiteralPath (Join-Path $crmPath ".clasp.json"))) {
-    throw "No existe .clasp.json en proyecto CRM secundario: $crmPath"
-  }
-
-  Invoke-Step -Title "[2/5] clasp push (CRM AYUDAS Y SUBVENCIONES)" -ErrorMessage "clasp push en CRM fallo" -Action {
-    Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $crmPath -Action "push"
-  }
-}
-
-Invoke-Step -Title "[3/5] git add -A" -ErrorMessage "git add fallo" -Action {
+Invoke-Step -Title "[2/4] git add -A" -ErrorMessage "git add fallo" -Action {
   & $git -c "safe.directory=$repoRoot" -C $repoRoot add -A
 }
 
 if ($DryRun) {
-  Write-Host "[4/5] commit omitido (DryRun)"
-  Write-Host "[5/5] push omitido (DryRun)"
-  Write-Host "OK sync_out completado (DryRun)"
+  Write-Host "[3/4] commit omitido (DryRun)"
+  Write-Host "[4/4] push omitido (DryRun)"
+  Write-Host "OK sync_out completado (DryRun, modo hoja unica)"
   exit 0
 }
 
 $changes = & $git -c "safe.directory=$repoRoot" -C $repoRoot diff --cached --name-only
 if (-not $changes) {
-  Write-Host "[4/5] No hay cambios para commit"
-  Write-Host "[5/5] No se hace git push (nada nuevo)"
-  Write-Host "OK sync_out completado (sin cambios de Git)"
+  Write-Host "[3/4] No hay cambios para commit"
+  Write-Host "[4/4] No se hace git push (nada nuevo)"
+  Write-Host "OK sync_out completado (sin cambios de Git, modo hoja unica)"
   exit 0
 }
 
@@ -224,13 +244,13 @@ if ([string]::IsNullOrWhiteSpace($msg)) {
   $msg = "sync_out $stamp"
 }
 
-Invoke-Step -Title "[4/5] git commit" -ErrorMessage "git commit fallo" -Action {
+Invoke-Step -Title "[3/4] git commit" -ErrorMessage "git commit fallo" -Action {
   & $git -c "safe.directory=$repoRoot" -C $repoRoot commit -m $msg
 }
 
 if ($SkipGitPush) {
-  Write-Host "[5/5] omitido por -SkipGitPush"
-  Write-Host "OK sync_out completado"
+  Write-Host "[4/4] omitido por -SkipGitPush"
+  Write-Host "OK sync_out completado (modo hoja unica)"
   exit 0
 }
 
@@ -242,4 +262,4 @@ try {
   throw
 }
 
-Write-Host "OK sync_out completado"
+Write-Host "OK sync_out completado (modo hoja unica)"

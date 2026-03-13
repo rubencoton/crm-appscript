@@ -1,13 +1,138 @@
-﻿$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Stop"
 
 function Out-Line([string]$label, [string]$value) {
   "$label`t$value"
 }
 
-function Get-OrMissing([string]$path, [scriptblock]$cmd) {
-  if (Test-Path $path) {
-    return (& $cmd)
+function Get-WinGetNodeDir {
+  $packagesRoot = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages"
+  if (-not (Test-Path $packagesRoot)) { return $null }
+
+  $pkg = Get-ChildItem -Path $packagesRoot -Directory -Filter "OpenJS.NodeJS.LTS*" -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
+  if (-not $pkg) { return $null }
+
+  $nodeDir = Get-ChildItem -Path $pkg.FullName -Directory -Filter "node-v*-win-x64" -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
+
+  if ($nodeDir) { return $nodeDir.FullName }
+  return $null
+}
+
+function Ensure-ToolPath {
+  $wingetNode = Get-WinGetNodeDir
+  $candidates = @(
+    "C:\Program Files\nodejs",
+    "C:\Program Files\Git\cmd",
+    "C:\Program Files\Git\mingw64\bin",
+    "$env:LOCALAPPDATA\Microsoft\WinGet\Links",
+    $wingetNode
+  )
+
+  foreach ($dir in $candidates) {
+    if ([string]::IsNullOrWhiteSpace($dir)) { continue }
+    if (-not (Test-Path $dir)) { continue }
+    if ($env:Path -notlike "*$dir*") {
+      $env:Path = "$dir;$env:Path"
+    }
   }
+}
+
+function Resolve-ToolPath {
+  param(
+    [string]$Executable,
+    [string[]]$Fallbacks = @()
+  )
+
+  $cmd = Get-Command $Executable -ErrorAction SilentlyContinue
+  if ($cmd) { return $cmd.Source }
+
+  foreach ($path in $Fallbacks) {
+    if ([string]::IsNullOrWhiteSpace($path)) { continue }
+    if (Test-Path $path) { return $path }
+  }
+
+  return $null
+}
+
+function Invoke-OrMissing {
+  param(
+    [string]$CommandPath,
+    [string[]]$Arguments = @()
+  )
+
+  if ([string]::IsNullOrWhiteSpace($CommandPath)) {
+    return "MISSING"
+  }
+
+  try {
+    return (& $CommandPath @Arguments 2>$null)
+  } catch {
+    return "ERROR"
+  }
+}
+
+function Resolve-ClaspCmd {
+  param(
+    [string]$RepoRoot,
+    [string]$WinGetNodeDir
+  )
+
+  $localClasp = Join-Path $RepoRoot "node_modules\.bin\clasp.cmd"
+  if (Test-Path $localClasp) { return $localClasp }
+
+  $winGetClasp = $null
+  if ($WinGetNodeDir) {
+    $winGetClasp = Join-Path $WinGetNodeDir "clasp.cmd"
+  }
+  $fallbacks = @(
+    (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages\OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe\node-v24.14.0-win-x64\clasp.cmd"),
+    $winGetClasp
+  )
+
+  return Resolve-ToolPath -Executable "clasp.cmd" -Fallbacks $fallbacks
+}
+
+function Resolve-NpxCmd {
+  param([string]$WinGetNodeDir)
+
+  $winGetNpx = $null
+  if ($WinGetNodeDir) {
+    $winGetNpx = Join-Path $WinGetNodeDir "npx.cmd"
+  }
+  $fallbacks = @(
+    "C:\Program Files\nodejs\npx.cmd",
+    $winGetNpx
+  )
+
+  return Resolve-ToolPath -Executable "npx.cmd" -Fallbacks $fallbacks
+}
+
+function Invoke-ClaspInfo {
+  param(
+    [string]$ClaspCmd,
+    [string]$NpxCmd,
+    [string[]]$Args
+  )
+
+  if (-not [string]::IsNullOrWhiteSpace($ClaspCmd)) {
+    try {
+      return (& $ClaspCmd @Args 2>$null)
+    } catch {
+      # fallback to npx
+    }
+  }
+
+  if (-not [string]::IsNullOrWhiteSpace($NpxCmd)) {
+    try {
+      return (& $NpxCmd "--yes" "@google/clasp" @Args 2>$null)
+    } catch {
+      return "ERROR"
+    }
+  }
+
   return "MISSING"
 }
 
@@ -16,40 +141,82 @@ $reportDir = Join-Path $repoRoot "logs"
 $reportPath = Join-Path $reportDir "healthcheck-latest.txt"
 New-Item -ItemType Directory -Path $reportDir -Force | Out-Null
 
-$git = "C:\Program Files\Git\cmd\git.exe"
-$node = "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe\node-v24.14.0-win-x64\node.exe"
-$npm = "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe\node-v24.14.0-win-x64\npm.cmd"
-$clasp = "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe\node-v24.14.0-win-x64\clasp.cmd"
+$expectedSheetId = "1kRrdCwd0n6FwVp-8rKP3gEeYT-TBXc1JL8sa_xzp1IM"
+$expectedScriptId = "1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea"
+$expectedOrigin = "https://github.com/rubencoton/crm-appscript.git"
+$expectedTask = "\CodexSyncIn_5min"
+$legacyTask = "\CodexSyncInFestivales_Every5Min"
+
+Ensure-ToolPath
+$wingetNode = Get-WinGetNodeDir
+$nodeFallback = $null
+$npmFallback = $null
+if ($wingetNode) {
+  $nodeFallback = Join-Path $wingetNode "node.exe"
+  $npmFallback = Join-Path $wingetNode "npm.cmd"
+}
+$git = Resolve-ToolPath -Executable "git.exe" -Fallbacks @("C:\Program Files\Git\cmd\git.exe")
+$node = Resolve-ToolPath -Executable "node.exe" -Fallbacks @($nodeFallback)
+$npm = Resolve-ToolPath -Executable "npm.cmd" -Fallbacks @("C:\Program Files\nodejs\npm.cmd", $npmFallback)
+$clasp = Resolve-ClaspCmd -RepoRoot $repoRoot -WinGetNodeDir $wingetNode
+$npx = Resolve-NpxCmd -WinGetNodeDir $wingetNode
 
 $lines = @()
 $lines += "HEALTHCHECK $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 $lines += ""
 
-$gitVer = Get-OrMissing $git { & $git --version }
-$nodeVer = Get-OrMissing $node { & $node --version }
-$npmVer = Get-OrMissing $npm { & $npm --version }
-$claspVer = Get-OrMissing $clasp { & $clasp --version }
+$gitVer = Invoke-OrMissing -CommandPath $git -Arguments @("--version")
+$nodeVer = Invoke-OrMissing -CommandPath $node -Arguments @("--version")
+$npmVer = Invoke-OrMissing -CommandPath $npm -Arguments @("--version")
+$claspVer = Invoke-ClaspInfo -ClaspCmd $clasp -NpxCmd $npx -Args @("--version")
 
 $lines += Out-Line "git" "$gitVer"
 $lines += Out-Line "node" "$nodeVer"
 $lines += Out-Line "npm" "$npmVer"
 $lines += Out-Line "clasp" "$claspVer"
 
-$branch = & $git -C $repoRoot rev-parse --abbrev-ref HEAD
-$remote = & $git -C $repoRoot remote get-url origin
-$status = & $git -C $repoRoot status --short --branch
-$last = & $git -C $repoRoot log -1 --oneline
+$branch = "UNKNOWN"
+$remote = "UNKNOWN"
+$status = "UNKNOWN"
+$last = "UNKNOWN"
+if (-not [string]::IsNullOrWhiteSpace($git)) {
+  try {
+    $branch = (& $git -C $repoRoot rev-parse --abbrev-ref HEAD 2>$null)
+    $remote = (& $git -C $repoRoot remote get-url origin 2>$null)
+    $status = (& $git -C $repoRoot status --short --branch 2>$null)
+    $last = (& $git -C $repoRoot log -1 --oneline 2>$null)
+  } catch {
+    # no-op
+  }
+}
 
 $lines += ""
 $lines += Out-Line "branch" "$branch"
 $lines += Out-Line "remote" "$remote"
+$lines += Out-Line "remote_expected" "$expectedOrigin"
+$lines += Out-Line "remote_match" ([string]($remote -eq $expectedOrigin))
 $lines += Out-Line "last_commit" "$last"
 $lines += "git_status"
 $lines += $status
 
-$authUser = & $clasp show-authorized-user 2>$null
+$currentScriptId = "MISSING"
+$claspJsonPath = Join-Path $repoRoot ".clasp.json"
+if (Test-Path $claspJsonPath) {
+  try {
+    $claspJson = Get-Content $claspJsonPath -Raw | ConvertFrom-Json
+    $currentScriptId = [string]$claspJson.scriptId
+  } catch {
+    $currentScriptId = "ERROR"
+  }
+}
+
+$authUser = Invoke-ClaspInfo -ClaspCmd $clasp -NpxCmd $npx -Args @("show-authorized-user")
 $lines += ""
 $lines += Out-Line "clasp_user" (($authUser -join ' ').Trim())
+$lines += Out-Line "scope_expected_sheet" "$expectedSheetId"
+$lines += Out-Line "scope_expected_script" "$expectedScriptId"
+$lines += Out-Line "scope_current_script" "$currentScriptId"
+$lines += Out-Line "scope_script_match" ([string]($currentScriptId -eq $expectedScriptId))
 
 $codexStatePath = Join-Path $env:USERPROFILE ".codex\.codex-global-state.json"
 if (Test-Path $codexStatePath) {
@@ -60,7 +227,10 @@ if (Test-Path $codexStatePath) {
   $lines += Out-Line "codex_active_roots" "$activeRoots"
 }
 
-$taskRaw = schtasks /Query /TN CodexSyncInFestivales_Every5Min /FO LIST /V 2>$null
+$taskRaw = schtasks /Query /TN $expectedTask /FO LIST /V 2>$null
+if (-not $taskRaw) {
+  $taskRaw = schtasks /Query /TN $legacyTask /FO LIST /V 2>$null
+}
 $nextRun = ($taskRaw | Select-String -Pattern 'Hora próxima ejecución').Line
 $taskState = ($taskRaw | Select-String -Pattern 'Estado de tarea programada').Line
 $lastResult = ($taskRaw | Select-String -Pattern 'Último resultado').Line

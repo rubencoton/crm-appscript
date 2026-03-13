@@ -1,10 +1,14 @@
-﻿param(
+param(
   [switch]$DryRun,
   [switch]$AllowDirty,
   [switch]$SkipCrmProject
 )
 
 $ErrorActionPreference = "Stop"
+
+$ExpectedPrimaryScriptId = "1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea"
+$ExpectedSpreadsheetId = "1kRrdCwd0n6FwVp-8rKP3gEeYT-TBXc1JL8sa_xzp1IM"
+$ExpectedOrigin = "https://github.com/rubencoton/crm-appscript.git"
 
 function Get-WinGetNodeDir {
   $packagesRoot = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages"
@@ -129,12 +133,40 @@ function Invoke-Step {
   }
 }
 
+function Assert-RepoScope {
+  param(
+    [string]$RepoRoot,
+    [string]$Git
+  )
+
+  $claspPath = Join-Path $RepoRoot ".clasp.json"
+  if (-not (Test-Path -LiteralPath $claspPath)) {
+    throw "Falta .clasp.json en repo principal."
+  }
+
+  $claspJson = Get-Content $claspPath -Raw | ConvertFrom-Json
+  $currentScriptId = [string]$claspJson.scriptId
+  if ($currentScriptId -ne $ExpectedPrimaryScriptId) {
+    throw "Scope bloqueado: scriptId actual '$currentScriptId' no coincide con '$ExpectedPrimaryScriptId' (hoja $ExpectedSpreadsheetId)."
+  }
+
+  $origin = & $Git -c "safe.directory=$RepoRoot" -C $RepoRoot remote get-url origin
+  if ([string]$origin -ne $ExpectedOrigin) {
+    throw "Scope bloqueado: origin actual '$origin' no coincide con '$ExpectedOrigin'."
+  }
+}
+
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$crmPath = Join-Path $repoRoot "crm-ayudas-subvenciones"
 
 Ensure-ToolPath
 $git = Get-GitCmd
 Set-Location $repoRoot
+
+Assert-RepoScope -RepoRoot $repoRoot -Git $git
+Write-Host "Scope OK | sheet=$ExpectedSpreadsheetId | script=$ExpectedPrimaryScriptId"
+if ($SkipCrmProject) {
+  Write-Host "Nota: -SkipCrmProject recibido. Modo hoja unica ya lo omite por defecto."
+}
 
 if ((-not $DryRun) -and (-not $AllowDirty)) {
   $dirty = & $git -c "safe.directory=$repoRoot" -C $repoRoot status --porcelain
@@ -144,7 +176,7 @@ if ((-not $DryRun) -and (-not $AllowDirty)) {
 }
 
 try {
-  Invoke-Step -Title "[1/3] git pull --ff-only" -ErrorMessage "git pull --ff-only fallo" -Action {
+  Invoke-Step -Title "[1/2] git pull --ff-only" -ErrorMessage "git pull --ff-only fallo" -Action {
     & $git -c "safe.directory=$repoRoot" -C $repoRoot pull --ff-only origin main
   }
 } catch {
@@ -153,20 +185,8 @@ try {
   throw
 }
 
-Invoke-Step -Title "[2/3] clasp pull (Festivales)" -ErrorMessage "clasp pull en Festivales fallo" -Action {
+Invoke-Step -Title "[2/2] clasp pull (CRM: FESTIVALES)" -ErrorMessage "clasp pull en CRM FESTIVALES fallo" -Action {
   Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $repoRoot -Action "pull"
 }
 
-if ($SkipCrmProject) {
-  Write-Host "[3/3] omitido por -SkipCrmProject"
-} else {
-  if (-not (Test-Path -LiteralPath (Join-Path $crmPath ".clasp.json"))) {
-    throw "No existe .clasp.json en proyecto CRM secundario: $crmPath"
-  }
-
-  Invoke-Step -Title "[3/3] clasp pull (CRM AYUDAS Y SUBVENCIONES)" -ErrorMessage "clasp pull en CRM fallo" -Action {
-    Invoke-Clasp -RepoRoot $repoRoot -ProjectPath $crmPath -Action "pull"
-  }
-}
-
-Write-Host "OK sync_in completado"
+Write-Host "OK sync_in completado (modo hoja unica)"
