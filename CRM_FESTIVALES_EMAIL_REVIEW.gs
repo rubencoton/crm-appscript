@@ -1,35 +1,102 @@
 function auditarEmailsCRMFestivales() {
-  if (!validarSesionSegura_('Auditar emails + duplicados')) return;
-  const summary = ejecutarAuditoriaEmailsFestivales_({ source: 'manual', showUi: true });
+  if (!validarSesionSegura_('Auditar emails + contraste web + duplicados')) return;
+  const summary = ejecutarAuditoriaEmailsFestivales_({ source: 'manual', showUi: true, forceRun: true });
   SpreadsheetApp.getUi().alert(summary);
 }
 
 function auditarEmailsAutomaticaCRMFestivales_() {
   try {
-    ejecutarAuditoriaEmailsFestivales_({ source: 'trigger', showUi: false });
+    ejecutarAuditoriaEmailsFestivales_({ source: 'trigger', showUi: false, forceRun: true });
   } catch (err) {
     Logger.log('auditarEmailsAutomaticaCRMFestivales_ ERROR: ' + (err && err.message ? err.message : err));
   }
 }
 
+function auditarEmailsAlAbrirCRMFestivales_() {
+  try {
+    if (!debeEjecutarseRevisionAlAbrir_()) return;
+    ejecutarAuditoriaEmailsFestivales_({ source: 'open', showUi: false, forceRun: false });
+  } catch (err) {
+    Logger.log('auditarEmailsAlAbrirCRMFestivales_ ERROR: ' + (err && err.message ? err.message : err));
+  }
+}
+
+function ejecutarAuditoriaAlAbrirSiCorrespondeCRMFestivales_() {
+  try {
+    auditarEmailsAlAbrirCRMFestivales_();
+  } catch (err) {
+    Logger.log('ejecutarAuditoriaAlAbrirSiCorrespondeCRMFestivales_ ERROR: ' + (err && err.message ? err.message : err));
+  }
+}
+
+function debeEjecutarseRevisionAlAbrir_() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(500)) return false;
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const now = Date.now();
+    const cooldownMs = Math.max(5, Number(FEST_EMAIL_OPEN_COOLDOWN_MINUTES) || 45) * 60 * 1000;
+    const last = Number(props.getProperty('FEST_EMAIL_LAST_OPEN_RUN_TS') || '0');
+    if (last && now - last < cooldownMs) return false;
+    props.setProperty('FEST_EMAIL_LAST_OPEN_RUN_TS', String(now));
+    return true;
+  } catch (err) {
+    return false;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function asegurarTriggersAutoRevisionEmailsCRMFestivales_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) return;
+  const triggers = ScriptApp.getProjectTriggers();
+  let hasClock = false;
+  let hasOpen = false;
+  for (let i = 0; i < triggers.length; i++) {
+    const tr = triggers[i];
+    const fn = tr.getHandlerFunction();
+    const ev = tr.getEventType();
+    if (fn === FEST_EMAIL_TRIGGER_HANDLER && ev === ScriptApp.EventType.CLOCK) hasClock = true;
+    if (fn === FEST_EMAIL_OPEN_TRIGGER_HANDLER && ev === ScriptApp.EventType.ON_OPEN) hasOpen = true;
+  }
+  if (!hasClock) {
+    ScriptApp.newTrigger(FEST_EMAIL_TRIGGER_HANDLER)
+      .timeBased()
+      .everyHours(FEST_EMAIL_TRIGGER_INTERVAL_HOURS)
+      .create();
+  }
+  if (!hasOpen) {
+    ScriptApp.newTrigger(FEST_EMAIL_OPEN_TRIGGER_HANDLER)
+      .forSpreadsheet(ss)
+      .onOpen()
+      .create();
+  }
+}
+
 function instalarTriggerRevisionEmailsCRMFestivales() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const existing = ScriptApp.getProjectTriggers();
   let deleted = 0;
   for (let i = 0; i < existing.length; i++) {
-    if (existing[i].getHandlerFunction() === FEST_EMAIL_TRIGGER_HANDLER) {
+    const fn = existing[i].getHandlerFunction();
+    if (fn === FEST_EMAIL_TRIGGER_HANDLER || fn === FEST_EMAIL_OPEN_TRIGGER_HANDLER) {
       ScriptApp.deleteTrigger(existing[i]);
       deleted++;
     }
   }
-
   ScriptApp.newTrigger(FEST_EMAIL_TRIGGER_HANDLER)
     .timeBased()
     .everyHours(FEST_EMAIL_TRIGGER_INTERVAL_HOURS)
     .create();
-
+  ScriptApp.newTrigger(FEST_EMAIL_OPEN_TRIGGER_HANDLER)
+    .forSpreadsheet(ss)
+    .onOpen()
+    .create();
   SpreadsheetApp.getUi().alert(
-    'Trigger de revision de emails instalado.\n' +
-    'Frecuencia: cada ' + FEST_EMAIL_TRIGGER_INTERVAL_HOURS + ' horas.\n' +
+    'Modo automatico de revision de emails instalado.\n' +
+    'Trigger horario: cada ' + FEST_EMAIL_TRIGGER_INTERVAL_HOURS + ' horas.\n' +
+    'Trigger al abrir: activo.\n' +
     'Triggers antiguos eliminados: ' + deleted
   );
 }
@@ -38,23 +105,25 @@ function limpiarTriggerRevisionEmailsCRMFestivales() {
   const existing = ScriptApp.getProjectTriggers();
   let deleted = 0;
   for (let i = 0; i < existing.length; i++) {
-    if (existing[i].getHandlerFunction() === FEST_EMAIL_TRIGGER_HANDLER) {
+    const fn = existing[i].getHandlerFunction();
+    if (fn === FEST_EMAIL_TRIGGER_HANDLER || fn === FEST_EMAIL_OPEN_TRIGGER_HANDLER) {
       ScriptApp.deleteTrigger(existing[i]);
       deleted++;
     }
   }
-
-  SpreadsheetApp.getUi().alert('Trigger revision emails eliminados: ' + deleted);
+  SpreadsheetApp.getUi().alert('Triggers de revision emails eliminados: ' + deleted);
 }
 
 function ejecutarAuditoriaEmailsFestivales_(opts) {
   const options = opts || {};
   const lock = LockService.getScriptLock();
-  if (!lock.tryLock(10000)) {
-    return 'Otro proceso esta en curso. Intenta en unos segundos.';
-  }
+  if (!lock.tryLock(10000)) return 'Otro proceso esta en curso. Intenta en unos segundos.';
 
   try {
+    if (!options.forceRun && !adquirirVentanaEjecucionRevisionEmails_(12)) {
+      return 'Revision omitida por ventana anti-saturacion.';
+    }
+
     const started = Date.now();
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheets = getFestivalSheets_(ss);
@@ -65,6 +134,14 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
     const tokenCounter = {};
     const uniqueDomains = {};
     let reviewColumnCreated = 0;
+    const webBudget = {
+      webRemaining: Math.max(0, Number(FEST_EMAIL_MAX_WEB_FETCHES_PER_RUN) || 0),
+      searchRemaining: Math.max(0, Number(FEST_EMAIL_MAX_SEARCH_FETCHES_PER_RUN) || 0),
+      webFetched: 0,
+      webCached: 0,
+      searchFetched: 0,
+      searchCached: 0
+    };
 
     for (let s = 0; s < sheets.length; s++) {
       const sheet = sheets[s];
@@ -72,33 +149,35 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
       if (init.created) reviewColumnCreated++;
 
       const values = sheet.getDataRange().getValues();
-      if (values.length < 2) {
-        contexts.push({
-          sheet: sheet,
-          map: init.map,
-          rowsCount: 0,
-          reviewOut: []
-        });
-        continue;
-      }
-
-      const map = buildHeaderMap_(values[0]);
-      const rowsCount = values.length - 1;
+      const map = values.length ? buildHeaderMap_(values[0]) : init.map;
+      const rowsCount = Math.max(0, values.length - 1);
       const reviewCol = map.reviewEmail + 1;
-      const currentReview = sheet.getRange(2, reviewCol, rowsCount, 1).getValues();
+      const emailCol = map.email + 1;
+      const lastCol = Math.max(sheet.getLastColumn(), FEST_HOMO.HEADER.length, reviewCol);
+      const currentReview = rowsCount ? sheet.getRange(2, reviewCol, rowsCount, 1).getValues() : [];
+      const currentEmail = rowsCount ? sheet.getRange(2, emailCol, rowsCount, 1).getValues() : [];
       const reviewOut = [];
+      const emailOut = [];
+      const rowColors = [];
 
       for (let r = 0; r < rowsCount; r++) {
         reviewOut.push([normalizeRevisionStatus_(currentReview[r][0])]);
+        emailOut.push([normalizeEmailCell_(currentEmail[r][0])]);
+        rowColors.push(FEST_HOMO.COLORS.BODY_BG);
       }
 
       contexts.push({
         sheet: sheet,
         map: map,
         rowsCount: rowsCount,
-        reviewOut: reviewOut
+        lastCol: lastCol,
+        reviewOut: reviewOut,
+        emailOut: emailOut,
+        rowColors: rowColors
       });
 
+      if (!rowsCount) continue;
+      const taxonomy = parseSheetTaxonomy_(sheet.getName());
       for (let r = 1; r < values.length; r++) {
         const row = values[r];
         const festival = cleanText_(valueAt_(row, map.nombre));
@@ -107,25 +186,34 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
         const email = normalizeEmailCell_(valueAt_(row, map.email));
         const tokens = extraerEmailsValidos_(email);
         const domains = extraerDominiosDeEmails_(tokens);
+        const obs = cleanText_(valueAt_(row, map.observaciones));
+        const seedUrls = extraerUrlsDesdeTexto_(obs);
         for (let d = 0; d < domains.length; d++) uniqueDomains[domains[d]] = true;
-        for (let t = 0; t < tokens.length; t++) {
-          tokenCounter[tokens[t]] = (tokenCounter[tokens[t]] || 0) + 1;
-        }
+        for (let t = 0; t < tokens.length; t++) tokenCounter[tokens[t]] = (tokenCounter[tokens[t]] || 0) + 1;
+
+        const rowGenre = normalizeGenreCode_(valueAt_(row, map.genero));
+        const rowSize = sizeCodeFromAforo_(valueAt_(row, map.aforo));
+        const genreMismatch = taxonomy.genre && rowGenre && taxonomy.genre !== rowGenre;
+        const sizeMismatch = taxonomy.size && rowSize && taxonomy.size !== rowSize;
 
         records.push({
           sheetName: sheet.getName(),
           rowIndex: r + 1,
           rowOffset: r - 1,
           festival: festival,
-          email: email,
+          emailBefore: email,
+          emailAfter: email,
           tokens: tokens,
           domains: domains,
-          currentReview: normalizeRevisionStatus_(valueAt_(row, map.reviewEmail)),
-          autoStatus: 'PENDIENTE_REVISION',
-          finalReview: 'PENDIENTE_REVISION',
+          seedUrls: seedUrls,
           duplicate: false,
+          taxonomyMismatch: !!(genreMismatch || sizeMismatch),
+          taxonomyReason: (genreMismatch ? 'GENERO' : '') + (genreMismatch && sizeMismatch ? '+' : '') + (sizeMismatch ? 'AFORO' : ''),
+          status: normalizeRevisionStatus_(valueAt_(row, map.reviewEmail)),
           dnsSummary: '',
-          recommendedAction: ''
+          webEvidence: '',
+          webEmails: '',
+          action: ''
         });
       }
     }
@@ -142,77 +230,107 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
       rec.duplicate = dup;
     }
 
-    const domainBatch = obtenerEstadoDominiosEnLote_(
-      Object.keys(uniqueDomains),
-      FEST_EMAIL_MAX_DOMAIN_CHECKS_PER_RUN
-    );
-
+    const domainBatch = obtenerEstadoDominiosEnLote_(Object.keys(uniqueDomains), FEST_EMAIL_MAX_DOMAIN_CHECKS_PER_RUN);
     const bySheet = {};
-    for (let c = 0; c < contexts.length; c++) {
-      bySheet[contexts[c].sheet.getName()] = contexts[c];
-    }
+    for (let c = 0; c < contexts.length; c++) bySheet[contexts[c].sheet.getName()] = contexts[c];
 
-    let duplicatesCount = 0;
-    let noEmailCount = 0;
-    let fixCount = 0;
-    let reviewCount = 0;
+    let bienCount = 0;
+    let cambiadoCount = 0;
+    let malCount = 0;
+    let changedEmailCount = 0;
+    let duplicateCount = 0;
+    let taxonomyMismatchCount = 0;
 
     for (let i = 0; i < records.length; i++) {
       const rec = records[i];
-      const result = calcularEstadoAutoRevisionEmail_(rec, domainBatch.checks);
-      rec.autoStatus = result.status;
+      const result = obtenerResultadoRevisionEmail_(rec, tokenCounter, domainBatch.checks, webBudget);
+      rec.status = result.status;
+      rec.emailAfter = result.finalEmail;
       rec.dnsSummary = result.dnsSummary;
-      rec.recommendedAction = result.action;
+      rec.webEvidence = result.webEvidence;
+      rec.webEmails = result.webEmails;
+      rec.action = result.action;
 
-      if (rec.duplicate) duplicatesCount++;
-      if (rec.autoStatus === 'SIN_EMAIL') noEmailCount++;
-      if (rec.autoStatus === 'CORREGIR_EMAIL') fixCount++;
-      if (rec.autoStatus === 'REVISAR_WEB') reviewCount++;
+      if (rec.taxonomyMismatch) {
+        rec.status = 'MAL';
+        rec.action = appendReason_(rec.action, 'Revision de clasificacion: ' + rec.taxonomyReason + '.');
+        taxonomyMismatchCount++;
+      }
 
       const ctx = bySheet[rec.sheetName];
       if (!ctx || rec.rowOffset < 0 || rec.rowOffset >= ctx.reviewOut.length) continue;
-      const current = normalizeRevisionStatus_(ctx.reviewOut[rec.rowOffset][0]);
-
-      // Si ya esta verificado manualmente, no sobreescribir.
-      if (current === 'OK_VERIFICADO_WEB') {
-        rec.finalReview = current;
+      const previousEmail = normalizeEmailCell_(ctx.emailOut[rec.rowOffset][0]);
+      const nextEmail = normalizeEmailCell_(rec.emailAfter);
+      if (nextEmail && nextEmail !== previousEmail) {
+        ctx.emailOut[rec.rowOffset][0] = nextEmail;
+        rec.emailAfter = nextEmail;
+        changedEmailCount++;
+        actualizarContadorEmailsTrasCambio_(tokenCounter, rec.tokens, nextEmail);
       } else {
-        ctx.reviewOut[rec.rowOffset][0] = rec.autoStatus;
-        rec.finalReview = rec.autoStatus;
+        rec.emailAfter = previousEmail;
       }
+
+      ctx.reviewOut[rec.rowOffset][0] = rec.status;
+      ctx.rowColors[rec.rowOffset] = colorPorEstadoRevisionEmail_(rec.status);
+      if (rec.status === 'BIEN') bienCount++;
+      else if (rec.status === 'CAMBIADO') cambiadoCount++;
+      else malCount++;
+      if (rec.duplicate) duplicateCount++;
     }
 
     for (let c = 0; c < contexts.length; c++) {
       const ctx = contexts[c];
       if (!ctx.rowsCount) continue;
+      const emailCol = ctx.map.email + 1;
       const reviewCol = ctx.map.reviewEmail + 1;
+      ctx.sheet.getRange(2, emailCol, ctx.rowsCount, 1).setValues(ctx.emailOut);
       ctx.sheet.getRange(2, reviewCol, ctx.rowsCount, 1).setValues(ctx.reviewOut);
       ctx.sheet.getRange(2, reviewCol, ctx.rowsCount, 1).setDataValidation(buildEmailReviewValidationRule_());
+      const backgrounds = construirMatrizColorFilas_(ctx.rowColors, ctx.lastCol);
+      ctx.sheet.getRange(2, 1, ctx.rowsCount, ctx.lastCol).setBackgrounds(backgrounds);
     }
 
-    escribirPestanaRevisionEmails_(ss, records, domainBatch, options.source || 'manual');
+    escribirPestanaRevisionEmails_(ss, records, domainBatch, webBudget, options.source || 'manual');
 
     const elapsedSec = Math.round((Date.now() - started) / 1000);
     const summary = [
       'Revision emails completada (' + FEST_ARCHITECT + ')',
       '',
-      'Pestanas de festivales: ' + sheets.length,
+      'Pestanas revisadas: ' + sheets.length,
       'Filas analizadas: ' + records.length,
-      'Columna "REVISION EMAIL" creada: ' + reviewColumnCreated,
-      'Duplicados detectados: ' + duplicatesCount,
-      'Sin email: ' + noEmailCount,
-      'Para corregir: ' + fixCount,
-      'Para revisar web: ' + reviewCount,
-      'Dominios consultados en esta ejecucion: ' + domainBatch.fetched,
-      'Dominios desde cache: ' + domainBatch.cached,
-      'Dominios pendientes por limite: ' + domainBatch.skipped,
-      'Tiempo total: ' + elapsedSec + 's',
-      '',
-      'Nota: no se usa Gemini aqui (control de coste API).'
+      'Columna \"REVISION EMAIL\" creada: ' + reviewColumnCreated,
+      'Estado BIEN: ' + bienCount,
+      'Estado CAMBIADO: ' + cambiadoCount,
+      'Estado MAL: ' + malCount,
+      'Correos actualizados: ' + changedEmailCount,
+      'Duplicados detectados: ' + duplicateCount,
+      'Filas con conflicto genero/aforo: ' + taxonomyMismatchCount,
+      'DNS consultados: ' + domainBatch.fetched + ' | cache DNS: ' + domainBatch.cached + ' | DNS omitidos por limite: ' + domainBatch.skipped,
+      'Web consultada: ' + webBudget.webFetched + ' | cache web: ' + webBudget.webCached,
+      'Busquedas web: ' + webBudget.searchFetched + ' | cache busquedas: ' + webBudget.searchCached,
+      'Tiempo total: ' + elapsedSec + 's'
     ].join('\n');
 
     if (!options.showUi) Logger.log(summary);
     return summary;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function adquirirVentanaEjecucionRevisionEmails_(cooldownMinutes) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(500)) return false;
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const now = Date.now();
+    const last = Number(props.getProperty('FEST_EMAIL_LAST_RUN_TS') || '0');
+    const cooldownMs = Math.max(1, Number(cooldownMinutes) || 10) * 60 * 1000;
+    if (last && now - last < cooldownMs) return false;
+    props.setProperty('FEST_EMAIL_LAST_RUN_TS', String(now));
+    return true;
+  } catch (err) {
+    return true;
   } finally {
     lock.releaseLock();
   }
@@ -741,7 +859,7 @@ function dnsTieneRespuesta_(domain, type) {
   return Array.isArray(body.Answer) && body.Answer.length > 0;
 }
 
-function escribirPestanaRevisionEmails_(ss, records, domainBatch, source) {
+function escribirPestanaRevisionEmails_(ss, records, domainBatch, webBudget, source) {
   const sh = asegurarPestanaRevisionEmails_(ss);
   const now = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
 
@@ -758,57 +876,82 @@ function escribirPestanaRevisionEmails_(ss, records, domainBatch, source) {
       rec.sheetName,
       rec.rowIndex,
       rec.festival,
-      rec.email,
-      rec.autoStatus,
-      rec.finalReview,
+      rec.emailBefore,
+      rec.emailAfter,
+      rec.status,
       rec.duplicate ? 'SI' : 'NO',
-      rec.domains.join('; '),
+      rec.taxonomyMismatch ? 'NO' : 'SI',
       rec.dnsSummary,
-      rec.recommendedAction
+      rec.webEvidence,
+      rec.webEmails,
+      rec.action
     ]);
   }
 
-  sh.getRange(1, 1, 1, 12).setValues([[
+  sh.getRange(1, 1, 1, 14).setValues([[
     'FECHA_REVISION',
     'PESTANA',
     'FILA',
     'FESTIVAL',
-    'EMAIL',
-    'ESTADO_AUTO',
-    'ESTADO_REVISION',
+    'EMAIL_ANTERIOR',
+    'EMAIL_FINAL',
+    'ESTADO_EMAIL',
     'DUPLICADO',
-    'DOMINIOS',
+    'GENERO_AFORO_OK',
     'DNS',
+    'WEB_EVIDENCIA',
+    'EMAILS_WEB',
     'ACCION',
     'FUENTE'
   ]]);
 
   if (sh.getMaxRows() > 1) {
-    sh.getRange(2, 1, sh.getMaxRows() - 1, 12).clearContent();
+    sh.getRange(2, 1, sh.getMaxRows() - 1, 14).clearContent().clearFormat();
   }
 
   if (rows.length) {
     // Columna FUENTE
-    for (let i = 0; i < rows.length; i++) rows[i][11] = source || 'manual';
-    sh.getRange(2, 1, rows.length, 12).setValues(rows);
+    for (let i = 0; i < rows.length; i++) rows[i][13] = source || 'manual';
+    sh.getRange(2, 1, rows.length, 14).setValues(rows);
     sh.getRange(2, 7, rows.length, 1).setDataValidation(buildEmailReviewValidationRule_());
+
+    const colors = [];
+    for (let i = 0; i < rows.length; i++) {
+      const color = colorPorEstadoRevisionEmail_(rows[i][6]);
+      const line = [];
+      for (let c = 0; c < 14; c++) line.push(color);
+      colors.push(line);
+    }
+    sh.getRange(2, 1, rows.length, 14).setBackgrounds(colors);
   }
 
   sh.setFrozenRows(1);
   if (sh.getFilter()) sh.getFilter().remove();
-  sh.getRange(1, 1, Math.max(2, rows.length + 1), 12).createFilter();
+  sh.getRange(1, 1, Math.max(2, rows.length + 1), 14).createFilter();
   sh.setColumnWidth(1, 170);
-  sh.setColumnWidth(2, 130);
+  sh.setColumnWidth(2, 140);
   sh.setColumnWidth(3, 70);
-  sh.setColumnWidth(4, 260);
-  sh.setColumnWidth(5, 260);
-  sh.setColumnWidth(6, 170);
-  sh.setColumnWidth(7, 190);
+  sh.setColumnWidth(4, 250);
+  sh.setColumnWidth(5, 250);
+  sh.setColumnWidth(6, 250);
+  sh.setColumnWidth(7, 130);
   sh.setColumnWidth(8, 90);
-  sh.setColumnWidth(9, 220);
-  sh.setColumnWidth(10, 260);
-  sh.setColumnWidth(11, 320);
-  sh.setColumnWidth(12, 120);
+  sh.setColumnWidth(9, 130);
+  sh.setColumnWidth(10, 210);
+  sh.setColumnWidth(11, 270);
+  sh.setColumnWidth(12, 300);
+  sh.setColumnWidth(13, 350);
+  sh.setColumnWidth(14, 120);
+
+  sh.getRange(1, 16, 7, 2).setValues([
+    ['METRICA', 'VALOR'],
+    ['DNS_FETCHED', domainBatch.fetched],
+    ['DNS_CACHED', domainBatch.cached],
+    ['DNS_SKIPPED', domainBatch.skipped],
+    ['WEB_FETCHED', webBudget.webFetched],
+    ['WEB_CACHED', webBudget.webCached],
+    ['SEARCH_FETCHED', webBudget.searchFetched]
+  ]);
 }
 
 function asegurarPestanaRevisionEmails_(ss) {

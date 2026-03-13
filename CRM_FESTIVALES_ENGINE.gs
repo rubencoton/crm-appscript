@@ -50,18 +50,20 @@ const FEST_GENRE_DROPDOWN = [
   'JAZZ', 'FLAM', 'RUMBA', 'MEC', 'MFR'
 ];
 const FEST_EMAIL_REVIEW_OPTIONS = [
-  'PENDIENTE_REVISION',
-  'OK_VERIFICADO_WEB',
-  'REVISAR_WEB',
-  'CORREGIR_EMAIL',
-  'SIN_EMAIL',
-  'DUPLICADO'
+  'BIEN',
+  'CAMBIADO',
+  'MAL'
 ];
 const FEST_EMAIL_REVIEW_SHEET_NAME = 'REVISION_EMAILS';
 const FEST_EMAIL_TRIGGER_HANDLER = 'auditarEmailsAutomaticaCRMFestivales_';
+const FEST_EMAIL_OPEN_TRIGGER_HANDLER = 'auditarEmailsAlAbrirCRMFestivales_';
 const FEST_EMAIL_TRIGGER_INTERVAL_HOURS = 6;
+const FEST_EMAIL_OPEN_COOLDOWN_MINUTES = 45;
 const FEST_EMAIL_MAX_DOMAIN_CHECKS_PER_RUN = 140;
 const FEST_EMAIL_DOMAIN_CACHE_TTL_HOURS = 24;
+const FEST_EMAIL_MAX_WEB_FETCHES_PER_RUN = 120;
+const FEST_EMAIL_MAX_SEARCH_FETCHES_PER_RUN = 40;
+const FEST_EMAIL_WEB_CACHE_TTL_SEC = 8 * 60 * 60;
 
 // Si no tienes otro onOpen en el proyecto, este ya deja el menu automatico.
 
@@ -93,6 +95,11 @@ function getFestGeminiApiKey_() {
 
 function onOpen(e) {
   crearMenuCRMFestivales_();
+  try {
+    ejecutarAuditoriaAlAbrirSiCorrespondeCRMFestivales_();
+  } catch (err) {
+    Logger.log('onOpen auto email audit skip: ' + (err && err.message ? err.message : err));
+  }
 }
 
 // Alias para compatibilidad con versiones previas del script.
@@ -120,6 +127,12 @@ function crearMenuCRMFestivales_() {
     .addSeparator()
     .addItem('Guia de arquitectura (seguro)', 'menuGuiaArquitecturaCRMFestivales')
     .addToUi();
+
+  try {
+    asegurarTriggersAutoRevisionEmailsCRMFestivales_();
+  } catch (err) {
+    Logger.log('No se pudieron autoasegurar triggers de revision email: ' + (err && err.message ? err.message : err));
+  }
 }
 
 function instalarTriggerMenuCRMFestivales() {
@@ -892,11 +905,14 @@ function buildEmailReviewValidationRule_() {
 
 function normalizeRevisionStatus_(v) {
   const t = cleanText_(v).toUpperCase();
-  if (!t) return 'PENDIENTE_REVISION';
+  if (!t) return 'MAL';
   for (let i = 0; i < FEST_EMAIL_REVIEW_OPTIONS.length; i++) {
     if (t === FEST_EMAIL_REVIEW_OPTIONS[i]) return t;
   }
-  return 'PENDIENTE_REVISION';
+  if (t === 'OK_VERIFICADO_WEB' || t === 'VERIFICADO' || t === 'CORRECTO') return 'BIEN';
+  if (t === 'CAMBIO' || t === 'ACTUALIZADO') return 'CAMBIADO';
+  if (t === 'PENDIENTE_REVISION' || t === 'REVISAR_WEB' || t === 'CORREGIR_EMAIL' || t === 'SIN_EMAIL' || t === 'DUPLICADO') return 'MAL';
+  return 'MAL';
 }
 
 function isHeaderInCanonicalOrder_(headerRow) {
@@ -1377,4 +1393,3 @@ function parseGeminiJson_(rawText) {
     return null;
   }
 }
-

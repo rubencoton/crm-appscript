@@ -394,6 +394,25 @@ def audit_sheet_xlsx_fallback(token: str, spreadsheet_id: str) -> tuple[dict, li
         dim = ws.calculate_dimension()
         used_rows = int(ws.max_row or 0)
         used_cols = int(ws.max_column or 0)
+        non_empty_rows = 0
+        for rr in ws.iter_rows(min_row=1, max_row=used_rows, min_col=1, max_col=used_cols, values_only=True):
+            if any((str(x).strip() if x is not None else "") for x in rr):
+                non_empty_rows += 1
+        frozen_rows = 0
+        frozen_cols = 0
+        if ws.freeze_panes:
+            if isinstance(ws.freeze_panes, str):
+                mfp = re.match(r"([A-Z]+)(\d+)", ws.freeze_panes)
+                if mfp:
+                    frozen_cols = max(0, c2n(mfp.group(1)) - 1)
+                    frozen_rows = max(0, int(mfp.group(2)) - 1)
+            else:
+                try:
+                    frozen_rows = max(0, int(ws.freeze_panes.row) - 1)
+                    frozen_cols = max(0, int(ws.freeze_panes.column) - 1)
+                except Exception:
+                    frozen_rows = 0
+                    frozen_cols = 0
         structure.append(
             {
                 "title": ws.title,
@@ -402,10 +421,11 @@ def audit_sheet_xlsx_fallback(token: str, spreadsheet_id: str) -> tuple[dict, li
                 "hidden": ws.sheet_state != "visible",
                 "rowsConfigured": used_rows,
                 "colsConfigured": used_cols,
-                "frozenRows": ws.freeze_panes.row - 1 if ws.freeze_panes else 0,
-                "frozenCols": ws.freeze_panes.column - 1 if ws.freeze_panes else 0,
+                "frozenRows": frozen_rows,
+                "frozenCols": frozen_cols,
                 "usedRows": used_rows,
                 "usedCols": used_cols,
+                "nonEmptyRows": non_empty_rows,
                 "usedRange": dim,
             }
         )
@@ -462,6 +482,26 @@ def audit_sheet_xlsx_fallback(token: str, spreadsheet_id: str) -> tuple[dict, li
             for r in ws.iter_rows(min_row=1, max_row=used_rows, min_col=1, max_col=used_cols, values_only=True):
                 concursos_rows.append(list(r))
 
+        if used_rows >= 200 and non_empty_rows > 0 and used_rows > non_empty_rows * 3:
+            findings.append({
+                "severity": "MEDIUM",
+                "area": "SHEET_PERFORMANCE",
+                "title": "Rango usado inflado",
+                "detail": f"{ws.title}: {used_rows} filas usadas vs {non_empty_rows} con datos",
+                "evidence": {"sheet": ws.title, "usedRows": used_rows, "nonEmptyRows": non_empty_rows},
+                "recommendation": "Limpiar filas sobrantes para reducir peso y riesgo de lentitud."
+            })
+
+        if ws.title.startswith("Hoja ") and non_empty_rows <= 1:
+            findings.append({
+                "severity": "LOW",
+                "area": "SHEET_HYGIENE",
+                "title": "Pestaña residual detectada",
+                "detail": f"{ws.title} parece una pestaña temporal con poco contenido.",
+                "evidence": {"sheet": ws.title, "nonEmptyRows": non_empty_rows},
+                "recommendation": "Archivar o eliminar pestañas residuales para reducir ruido operativo."
+            })
+
     # mismos checks de calidad de datos sobre CONCURSOS
     if not concursos_rows:
         findings.append({"severity": "CRITICAL", "area": "SHEET_DATA", "title": "CONCURSOS vacío/no legible",
@@ -481,6 +521,8 @@ def audit_sheet_xlsx_fallback(token: str, spreadsheet_id: str) -> tuple[dict, li
         ok_est = {"REVISAR", "REVISADO IA", "REVISADO HUMANO", "NUEVO DESCUBRIMIENTO"}
         ok_ins = {"ABIERTA", "CERRADA", "SIN PUBLICAR"}
         bad_est = []; bad_ins = []; bad_mail = []; bad_link = []; bad_name = []; bad_date = []
+        placeholder_mail = []
+        multi_mail = []
         dups = collections.defaultdict(list)
         for rn, row in enumerate(rows, start=2):
             v = lambda i: str(row[i]).strip() if i < len(row) and row[i] is not None else ""
@@ -493,8 +535,14 @@ def audit_sheet_xlsx_fallback(token: str, spreadsheet_id: str) -> tuple[dict, li
                 bad_est.append({"row": rn, "value": est})
             if ins and ins not in ok_ins:
                 bad_ins.append({"row": rn, "value": ins})
-            if em and "no publicado" not in em and "no localizado" not in em and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", em):
-                bad_mail.append({"row": rn, "value": em})
+            if em:
+                if em in ("no hay", "no especificado", "sin email", "sin correo", "no disponible", "n/a", "-"):
+                    placeholder_mail.append({"row": rn, "value": em})
+                if re.search(r"[,/;]\s*[^ ]+@[^ ]+", em):
+                    multi_mail.append({"row": rn, "value": em})
+                if "no publicado" not in em and "no localizado" not in em:
+                    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", em):
+                        bad_mail.append({"row": rn, "value": em})
             for lk in [v(i_l1), v(i_l2), v(i_l3)]:
                 if lk and "NO PUBLICADO" not in norm(lk) and "NO LOCALIZADO" not in norm(lk) and not re.match(r"^https?://", lk, re.I):
                     bad_link.append({"row": rn, "value": lk})
@@ -511,6 +559,12 @@ def audit_sheet_xlsx_fallback(token: str, spreadsheet_id: str) -> tuple[dict, li
         if bad_mail:
             findings.append({"severity": "MEDIUM", "area": "SHEET_DATA", "title": "Email sospechoso",
                              "detail": f"{len(bad_mail)} filas", "evidence": {"examples": bad_mail[:15]}, "recommendation": "Revisar formato email."})
+        if placeholder_mail:
+            findings.append({"severity": "MEDIUM", "area": "SHEET_DATA", "title": "Email sin dato real",
+                             "detail": f"{len(placeholder_mail)} filas con placeholders en EMAIL", "evidence": {"examples": placeholder_mail[:15]}, "recommendation": "Diferenciar claramente vacio real vs valor de negocio utilizable."})
+        if multi_mail:
+            findings.append({"severity": "MEDIUM", "area": "SHEET_DATA", "title": "Multiples emails en una celda",
+                             "detail": f"{len(multi_mail)} filas con emails concatenados", "evidence": {"examples": multi_mail[:15]}, "recommendation": "Separar en columnas o usar delimitador estandar para automatizacion de envios."})
         if bad_link:
             findings.append({"severity": "MEDIUM", "area": "SHEET_DATA", "title": "Links inválidos",
                              "detail": f"{len(bad_link)} filas", "evidence": {"examples": bad_link[:15]}, "recommendation": "Añadir https://."})
