@@ -56,3 +56,6 @@
 [2026-03-13 13:29:56] CICLO 19 - inicio
 [2026-03-13 13:30:02] CICLO 19 - OK findings=7 (C=0 H=0 M=4 L=3)
 [2026-03-13 13:30:02] CICLO 19 - espera 600 segundos
+[2026-03-13 13:40:02] CICLO 20 - inicio
+[2026-03-13 13:40:09] CICLO 20 - OK findings=7 (C=0 H=0 M=4 L=3)
+[2026-03-13 13:40:09] CICLO 20 - espera 600 segundos
