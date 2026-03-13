@@ -38,3 +38,6 @@
 [2026-03-13 12:29:14] CICLO 13 - inicio
 [2026-03-13 12:29:20] CICLO 13 - OK findings=7 (C=0 H=0 M=4 L=3)
 [2026-03-13 12:29:20] CICLO 13 - espera 600 segundos
+[2026-03-13 12:39:20] CICLO 14 - inicio
+[2026-03-13 12:39:26] CICLO 14 - OK findings=7 (C=0 H=0 M=4 L=3)
+[2026-03-13 12:39:26] CICLO 14 - espera 600 segundos
