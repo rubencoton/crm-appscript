@@ -60,12 +60,12 @@ function Resolve-ToolPath {
 function Test-CommandExecutable {
   param(
     [string]$CommandPath,
-    [string[]]$Args = @("--version")
+    [string[]]$CommandArgs = @("--version")
   )
 
   if ([string]::IsNullOrWhiteSpace($CommandPath)) { return $false }
   try {
-    & $CommandPath @Args *> $null
+    & $CommandPath @CommandArgs *> $null
     return ($LASTEXITCODE -eq 0)
   } catch {
     return $false
@@ -140,13 +140,13 @@ function Invoke-ClaspInfo {
   param(
     [string]$ClaspCmd,
     [string]$NpxCmd,
-    [string[]]$Args
+    [string[]]$CommandArgs
   )
 
   if (-not [string]::IsNullOrWhiteSpace($ClaspCmd)) {
     try {
-      $out = (& $ClaspCmd @Args 2>$null)
-      if ($LASTEXITCODE -eq 0) { return $out }
+      $out = (& $ClaspCmd @CommandArgs 2>$null)
+      return $out
     } catch {
       # fallback to npx
     }
@@ -154,15 +154,15 @@ function Invoke-ClaspInfo {
 
   if (-not [string]::IsNullOrWhiteSpace($NpxCmd)) {
     try {
-      $out = (& $NpxCmd "clasp" @Args 2>$null)
-      if ($LASTEXITCODE -eq 0) { return $out }
+      $out = (& $NpxCmd "clasp" @CommandArgs 2>$null)
+      return $out
     } catch {
       # continue to second attempt
     }
 
     try {
-      $out = (& $NpxCmd "--yes" "@google/clasp" @Args 2>$null)
-      if ($LASTEXITCODE -eq 0) { return $out }
+      $out = (& $NpxCmd "--yes" "@google/clasp" @CommandArgs 2>$null)
+      return $out
     } catch {
       # no-op
     }
@@ -203,7 +203,7 @@ $lines += ""
 $gitVer = Invoke-OrMissing -CommandPath $git -Arguments @("--version")
 $nodeVer = Invoke-OrMissing -CommandPath $node -Arguments @("--version")
 $npmVer = Invoke-OrMissing -CommandPath $npm -Arguments @("--version")
-$claspVer = Invoke-ClaspInfo -ClaspCmd $clasp -NpxCmd $npx -Args @("--version")
+$claspVer = Invoke-ClaspInfo -ClaspCmd $clasp -NpxCmd $npx -CommandArgs @("--version")
 
 $lines += Out-Line "git" "$gitVer"
 $lines += Out-Line "node" "$nodeVer"
@@ -247,7 +247,7 @@ if (Test-Path $claspJsonPath) {
   }
 }
 
-$authUser = Invoke-ClaspInfo -ClaspCmd $clasp -NpxCmd $npx -Args @("show-authorized-user")
+$authUser = Invoke-ClaspInfo -ClaspCmd $clasp -NpxCmd $npx -CommandArgs @("show-authorized-user")
 $lines += ""
 $lines += Out-Line "clasp_user" (($authUser -join ' ').Trim())
 $lines += Out-Line "scope_expected_sheet" "$expectedSheetId"

@@ -1,4 +1,4 @@
-param(
+﻿param(
   [switch]$DryRun,
   [switch]$SkipCrmProject,
   [switch]$SkipGitPush,
@@ -60,12 +60,12 @@ function Get-GitCmd {
 function Test-CommandExecutable {
   param(
     [string]$CommandPath,
-    [string[]]$Args = @("--version")
+    [string[]]$CommandArgs = @("--version")
   )
 
   if ([string]::IsNullOrWhiteSpace($CommandPath)) { return $false }
   try {
-    & $CommandPath @Args *> $null
+    & $CommandPath @CommandArgs *> $null
     return ($LASTEXITCODE -eq 0)
   } catch {
     return $false
@@ -76,6 +76,7 @@ function Get-ClaspCmd {
   param([string]$RepoRoot)
 
   $localClasp = Join-Path $RepoRoot "node_modules\.bin\clasp.cmd"
+  $roamingClasp = Join-Path $env:APPDATA "npm\clasp.cmd"
 
   $directWinGet = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages\OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe\node-v24.14.0-win-x64\clasp.cmd"
   $claspCmd = Get-Command clasp.cmd -ErrorAction SilentlyContinue
@@ -88,8 +89,9 @@ function Get-ClaspCmd {
   }
 
   $candidates = @(
-    $localClasp,
     $claspFromPath,
+    $roamingClasp,
+    $localClasp,
     $directWinGet,
     $wingetClasp
   ) | Select-Object -Unique
@@ -97,9 +99,7 @@ function Get-ClaspCmd {
   foreach ($candidate in $candidates) {
     if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
     if (-not (Test-Path $candidate)) { continue }
-    if (Test-CommandExecutable -CommandPath $candidate -Args @("--version")) {
-      return $candidate
-    }
+    return $candidate
   }
 
   return $null
@@ -290,3 +290,4 @@ try {
 }
 
 Write-Host "OK sync_out completado (modo hoja unica)"
+
