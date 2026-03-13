@@ -2,3 +2,6 @@
 [2026-03-13 10:27:46] CICLO 1 - inicio
 [2026-03-13 10:27:51] CICLO 1 - OK findings=7 (C=0 H=0 M=4 L=3)
 [2026-03-13 10:27:51] CICLO 1 - espera 600 segundos
+[2026-03-13 10:37:51] CICLO 2 - inicio
+[2026-03-13 10:37:58] CICLO 2 - OK findings=7 (C=0 H=0 M=4 L=3)
+[2026-03-13 10:37:58] CICLO 2 - espera 600 segundos

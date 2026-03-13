@@ -747,9 +747,9 @@ function normalizeSheetRows_(data, sheetName) {
       nombre: cleanText_(valueAt_(row, map.nombre)),
       genero: normalizeGenreCode_(valueAt_(row, map.genero)) || tax.genre || cleanText_(valueAt_(row, map.genero)),
       aforo: normalizeAforoForDisplay_(valueAt_(row, map.aforo)),
-      ubicacion: cleanText_(valueAt_(row, map.ubicacion)),
-      provincia: cleanText_(valueAt_(row, map.provincia)),
-      ccaa: cleanText_(valueAt_(row, map.ccaa)),
+      ubicacion: normalizeMunicipioName_(valueAt_(row, map.ubicacion)),
+      provincia: normalizeProvinciaName_(valueAt_(row, map.provincia)),
+      ccaa: normalizeCcaaName_(valueAt_(row, map.ccaa)),
       email: normalizeEmailCell_(valueAt_(row, map.email)),
       telefono: normalizePhoneCell_(valueAt_(row, map.telefono)),
       contacto: normalizeContactName_(valueAt_(row, map.contacto)),
@@ -846,6 +846,7 @@ function applyVisualDesignToSheet_(sheet) {
   if (lastRow > 1) {
     const map = buildHeaderMap_(sheet.getRange(1, 1, 1, lastCol).getValues()[0]);
     const reviewCol = map.reviewEmail + 1;
+    const mergeCol = map.mergeStatus + 1;
     const reviewColLetter = columnNumberToLetter_(reviewCol);
 
     sheet.getRange(2, 3, lastRow - 1, 1).setHorizontalAlignment('center');
@@ -857,7 +858,17 @@ function applyVisualDesignToSheet_(sheet) {
       .setAllowInvalid(false)
       .build();
     sheet.getRange(2, 2, lastRow - 1, 1).setDataValidation(generoRule);
-    sheet.getRange(2, reviewCol, lastRow - 1, 1).setDataValidation(buildEmailReviewValidationRule_());
+    sheet.getRange(2, reviewCol, lastRow - 1, 1)
+      .setDataValidation(buildEmailReviewValidationRule_())
+      .setHorizontalAlignment('center')
+      .setFontWeight('bold');
+    sheet.getRange(1, reviewCol, 1, 1)
+      .setBackground('#FBC02D')
+      .setFontColor('#8B0000')
+      .setHorizontalAlignment('center')
+      .setFontWeight('bold');
+    sheet.getRange(1, mergeCol, 1, 1).setValue(FEST_MERGE_STATUS_HEADER).setHorizontalAlignment('center');
+    sheet.getRange(2, mergeCol, lastRow - 1, 1).clearDataValidations().setHorizontalAlignment('left').setFontWeight('normal');
 
     const rangeForRules = sheet.getRange(2, 1, Math.max(1, lastRow - 1), lastCol);
 
@@ -1086,6 +1097,80 @@ function normalizeContactName_(v) {
   }
 
   return out.join(' ');
+}
+
+function normalizeMunicipioName_(v) {
+  return normalizeGeoTitle_(v);
+}
+
+function normalizeProvinciaName_(v) {
+  const key = normalizeGeoKey_(v);
+  const map = {
+    'A CORUNA': 'A Coruña',
+    'ALAVA': 'Álava',
+    'AVILA': 'Ávila',
+    'CADIZ': 'Cádiz',
+    'CASTELLON': 'Castellón',
+    'CORDOBA': 'Córdoba',
+    'GIPUZKOA': 'Gipuzkoa',
+    'GUIPUZCOA': 'Gipuzkoa',
+    'JAEN': 'Jaén',
+    'LA CORUNA': 'A Coruña',
+    'LEON': 'León',
+    'MALAGA': 'Málaga',
+    'ORENSE': 'Ourense',
+    'VIZCAYA': 'Bizkaia'
+  };
+  return map[key] || normalizeGeoTitle_(v);
+}
+
+function normalizeCcaaName_(v) {
+  const key = normalizeGeoKey_(v);
+  const map = {
+    'ANDALUCIA': 'Andalucía',
+    'ARAGON': 'Aragón',
+    'ASTURIAS': 'Asturias',
+    'CANARIAS': 'Canarias',
+    'CASTILLA LA MANCHA': 'Castilla-La Mancha',
+    'CASTILLA Y LEON': 'Castilla y León',
+    'CATALUNA': 'Cataluña',
+    'COMUNIDAD VALENCIANA': 'Comunidad Valenciana',
+    'COMUNITAT VALENCIANA': 'Comunidad Valenciana',
+    'C VALENCIANA': 'Comunidad Valenciana',
+    'LA RIOJA': 'La Rioja',
+    'MADRID': 'Comunidad de Madrid',
+    'COMUNIDAD DE MADRID': 'Comunidad de Madrid',
+    'MURCIA': 'Región de Murcia',
+    'REGION DE MURCIA': 'Región de Murcia',
+    'PAIS VASCO': 'País Vasco',
+    'EUSKADI': 'País Vasco'
+  };
+  return map[key] || normalizeGeoTitle_(v);
+}
+
+function normalizeGeoTitle_(v) {
+  const txt = cleanText_(v).toLowerCase();
+  if (!txt) return '';
+  const keepLower = { de: true, del: true, la: true, las: true, los: true, y: true, e: true };
+  const parts = txt.split(' ');
+  const out = [];
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
+    if (!p) continue;
+    if (i > 0 && keepLower[p]) out.push(p);
+    else out.push(p.charAt(0).toUpperCase() + p.slice(1));
+  }
+  return out.join(' ');
+}
+
+function normalizeGeoKey_(v) {
+  return cleanText_(v)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase();
 }
 
 
