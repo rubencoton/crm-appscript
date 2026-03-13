@@ -11,3 +11,6 @@
 [2026-03-13 10:58:05] CICLO 4 - inicio
 [2026-03-13 10:58:11] CICLO 4 - OK findings=7 (C=0 H=0 M=4 L=3)
 [2026-03-13 10:58:11] CICLO 4 - espera 600 segundos
+[2026-03-13 11:08:11] CICLO 5 - inicio
+[2026-03-13 11:08:23] CICLO 5 - OK findings=7 (C=0 H=0 M=4 L=3)
+[2026-03-13 11:08:23] CICLO 5 - espera 600 segundos
