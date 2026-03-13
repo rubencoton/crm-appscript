@@ -1,39 +1,27 @@
 {
     "meta":  {
-                 "timestamp":  "2026-03-13 08:23:29",
+                 "timestamp":  "2026-03-13 08:37:09",
                  "projectDir":  "C:\\Users\\elrub\\Desktop\\CARPETA CODEX\\01_PROYECTOS\\festivales-github\\crm-ayudas-subvenciones",
                  "workspaceRoot":  "C:\\Users\\elrub\\Desktop\\CARPETA CODEX\\01_PROYECTOS\\festivales-github",
                  "spreadsheetId":  "1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA",
                  "spreadsheetTitle":  "?? CRM: AYUDAS Y SUBVENCIONES",
-                 "localScriptId":  "1oJcpGpR4ySLigHgz-sw4t05qqBd0s1sDsvWTYLkmZQMOQfUydMUGJn5p",
-                 "localScriptTitle":  "CRM AYUDAS Y SUBVENCIONES",
-                 "localScriptParentId":  "1dy7YxATTH18nNt40MXpGvAiZAQAzI5MokaiHPQ3Trxw",
-                 "localParentMatchesTarget":  false,
+                 "localScriptId":  "1bhEXY-l5HQSxu5IpAzEZPxdAPNG966R0PECg8DCNsJEX8PZER70-F2PT",
+                 "localScriptTitle":  "CRM AYUDAS Y SUBVENCIONES - DISCOVERY TEMP",
+                 "localScriptParentId":  "1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA",
+                 "localParentMatchesTarget":  true,
                  "discoveredScriptId":  "",
                  "discoveredScriptTitle":  "",
                  "discoveredScriptParentId":  "",
-                 "ready":  false
+                 "ready":  true
              },
     "discovery":  {
                       "driveCandidates":  [
-                                              "1Ex-uEeWpdAA0ul7puZvnLeJ_QUTZGap-eqX6hx261yP9k5EGuCXNRw8E",
-                                              "1aSSUEK7DztPc5Y5s5HwIrMJ6AZyeu7IhKcEI3tEXJp9aX3WgSzmGKXTd",
-                                              "11Zhhixe9-TUpi6ingNjjk8Jq_PsJmMl3GQeT6VRVKfipnYcF0mVV9jTK",
-                                              "1MV_ADxYMzxxw2LggxQoQCBODNusyBHJHysfpXwiOVwNS_Whl6MIeby-X",
-                                              "1IeLfnBQdGwmWJcgozOzi5DKIs9SlVhkFzScI0mrp7Dp2TV4Sx1AlL-8G",
-                                              "1baoiODAQn9bMVziQGBH9q4Q6G6dA_7smbCbSajiP11f8aAxT07nBj618",
-                                              "1h3c3YBDWgyYn5aEVg5r3wsoczqfFZXUUU_ky_bN86PjBerpUeydFBIJ1",
-                                              "1FWWa2RmKGovafp7ef9yOG5IrhbykJPo28Q5UjpIDuSf3-d4av3p51ZQg",
-                                              "17eZB0EZdtKTx_tMLUlSTjwLkv5GRyvqE6wJUV0WGBC6lCymQ12ZK8nAp",
-                                              "11iNZPBhGVTjQ-85a1E_RL8Zgb5fnppdTimFFnS1Z5fGSWehxEGl1D7Sp",
-                                              "1GMW1DaW0dDmjMdfP30hY4g_uJwq07z42qn-twfvyFRh_2B0FZVJssP0t",
-                                              "18mpdrujlRe8X2AEY8J6RPFVOVLjJQJdntzTLa5xFRzS2uW17CBTI2dAf"
+
                                           ],
                       "localClaspCandidates":  [
-                                                   "1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea",
-                                                   "1oJcpGpR4ySLigHgz-sw4t05qqBd0s1sDsvWTYLkmZQMOQfUydMUGJn5p"
+
                                                ],
-                      "inspectedScripts":  14,
+                      "inspectedScripts":  0,
                       "matchedScriptIds":  [
 
                                            ]
@@ -42,7 +30,7 @@
                    "autoFixApplied":  false,
                    "pullApplied":  false,
                    "backupPath":  "",
-                   "oldScriptId":  "1oJcpGpR4ySLigHgz-sw4t05qqBd0s1sDsvWTYLkmZQMOQfUydMUGJn5p",
+                   "oldScriptId":  "1bhEXY-l5HQSxu5IpAzEZPxdAPNG966R0PECg8DCNsJEX8PZER70-F2PT",
                    "newScriptId":  ""
                },
     "checks":  [
@@ -59,7 +47,7 @@
                    {
                        "check":  "clasp.scriptId.present",
                        "ok":  true,
-                       "detail":  "scriptId=1oJcpGpR4ySLigHgz-sw4t05qqBd0s1sDsvWTYLkmZQMOQfUydMUGJn5p"
+                       "detail":  "scriptId=1bhEXY-l5HQSxu5IpAzEZPxdAPNG966R0PECg8DCNsJEX8PZER70-F2PT"
                    },
                    {
                        "check":  "oauth.refresh",
@@ -74,32 +62,17 @@
                    {
                        "check":  "script.local.getProject",
                        "ok":  true,
-                       "detail":  "title=CRM AYUDAS Y SUBVENCIONES; parentId=1dy7YxATTH18nNt40MXpGvAiZAQAzI5MokaiHPQ3Trxw"
+                       "detail":  "title=CRM AYUDAS Y SUBVENCIONES - DISCOVERY TEMP; parentId=1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA"
                    },
                    {
                        "check":  "binding.localParentMatchesTarget",
-                       "ok":  false,
-                       "detail":  "parentId=1dy7YxATTH18nNt40MXpGvAiZAQAzI5MokaiHPQ3Trxw; target=1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA"
-                   },
-                   {
-                       "check":  "discover.driveCandidates",
                        "ok":  true,
-                       "detail":  "count=12"
-                   },
-                   {
-                       "check":  "discover.localClaspCandidates",
-                       "ok":  true,
-                       "detail":  "count=2"
-                   },
-                   {
-                       "check":  "discover.boundScriptFound",
-                       "ok":  false,
-                       "detail":  "matches=0; inspected=14"
+                       "detail":  "parentId=1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA; target=1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA"
                    },
                    {
                        "check":  "binding.finalParentMatchesTarget",
-                       "ok":  false,
-                       "detail":  "parentId=1dy7YxATTH18nNt40MXpGvAiZAQAzI5MokaiHPQ3Trxw; target=1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA"
+                       "ok":  true,
+                       "detail":  "parentId=1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA; target=1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA"
                    }
                ]
 }

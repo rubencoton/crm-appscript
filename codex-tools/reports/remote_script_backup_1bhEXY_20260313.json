@@ -1,0 +1,21 @@
+{
+    "scriptId":  "1bhEXY-l5HQSxu5IpAzEZPxdAPNG966R0PECg8DCNsJEX8PZER70-F2PT",
+    "files":  [
+                  {
+                      "name":  "appsscript",
+                      "type":  "JSON",
+                      "source":  "{\n  \"timeZone\": \"America/New_York\",\n  \"dependencies\": {\n  },\n  \"exceptionLogging\": \"STACKDRIVER\",\n  \"runtimeVersion\": \"V8\"\n}",
+                      "lastModifyUser":  {
+                                             "domain":  "artesbuhomanagement.com",
+                                             "email":  "booking@artesbuhomanagement.com",
+                                             "name":  "Román García Sachez",
+                                             "photoUrl":  "https://lh3.googleusercontent.com/a/ACg8ocLmJuzNncMcSKOqcTGR1BODNoptBQoXTH7aJtsjcfST8pjx6w=h128"
+                                         },
+                      "createTime":  "2026-03-13T07:32:08.259Z",
+                      "updateTime":  "2026-03-13T07:32:08.259Z",
+                      "functionSet":  {
+
+                                      }
+                  }
+              ]
+}
