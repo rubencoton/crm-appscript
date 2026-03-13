@@ -46,8 +46,15 @@ const FEST_GEMINI_RESPONSE_CACHE_TTL_SEC = 6 * 60 * 60;
 const FEST_MAX_RUNTIME_MS = 4.7 * 60 * 1000;
 const FEST_ARCHITECT = 'RUBEN COTON';
 const FEST_GENRE_DROPDOWN = [
-  'URBAN', 'POP', 'INDIE', 'ROCK', 'ELECTR',
-  'JAZZ', 'FLAM', 'RUMBA', 'MEC', 'MFR'
+  'URBANO', 'URBAN',
+  'POP', 'INDIE', 'ROCK',
+  'ELECTRONICA', 'ELECTR',
+  'JAZZ',
+  'FLAMENCO', 'FLAM',
+  'RUMBA',
+  'MFR', 'MR',
+  'MEC', 'MC',
+  'PENDIENTE', 'PTE'
 ];
 const FEST_EMAIL_REVIEW_OPTIONS = [
   'BIEN',
@@ -58,11 +65,12 @@ const FEST_EMAIL_REVIEW_SHEET_NAME = 'REVISION_EMAILS';
 const FEST_EMAIL_TRIGGER_HANDLER = 'auditarEmailsAutomaticaCRMFestivales_';
 const FEST_EMAIL_OPEN_TRIGGER_HANDLER = 'auditarEmailsAlAbrirCRMFestivales_';
 const FEST_EMAIL_TRIGGER_INTERVAL_HOURS = 6;
-const FEST_EMAIL_OPEN_COOLDOWN_MINUTES = 45;
+const FEST_EMAIL_OPEN_COOLDOWN_MINUTES = 2;
+const FEST_EMAIL_RUN_COOLDOWN_MINUTES = 2;
 const FEST_EMAIL_MAX_DOMAIN_CHECKS_PER_RUN = 140;
 const FEST_EMAIL_DOMAIN_CACHE_TTL_HOURS = 24;
-const FEST_EMAIL_MAX_WEB_FETCHES_PER_RUN = 120;
-const FEST_EMAIL_MAX_SEARCH_FETCHES_PER_RUN = 40;
+const FEST_EMAIL_MAX_WEB_FETCHES_PER_RUN = 40;
+const FEST_EMAIL_MAX_SEARCH_FETCHES_PER_RUN = 10;
 const FEST_EMAIL_WEB_CACHE_TTL_SEC = 8 * 60 * 60;
 
 // Si no tienes otro onOpen en el proyecto, este ya deja el menu automatico.
@@ -839,7 +847,7 @@ function applyVisualDesignToSheet_(sheet) {
 
     const generoRule = SpreadsheetApp.newDataValidation()
       .requireValueInList(FEST_GENRE_DROPDOWN, true)
-      .setAllowInvalid(true)
+      .setAllowInvalid(false)
       .build();
     sheet.getRange(2, 2, lastRow - 1, 1).setDataValidation(generoRule);
     sheet.getRange(2, 11, lastRow - 1, 1).setDataValidation(buildEmailReviewValidationRule_());

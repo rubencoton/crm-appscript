@@ -120,7 +120,7 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
   if (!lock.tryLock(10000)) return 'Otro proceso esta en curso. Intenta en unos segundos.';
 
   try {
-    if (!options.forceRun && !adquirirVentanaEjecucionRevisionEmails_(12)) {
+    if (!options.forceRun && !adquirirVentanaEjecucionRevisionEmails_(FEST_EMAIL_RUN_COOLDOWN_MINUTES)) {
       return 'Revision omitida por ventana anti-saturacion.';
     }
 
