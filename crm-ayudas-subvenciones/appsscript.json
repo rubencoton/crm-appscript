@@ -17,7 +17,7 @@
                      },
     "runtimeVersion":  "V8",
     "executionApi":  {
-                         "access":  "DOMAIN"
+                         "access":  "MYSELF"
                      },
     "exceptionLogging":  "CLOUD"
 }
