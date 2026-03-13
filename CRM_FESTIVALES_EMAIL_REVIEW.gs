@@ -118,6 +118,9 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
   const options = opts || {};
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) return 'Otro proceso esta en curso. Intenta en unos segundos.';
+  let progressCtx = null;
+  let completed = false;
+  let completionSummary = '';
 
   try {
     if (!options.forceRun && !adquirirVentanaEjecucionRevisionEmails_(FEST_EMAIL_RUN_COOLDOWN_MINUTES)) {
@@ -128,12 +131,15 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheets = getFestivalSheets_(ss);
     if (!sheets.length) return 'No encontre pestanas de festivales para revisar.';
+    progressCtx = iniciarProcesoRevisionConBloqueo_(ss);
+    actualizarProgresoRevision_(progressCtx, 0, 'Iniciando revision...');
 
     const contexts = [];
     const records = [];
     const tokenCounter = {};
     const uniqueDomains = {};
     let reviewColumnCreated = 0;
+    let geoNormalizedCount = 0;
     const webBudget = {
       webRemaining: Math.max(0, Number(FEST_EMAIL_MAX_WEB_FETCHES_PER_RUN) || 0),
       searchRemaining: Math.max(0, Number(FEST_EMAIL_MAX_SEARCH_FETCHES_PER_RUN) || 0),
@@ -145,6 +151,7 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
 
     for (let s = 0; s < sheets.length; s++) {
       const sheet = sheets[s];
+      actualizarProgresoRevision_(progressCtx, Math.round(((s + 1) / Math.max(1, sheets.length)) * 25), 'Preparando: ' + sheet.getName());
       const init = asegurarColumnaRevisionEmailEnSheet_(sheet);
       if (init.created) reviewColumnCreated++;
 
@@ -159,11 +166,28 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
       const reviewOut = [];
       const emailOut = [];
       const rowColors = [];
+      const ubicacionOut = [];
+      const provinciaOut = [];
+      const ccaaOut = [];
 
       for (let r = 0; r < rowsCount; r++) {
-        reviewOut.push([normalizeRevisionStatus_(currentReview[r][0])]);
-        emailOut.push([normalizeEmailCell_(currentEmail[r][0])]);
+        const row = values[r + 1];
+        const normUbicacion = normalizeMunicipioName_(valueAt_(row, map.ubicacion));
+        const normProvincia = normalizeProvinciaName_(valueAt_(row, map.provincia));
+        const normCcaa = normalizeCcaaName_(valueAt_(row, map.ccaa));
+        if (cleanText_(valueAt_(row, map.ubicacion)) !== cleanText_(normUbicacion)) geoNormalizedCount++;
+        if (cleanText_(valueAt_(row, map.provincia)) !== cleanText_(normProvincia)) geoNormalizedCount++;
+        if (cleanText_(valueAt_(row, map.ccaa)) !== cleanText_(normCcaa)) geoNormalizedCount++;
+        if (map.ubicacion >= 0 && map.ubicacion < row.length) row[map.ubicacion] = normUbicacion;
+        if (map.provincia >= 0 && map.provincia < row.length) row[map.provincia] = normProvincia;
+        if (map.ccaa >= 0 && map.ccaa < row.length) row[map.ccaa] = normCcaa;
+
+        reviewOut.push([normalizeRevisionStatus_(currentReview[r][0]) || 'MAL']);
+        emailOut.push([normalizeEmailCell_(currentEmail[r][0]) || '']);
         rowColors.push(FEST_HOMO.COLORS.BODY_BG);
+        ubicacionOut.push([normUbicacion]);
+        provinciaOut.push([normProvincia]);
+        ccaaOut.push([normCcaa]);
       }
 
       contexts.push({
@@ -173,8 +197,12 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
         lastCol: lastCol,
         reviewOut: reviewOut,
         emailOut: emailOut,
-        rowColors: rowColors
+        rowColors: rowColors,
+        ubicacionOut: ubicacionOut,
+        provinciaOut: provinciaOut,
+        ccaaOut: ccaaOut
       });
+      aplicarPoliticaColumnasRevision_(sheet, map, rowsCount);
 
       if (!rowsCount) continue;
       const taxonomy = parseSheetTaxonomy_(sheet.getName());
@@ -242,6 +270,10 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
     let taxonomyMismatchCount = 0;
 
     for (let i = 0; i < records.length; i++) {
+      if (i === 0 || i === records.length - 1 || i % 40 === 0) {
+        const pct = records.length ? 25 + Math.round(((i + 1) / records.length) * 55) : 80;
+        actualizarProgresoRevision_(progressCtx, pct, 'Chequeando emails (' + (i + 1) + '/' + Math.max(1, records.length) + ')');
+      }
       const rec = records[i];
       const result = obtenerResultadoRevisionEmail_(rec, tokenCounter, domainBatch.checks, webBudget);
       rec.status = result.status;
@@ -252,8 +284,7 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
       rec.action = result.action;
 
       if (rec.taxonomyMismatch) {
-        rec.status = 'MAL';
-        rec.action = appendReason_(rec.action, 'Revision de clasificacion: ' + rec.taxonomyReason + '.');
+        rec.action = appendReason_(rec.action, 'Revisar clasificacion genero/aforo: ' + rec.taxonomyReason + '.');
         taxonomyMismatchCount++;
       }
 
@@ -281,15 +312,23 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
     for (let c = 0; c < contexts.length; c++) {
       const ctx = contexts[c];
       if (!ctx.rowsCount) continue;
+      actualizarProgresoRevision_(progressCtx, 82 + Math.round(((c + 1) / Math.max(1, contexts.length)) * 14), 'Escribiendo: ' + ctx.sheet.getName());
       const emailCol = ctx.map.email + 1;
       const reviewCol = ctx.map.reviewEmail + 1;
+      const ubicacionCol = ctx.map.ubicacion + 1;
+      const provinciaCol = ctx.map.provincia + 1;
+      const ccaaCol = ctx.map.ccaa + 1;
       ctx.sheet.getRange(2, emailCol, ctx.rowsCount, 1).setValues(ctx.emailOut);
       ctx.sheet.getRange(2, reviewCol, ctx.rowsCount, 1).setValues(ctx.reviewOut);
-      ctx.sheet.getRange(2, reviewCol, ctx.rowsCount, 1).setDataValidation(buildEmailReviewValidationRule_());
+      ctx.sheet.getRange(2, ubicacionCol, ctx.rowsCount, 1).setValues(ctx.ubicacionOut);
+      ctx.sheet.getRange(2, provinciaCol, ctx.rowsCount, 1).setValues(ctx.provinciaOut);
+      ctx.sheet.getRange(2, ccaaCol, ctx.rowsCount, 1).setValues(ctx.ccaaOut);
+      aplicarPoliticaColumnasRevision_(ctx.sheet, ctx.map, ctx.rowsCount);
       const backgrounds = construirMatrizColorFilas_(ctx.rowColors, ctx.lastCol);
       ctx.sheet.getRange(2, 1, ctx.rowsCount, ctx.lastCol).setBackgrounds(backgrounds);
     }
 
+    actualizarProgresoRevision_(progressCtx, 97, 'Generando reporte...');
     escribirPestanaRevisionEmails_(ss, records, domainBatch, webBudget, options.source || 'manual');
 
     const elapsedSec = Math.round((Date.now() - started) / 1000);
@@ -305,15 +344,20 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
       'Correos actualizados: ' + changedEmailCount,
       'Duplicados detectados: ' + duplicateCount,
       'Filas con conflicto genero/aforo: ' + taxonomyMismatchCount,
+      'Campos geo homogeneizados: ' + geoNormalizedCount,
       'DNS consultados: ' + domainBatch.fetched + ' | cache DNS: ' + domainBatch.cached + ' | DNS omitidos por limite: ' + domainBatch.skipped,
       'Web consultada: ' + webBudget.webFetched + ' | cache web: ' + webBudget.webCached,
       'Busquedas web: ' + webBudget.searchFetched + ' | cache busquedas: ' + webBudget.searchCached,
       'Tiempo total: ' + elapsedSec + 's'
     ].join('\n');
 
+    completionSummary = summary;
+    completed = true;
+    actualizarProgresoRevision_(progressCtx, 100, 'Completado');
     if (!options.showUi) Logger.log(summary);
     return summary;
   } finally {
+    finalizarProcesoRevisionConBloqueo_(progressCtx, completed, completionSummary);
     lock.releaseLock();
   }
 }
@@ -334,6 +378,134 @@ function adquirirVentanaEjecucionRevisionEmails_(cooldownMinutes) {
   } finally {
     lock.releaseLock();
   }
+}
+
+function iniciarProcesoRevisionConBloqueo_(ss) {
+  const ctx = {
+    ss: ss,
+    progressSheet: asegurarPestanaProgresoRevision_(ss),
+    protection: null,
+    lastPct: -1,
+    lastLabel: ''
+  };
+  ctx.protection = crearBloqueoTemporalRevision_(ss);
+  return ctx;
+}
+
+function finalizarProcesoRevisionConBloqueo_(ctx, ok, summary) {
+  if (!ctx) return;
+  try {
+    const estado = ok ? 'Completado' : 'Finalizado con incidencias';
+    actualizarProgresoRevision_(ctx, 100, estado);
+    const sh = ctx.progressSheet || asegurarPestanaProgresoRevision_(ctx.ss);
+    sh.getRange('A6').setValue('RESUMEN');
+    sh.getRange('B6').setValue(cleanText_(summary || '').substring(0, 500));
+  } catch (err) {
+    // no-op
+  }
+  try {
+    if (ctx.protection) ctx.protection.remove();
+  } catch (err) {
+    // no-op
+  }
+}
+
+function crearBloqueoTemporalRevision_(ss) {
+  try {
+    const p = ss.protect();
+    p.setDescription('CRM FESTIVALES - BLOQUEO TEMPORAL REVISION EMAIL');
+    p.setWarningOnly(false);
+    const me = cleanText_(Session.getEffectiveUser().getEmail()).toLowerCase();
+    if (!me || !p.canEdit()) {
+      p.setWarningOnly(true);
+      return p;
+    }
+    const editors = p.getEditors();
+    for (let i = 0; i < editors.length; i++) {
+      const email = cleanText_(editors[i].getEmail()).toLowerCase();
+      if (email && email !== me) {
+        try { p.removeEditor(editors[i]); } catch (err) {}
+      }
+    }
+    try { if (p.canDomainEdit()) p.setDomainEdit(false); } catch (err) {}
+    return p;
+  } catch (err) {
+    return null;
+  }
+}
+
+function asegurarPestanaProgresoRevision_(ss) {
+  let sh = ss.getSheetByName('PROGRESO_CRM');
+  if (!sh) sh = ss.insertSheet('PROGRESO_CRM');
+  sh.getRange('A1:C1').setValues([['METRICA', 'VALOR', 'BARRA']]);
+  sh.getRange('A2:C5').clearContent();
+  sh.getRange('A2:A5').setValues([
+    ['ESTADO'],
+    ['PROGRESO'],
+    ['ULTIMA_ACTUALIZACION'],
+    ['BLOQUEO']
+  ]);
+  sh.getRange('A1:C1')
+    .setBackground('#8B0000')
+    .setFontColor('#FFFFFF')
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+  sh.setColumnWidth(1, 190);
+  sh.setColumnWidth(2, 380);
+  sh.setColumnWidth(3, 360);
+  sh.setFrozenRows(1);
+  return sh;
+}
+
+function actualizarProgresoRevision_(ctx, pct, label) {
+  if (!ctx || !ctx.ss) return;
+  const safePct = Math.max(0, Math.min(100, Math.round(Number(pct) || 0)));
+  const safeLabel = cleanText_(label);
+  if (safePct === ctx.lastPct && safeLabel === ctx.lastLabel) return;
+  ctx.lastPct = safePct;
+  ctx.lastLabel = safeLabel;
+
+  const sh = ctx.progressSheet || asegurarPestanaProgresoRevision_(ctx.ss);
+  const now = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+  sh.getRange('B2').setValue(safeLabel || 'En curso');
+  sh.getRange('B3').setValue(safePct + '%');
+  sh.getRange('C3').setValue(renderBarraProgreso_(safePct));
+  sh.getRange('B4').setValue(now);
+  sh.getRange('B5').setValue(ctx.protection ? 'SI' : 'NO');
+  try {
+    ctx.ss.toast('Revision emails: ' + safePct + '% - ' + (safeLabel || 'En curso'), 'CRM FESTIVALES', 5);
+  } catch (err) {}
+}
+
+function renderBarraProgreso_(pct) {
+  const total = 20;
+  const fill = Math.max(0, Math.min(total, Math.round((pct / 100) * total)));
+  return '[' + Array(fill + 1).join('#') + Array(total - fill + 1).join('-') + '] ' + pct + '%';
+}
+
+function aplicarPoliticaColumnasRevision_(sheet, map, rowsCount) {
+  const reviewCol = map.reviewEmail + 1;
+  const mergeCol = map.mergeStatus + 1;
+
+  sheet.getRange(1, reviewCol, 1, 1)
+    .setValue('REVISION EMAIL')
+    .setBackground('#FBC02D')
+    .setFontColor('#8B0000')
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+  sheet.getRange(1, mergeCol, 1, 1)
+    .setValue(FEST_MERGE_STATUS_HEADER)
+    .setHorizontalAlignment('center');
+
+  if (rowsCount <= 0) return;
+  sheet.getRange(2, reviewCol, rowsCount, 1)
+    .setDataValidation(buildEmailReviewValidationRule_())
+    .setHorizontalAlignment('center')
+    .setFontWeight('bold');
+  sheet.getRange(2, mergeCol, rowsCount, 1)
+    .clearDataValidations()
+    .setHorizontalAlignment('left')
+    .setFontWeight('normal');
 }
 
 function asegurarColumnaRevisionEmailEnSheet_(sheet) {
@@ -371,9 +543,7 @@ function asegurarColumnaRevisionEmailEnSheet_(sheet) {
   }
 
   const lastRow = sheet.getLastRow();
-  if (lastRow > 1) {
-    sheet.getRange(2, reviewCol, lastRow - 1, 1).setDataValidation(buildEmailReviewValidationRule_());
-  }
+  aplicarPoliticaColumnasRevision_(sheet, finalMap, Math.max(0, lastRow - 1));
 
   return { map: finalMap, created: created };
 }
@@ -425,6 +595,8 @@ function obtenerResultadoRevisionEmail_(record, counter, checks, webBudget) {
 
   const current = record.tokens.length ? record.tokens[0] : '';
   const best = web.bestEmail || '';
+  const dnsStatusCurrent = estadoDnsPorEmail_(current, checks);
+  const currentLooksValid = !!current && isValidEmail_(current);
 
   if (current && web.matchCurrent) {
     out.status = 'BIEN';
@@ -436,6 +608,14 @@ function obtenerResultadoRevisionEmail_(record, counter, checks, webBudget) {
     out.action = out.status === 'CAMBIADO'
       ? 'Email actualizado segun evidencia web.'
       : 'Email confirmado en web.';
+  } else if (currentLooksValid && (dnsStatusCurrent === 'MX_OK' || dnsStatusCurrent === 'A_OK')) {
+    out.status = 'BIEN';
+    out.finalEmail = current;
+    out.action = 'Email valido por sintaxis y DNS.';
+  } else if (currentLooksValid && (dnsStatusCurrent === 'BUDGET_LIMIT' || dnsStatusCurrent === 'ERROR' || dnsStatusCurrent === 'N/D')) {
+    out.status = 'BIEN';
+    out.finalEmail = current;
+    out.action = 'Email valido por sintaxis (pendiente de validacion DNS/web completa).';
   } else {
     out.status = 'MAL';
     out.finalEmail = current || '';
@@ -454,13 +634,24 @@ function obtenerResultadoRevisionEmail_(record, counter, checks, webBudget) {
         out.action = appendReason_(out.action, 'Cambio aplicado para resolver duplicado.');
       }
     } else {
-      out.status = 'MAL';
-      out.action = appendReason_(out.action, 'Email duplicado en CRM.');
+      out.action = appendReason_(out.action, 'Email duplicado en CRM (revisar manualmente).');
     }
   }
 
   if (!out.finalEmail) out.status = 'MAL';
   return out;
+}
+
+function estadoDnsPorEmail_(email, checks) {
+  const e = cleanText_(email).toLowerCase();
+  if (!e || e.indexOf('@') === -1) return 'N/D';
+  const domain = e.split('@')[1] || '';
+  if (!domain) return 'N/D';
+  const chk = checks[domain];
+  if (!chk) return 'N/D';
+  if (chk.hasMx) return 'MX_OK';
+  if (chk.hasA) return 'A_OK';
+  return chk.status || 'N/D';
 }
 
 function resumirDnsFila_(record, checks) {
