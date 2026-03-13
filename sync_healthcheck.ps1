@@ -57,6 +57,21 @@ function Resolve-ToolPath {
   return $null
 }
 
+function Test-CommandExecutable {
+  param(
+    [string]$CommandPath,
+    [string[]]$Args = @("--version")
+  )
+
+  if ([string]::IsNullOrWhiteSpace($CommandPath)) { return $false }
+  try {
+    & $CommandPath @Args *> $null
+    return ($LASTEXITCODE -eq 0)
+  } catch {
+    return $false
+  }
+}
+
 function Invoke-OrMissing {
   param(
     [string]$CommandPath,
@@ -81,18 +96,29 @@ function Resolve-ClaspCmd {
   )
 
   $localClasp = Join-Path $RepoRoot "node_modules\.bin\clasp.cmd"
-  if (Test-Path $localClasp) { return $localClasp }
+  $roamingClasp = Join-Path $env:APPDATA "npm\clasp.cmd"
 
   $winGetClasp = $null
   if ($WinGetNodeDir) {
     $winGetClasp = Join-Path $WinGetNodeDir "clasp.cmd"
   }
+  $fromPath = Resolve-ToolPath -Executable "clasp.cmd"
   $fallbacks = @(
+    $fromPath,
+    $roamingClasp,
+    $localClasp,
     (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages\OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe\node-v24.14.0-win-x64\clasp.cmd"),
     $winGetClasp
-  )
+  ) | Select-Object -Unique
 
-  return Resolve-ToolPath -Executable "clasp.cmd" -Fallbacks $fallbacks
+  foreach ($candidate in $fallbacks) {
+    if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+    if (Test-Path $candidate) {
+      return $candidate
+    }
+  }
+
+  return $null
 }
 
 function Resolve-NpxCmd {
@@ -119,7 +145,8 @@ function Invoke-ClaspInfo {
 
   if (-not [string]::IsNullOrWhiteSpace($ClaspCmd)) {
     try {
-      return (& $ClaspCmd @Args 2>$null)
+      $out = (& $ClaspCmd @Args 2>$null)
+      if ($LASTEXITCODE -eq 0) { return $out }
     } catch {
       # fallback to npx
     }
@@ -127,13 +154,21 @@ function Invoke-ClaspInfo {
 
   if (-not [string]::IsNullOrWhiteSpace($NpxCmd)) {
     try {
-      return (& $NpxCmd "--yes" "@google/clasp" @Args 2>$null)
+      $out = (& $NpxCmd "clasp" @Args 2>$null)
+      if ($LASTEXITCODE -eq 0) { return $out }
     } catch {
-      return "ERROR"
+      # continue to second attempt
+    }
+
+    try {
+      $out = (& $NpxCmd "--yes" "@google/clasp" @Args 2>$null)
+      if ($LASTEXITCODE -eq 0) { return $out }
+    } catch {
+      # no-op
     }
   }
 
-  return "MISSING"
+  return "ERROR"
 }
 
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -174,6 +209,8 @@ $lines += Out-Line "git" "$gitVer"
 $lines += Out-Line "node" "$nodeVer"
 $lines += Out-Line "npm" "$npmVer"
 $lines += Out-Line "clasp" "$claspVer"
+$lines += Out-Line "clasp_cmd" "$clasp"
+$lines += Out-Line "npx_cmd" "$npx"
 
 $branch = "UNKNOWN"
 $remote = "UNKNOWN"
@@ -231,9 +268,9 @@ $taskRaw = schtasks /Query /TN $expectedTask /FO LIST /V 2>$null
 if (-not $taskRaw) {
   $taskRaw = schtasks /Query /TN $legacyTask /FO LIST /V 2>$null
 }
-$nextRun = ($taskRaw | Select-String -Pattern 'Hora próxima ejecución').Line
-$taskState = ($taskRaw | Select-String -Pattern 'Estado de tarea programada').Line
-$lastResult = ($taskRaw | Select-String -Pattern 'Último resultado').Line
+$nextRun = ($taskRaw | Select-String -Pattern '(?i)next run|hora .*ejec').Line
+$taskState = ($taskRaw | Select-String -Pattern '(?i)estado de tarea programada|scheduled task state|status').Line
+$lastResult = ($taskRaw | Select-String -Pattern '(?i)ultimo resultado|último resultado|last result|resultado').Line
 $lines += Out-Line "task_every5_next" (($nextRun -replace '^.*?:\s*','').Trim())
 $lines += Out-Line "task_every5_state" (($taskState -replace '^.*?:\s*','').Trim())
 $lines += Out-Line "task_every5_last" (($lastResult -replace '^.*?:\s*','').Trim())
