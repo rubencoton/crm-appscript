@@ -20,3 +20,6 @@
 [2026-03-13 11:28:30] CICLO 7 - inicio
 [2026-03-13 11:28:37] CICLO 7 - OK findings=7 (C=0 H=0 M=4 L=3)
 [2026-03-13 11:28:37] CICLO 7 - espera 600 segundos
+[2026-03-13 11:38:37] CICLO 8 - inicio
+[2026-03-13 11:38:44] CICLO 8 - OK findings=7 (C=0 H=0 M=4 L=3)
+[2026-03-13 11:38:44] CICLO 8 - espera 600 segundos
