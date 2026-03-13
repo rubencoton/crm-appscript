@@ -1,0 +1,740 @@
+{
+  "meta": {
+    "timestamp": "2026-03-13T13:30:02",
+    "tool": "auditar_crm_ayudas_extremo.py"
+  },
+  "context": {
+    "spreadsheetId": "1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA",
+    "scriptId": "1bhEXY-l5HQSxu5IpAzEZPxdAPNG966R0PECg8DCNsJEX8PZER70-F2PT",
+    "scriptTitle": "CRM AYUDAS Y SUBVENCIONES - DISCOVERY TEMP",
+    "scriptParentId": "1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA",
+    "ready": true,
+    "projectDir": "C:\\Users\\elrub\\Desktop\\CARPETA CODEX\\01_PROYECTOS\\festivales-github\\crm-ayudas-subvenciones",
+    "sheetAuditMode": "xlsx_fallback"
+  },
+  "sheetOverview": {
+    "spreadsheet": {
+      "id": "1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA",
+      "title": "🚀 CRM: AYUDAS Y SUBVENCIONES",
+      "locale": "",
+      "timeZone": "",
+      "sheetCount": 6
+    },
+    "structure": [
+      {
+        "title": "CONCURSOS",
+        "sheetId": null,
+        "index": 0,
+        "hidden": false,
+        "rowsConfigured": 900,
+        "colsConfigured": 17,
+        "frozenRows": 1,
+        "frozenCols": 2,
+        "usedRows": 900,
+        "usedCols": 17,
+        "nonEmptyRows": 105,
+        "usedRange": "A1:Q900"
+      },
+      {
+        "title": "NUEVOS CONCURSOS",
+        "sheetId": null,
+        "index": 1,
+        "hidden": false,
+        "rowsConfigured": 1,
+        "colsConfigured": 1,
+        "frozenRows": 1,
+        "frozenCols": 0,
+        "usedRows": 1,
+        "usedCols": 1,
+        "nonEmptyRows": 1,
+        "usedRange": "A1:A1"
+      },
+      {
+        "title": "BANDAS",
+        "sheetId": null,
+        "index": 2,
+        "hidden": false,
+        "rowsConfigured": 18,
+        "colsConfigured": 3,
+        "frozenRows": 0,
+        "frozenCols": 0,
+        "usedRows": 18,
+        "usedCols": 3,
+        "nonEmptyRows": 18,
+        "usedRange": "A1:C18"
+      },
+      {
+        "title": "CORREO",
+        "sheetId": null,
+        "index": 3,
+        "hidden": false,
+        "rowsConfigured": 7,
+        "colsConfigured": 8,
+        "frozenRows": 0,
+        "frozenCols": 0,
+        "usedRows": 7,
+        "usedCols": 8,
+        "nonEmptyRows": 4,
+        "usedRange": "A1:H7"
+      },
+      {
+        "title": "Hoja 10",
+        "sheetId": null,
+        "index": 4,
+        "hidden": false,
+        "rowsConfigured": 19,
+        "colsConfigured": 3,
+        "frozenRows": 0,
+        "frozenCols": 0,
+        "usedRows": 19,
+        "usedCols": 3,
+        "nonEmptyRows": 17,
+        "usedRange": "B3:C19"
+      },
+      {
+        "title": "Hoja 11",
+        "sheetId": null,
+        "index": 5,
+        "hidden": false,
+        "rowsConfigured": 1,
+        "colsConfigured": 17,
+        "frozenRows": 0,
+        "frozenCols": 0,
+        "usedRows": 1,
+        "usedCols": 17,
+        "nonEmptyRows": 1,
+        "usedRange": "A1:Q1"
+      }
+    ],
+    "sheetFeatures": {
+      "CONCURSOS": {
+        "merges": 0,
+        "basicFilter": true,
+        "filterViews": 0,
+        "conditionalRules": 1,
+        "protectedRanges": 0
+      },
+      "NUEVOS CONCURSOS": {
+        "merges": 0,
+        "basicFilter": false,
+        "filterViews": 0,
+        "conditionalRules": 0,
+        "protectedRanges": 0
+      },
+      "BANDAS": {
+        "merges": 0,
+        "basicFilter": true,
+        "filterViews": 0,
+        "conditionalRules": 0,
+        "protectedRanges": 0
+      },
+      "CORREO": {
+        "merges": 2,
+        "basicFilter": false,
+        "filterViews": 0,
+        "conditionalRules": 0,
+        "protectedRanges": 0
+      },
+      "Hoja 10": {
+        "merges": 0,
+        "basicFilter": false,
+        "filterViews": 0,
+        "conditionalRules": 0,
+        "protectedRanges": 0
+      },
+      "Hoja 11": {
+        "merges": 0,
+        "basicFilter": false,
+        "filterViews": 0,
+        "conditionalRules": 1,
+        "protectedRanges": 0
+      }
+    },
+    "formatsSummary": {
+      "CONCURSOS": {
+        "cellsScanned": 15300,
+        "validations": 1798,
+        "errorsInCells": 0,
+        "validationsByCol": {
+          "2": 899,
+          "3": 899
+        }
+      },
+      "NUEVOS CONCURSOS": {
+        "cellsScanned": 1,
+        "validations": 0,
+        "errorsInCells": 0,
+        "validationsByCol": {}
+      },
+      "BANDAS": {
+        "cellsScanned": 54,
+        "validations": 0,
+        "errorsInCells": 0,
+        "validationsByCol": {}
+      },
+      "CORREO": {
+        "cellsScanned": 56,
+        "validations": 0,
+        "errorsInCells": 0,
+        "validationsByCol": {}
+      },
+      "Hoja 10": {
+        "cellsScanned": 57,
+        "validations": 0,
+        "errorsInCells": 0,
+        "validationsByCol": {}
+      },
+      "Hoja 11": {
+        "cellsScanned": 17,
+        "validations": 0,
+        "errorsInCells": 0,
+        "validationsByCol": {}
+      }
+    },
+    "valuesPreview": {
+      "CONCURSOS": {
+        "usedRange": "A1:Q900",
+        "usedRows": 900,
+        "usedCols": 17,
+        "header": [
+          "NOMBRE CONCURSO",
+          "ESTADO",
+          "INSCRIPCIÓN",
+          "FECHA LÍMITE INSCRIPCION",
+          "FECHAS DESARROLLO",
+          "TIPO PREMIO",
+          "DETALLE PREMIO",
+          "DIRIGIDO A",
+          "MUNICIPIO",
+          "PROVINCIA",
+          "PAÍS",
+          "LINK BASES/FORMULARIO",
+          "WEB / BASES / FORMULARIO AÑO ANTERIOR",
+          "WEB / BASES /  FORMULARIO 2",
+          "EMAIL",
+          "TELÉFONO",
+          "NOTAS / OBSERVACIONES (LEER)"
+        ],
+        "sampleRows": [
+          [
+            "Trebufestival",
+            "REVISADO IA",
+            "ABIERTA",
+            "ESTIMADO: 27/03/2026",
+            "ESTIMADO: Abril",
+            "VARIOS",
+            "Premios en metalico (aprox. 1.300 euros / 800 euros / 600 euros segun puesto) mas actuacion.",
+            "Musicos y bandas emergentes",
+            "Trebujena",
+            "Cadiz",
+            "Espana",
+            "No publicado",
+            "No publicado",
+            "No publicado",
+            "cultura@trebujena.es",
+            "956 39 50 28",
+            "Festival de musica callejera y bandas emergentes. Se recomienda preparar un repertorio adaptable a escenarios al aire libre."
+          ],
+          [
+            "Concurso Rock Bellavista",
+            "REVISAR",
+            "SIN PUBLICAR",
+            "ESTIMADO: 14/04/2026",
+            "ESTIMADO: Septiembre",
+            "VARIOS",
+            "600 euros al grupo ganador, 200 euros a los dos finalistas restantes y alojamiento de una noche para los finalistas.",
+            "Bandas que elaboren temas propios dentro del espectro Rock-Pop. Mayores de 18 anos o con autorizacion.",
+            "Sevilla",
+            "Sevilla",
+            "Espana",
+            "https://cymbel.es/bases/",
+            "https://cymbel.es/bases/",
+            "No publicado",
+            "acmbellavista@gmail.com",
+            "No publicado",
+            "Organizado por Asociacion Cultura y Musica Bellavista (CYMBEL). Se requiere enviar 2 temas propios en MP3."
+          ],
+          [
+            "Pasión rock",
+            "REVISAR",
+            "ABIERTA",
+            "ESTIMADO: 31/05/2026",
+            "ESTIMADO: Septiem",
+            "VARIOS",
+            "1.200 € para el primer puesto, 800 € para el segundo y 500 € para el tercero, además de una grabación profesional de su actuación en directo.",
+            "Bandas emergentes",
+            "La Rambla",
+            "Córdoba",
+            "España",
+            "No publicado",
+            "https://rockandchange.es/blog/xxvi-pasion-rock-2025,238/",
+            "No publicado",
+            "concursodeacero@gmail.com",
+            "No publicado",
+            "El concurso consta de tres fases: selección por jurado mediante maquetas, votación del público a través de Facebook y una final en directo con las tres bandas seleccionadas."
+          ],
+          [
+            "Academia de la Música de España",
+            "REVISAR",
+            "SIN PUBLICAR",
+            "ESTIMADO: 04/02/2027",
+            "ESTIMADO: Mayo",
+            "VARIOS",
+            "Galardón oficial (Premios de la Academia de la Música de España), reconocimiento y visibilidad.",
+            "Artistas, compositores y profesionales de la industria musical española",
+            "Madrid",
+            "Madrid",
+            "España",
+            "No publicado",
+            "No publicado",
+            "No publicado",
+            "inscripciones.premios@academusica.es, info@academusica.es",
+            "+34 616811639",
+            "Fechas estimadas en base al histórico. Pendiente de publicación de bases oficiales para la edición 2027."
+          ],
+          [
+            "Ateneo La Laguna (compositores)",
+            "REVISAR",
+            "SIN PUBLICAR",
+            "ESTIMADO: 30/06/2026",
+            "ESTIMADO: Julio",
+            "VARIOS",
+            "1.000 euros y el estreno de la obra en concierto",
+            "Compositores",
+            "San Cristobal de La Laguna",
+            "Santa Cruz de Tenerife",
+            "Espana",
+            "No publicado",
+            "No publicado",
+            "No publicado",
+            "info@ateneodelalaguna.com",
+            "No hay",
+            "Fechas estimadas en base al historico. Pendiente de publicacion de bases oficiales para 2026."
+          ]
+        ]
+      },
+      "NUEVOS CONCURSOS": {
+        "usedRange": "A1:A1",
+        "usedRows": 1,
+        "usedCols": 1,
+        "header": [
+          "LINK PARA ANALIZAR DE CONCURSO"
+        ],
+        "sampleRows": []
+      },
+      "BANDAS": {
+        "usedRange": "A1:C18",
+        "usedRows": 18,
+        "usedCols": 3,
+        "header": [
+          "BANDA",
+          "EMAIL",
+          "FECHA ULTIMO ENVIO"
+        ],
+        "sampleRows": [
+          [
+            "LINZE",
+            "lydiaarandafdez@gmail.com",
+            "Enviado: 06/03/2026 19:22"
+          ],
+          [
+            "GINEL",
+            "lydiaarandafdez@gmail.com",
+            "Enviado: 06/03/2026 19:22"
+          ],
+          [
+            "Alamo 51",
+            "lydiaarandafdez@gmail.com",
+            "Enviado: 06/03/2026 19:22"
+          ],
+          [
+            "Rafa Romera",
+            "lydiaarandafdez@gmail.com",
+            "Enviado: 06/03/2026 19:22"
+          ],
+          [
+            "Dilenna",
+            "lydiaarandafdez@gmail.com",
+            "Enviado: 06/03/2026 19:22"
+          ]
+        ]
+      },
+      "CORREO": {
+        "usedRange": "A1:H7",
+        "usedRows": 7,
+        "usedCols": 8,
+        "header": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "sampleRows": [
+          [
+            null,
+            "ASUNTO",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            "Nuevas Oportunidades y Concursos Musicales Abiertos - Artes Búho",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            "MENSAJE PERSONALIZADO",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            "¡Esperamos que estéis genial! Os escribimos para enviaros el último boletín actualizado con los concursos, festivales y subvenciones que encajan con vuestro perfil y cuyo plazo de inscripción está actualmente abierto. Echadles un vistazo rápido a los detalles a continuación, ¡hay oportunidades muy interesantes para no dejar pasar!",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "Hoja 10": {
+        "usedRange": "B3:C19",
+        "usedRows": 19,
+        "usedCols": 3,
+        "header": [
+          null,
+          null,
+          null
+        ],
+        "sampleRows": [
+          [
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            "LINZE",
+            "linzemusicband@gmail.com"
+          ],
+          [
+            null,
+            "GINEL",
+            "info.ginel@gmail.com"
+          ],
+          [
+            null,
+            "Alamo 51",
+            "alamo51fuego@gmail.com"
+          ],
+          [
+            null,
+            "Rafa Romera",
+            "rafaelito_96@hotmail.com"
+          ]
+        ]
+      },
+      "Hoja 11": {
+        "usedRange": "A1:Q1",
+        "usedRows": 1,
+        "usedCols": 17,
+        "header": [
+          "NOMBRE CONCURSO",
+          "ESTADO",
+          "INSCRIPCIÓN",
+          "FECHA LÍMITE INSCRIPCION",
+          "FECHAS DESARROLLO",
+          "TIPO PREMIO",
+          "DETALLE PREMIO",
+          "DIRIGIDO A",
+          "MUNICIPIO",
+          "PROVINCIA",
+          "PAÍS",
+          "LINK BASES/FORMULARIO",
+          "WEB / BASES / FORMULARIO AÑO ANTERIOR",
+          "WEB / BASES /  FORMULARIO 2",
+          "EMAIL",
+          "TELÉFONO",
+          "NOTAS / OBSERVACIONES (LEER)"
+        ],
+        "sampleRows": []
+      }
+    },
+    "fallback": {
+      "mode": "xlsx_export",
+      "path": "C:\\Users\\elrub\\AppData\\Local\\Temp\\crm_ayudas_audit_1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA.xlsx"
+    }
+  },
+  "codeOverview": {
+    "stats": {
+      "Code.js": {
+        "lines": 2662,
+        "bytes": 99512,
+        "sha256": "173025f7843f56451d26d3cd25c7f72556d1efc4b75add9fbca3720a693f7b02",
+        "functions": 112,
+        "mojibakeTokens": 0
+      },
+      "DecisionInstantanea.js": {
+        "lines": 650,
+        "bytes": 23413,
+        "sha256": "288f069285c59e8c925bfb964d7aa9290f8a88a8e8a2cd1c2652fc63c1811450",
+        "functions": 26,
+        "mojibakeTokens": 0
+      }
+    },
+    "syntax": {
+      "Code.js": {
+        "ok": true,
+        "stderr": "",
+        "stdout": ""
+      },
+      "DecisionInstantanea.js": {
+        "ok": true,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    "remoteFiles": [
+      "Code.js",
+      "CodexAudit.js",
+      "CodexCleanup.js",
+      "DecisionInstantanea.js",
+      "appsscript.json"
+    ]
+  },
+  "findings": [
+    {
+      "severity": "MEDIUM",
+      "area": "SHEET_PERFORMANCE",
+      "title": "Rango usado inflado",
+      "detail": "CONCURSOS: 900 filas usadas vs 105 con datos",
+      "evidence": {
+        "sheet": "CONCURSOS",
+        "usedRows": 900,
+        "nonEmptyRows": 105
+      },
+      "recommendation": "Limpiar filas sobrantes para reducir peso y riesgo de lentitud."
+    },
+    {
+      "severity": "LOW",
+      "area": "SHEET_HYGIENE",
+      "title": "Pestaña residual detectada",
+      "detail": "Hoja 11 parece una pestaña temporal con poco contenido.",
+      "evidence": {
+        "sheet": "Hoja 11",
+        "nonEmptyRows": 1
+      },
+      "recommendation": "Archivar o eliminar pestañas residuales para reducir ruido operativo."
+    },
+    {
+      "severity": "MEDIUM",
+      "area": "SHEET_DATA",
+      "title": "Email sospechoso",
+      "detail": "18 filas",
+      "evidence": {
+        "examples": [
+          {
+            "row": 5,
+            "value": "inscripciones.premios@academusica.es, info@academusica.es"
+          },
+          {
+            "row": 15,
+            "value": "info@universifest.es / pablo@universifest.es"
+          },
+          {
+            "row": 23,
+            "value": "no hay"
+          },
+          {
+            "row": 28,
+            "value": "no hay"
+          },
+          {
+            "row": 35,
+            "value": "no hay (sin publicar)"
+          },
+          {
+            "row": 38,
+            "value": "no hay"
+          },
+          {
+            "row": 44,
+            "value": "no hay"
+          },
+          {
+            "row": 45,
+            "value": "no hay"
+          },
+          {
+            "row": 46,
+            "value": "no hay"
+          },
+          {
+            "row": 56,
+            "value": "no hay"
+          },
+          {
+            "row": 60,
+            "value": "no hay"
+          },
+          {
+            "row": 61,
+            "value": "no hay"
+          },
+          {
+            "row": 63,
+            "value": "no especificado"
+          },
+          {
+            "row": 65,
+            "value": "no hay"
+          },
+          {
+            "row": 67,
+            "value": "info@sonorama-aranda.com, veronica@planetasonoro.es"
+          }
+        ]
+      },
+      "recommendation": "Revisar formato email."
+    },
+    {
+      "severity": "MEDIUM",
+      "area": "SHEET_DATA",
+      "title": "Email sin dato real",
+      "detail": "13 filas con placeholders en EMAIL",
+      "evidence": {
+        "examples": [
+          {
+            "row": 23,
+            "value": "no hay"
+          },
+          {
+            "row": 28,
+            "value": "no hay"
+          },
+          {
+            "row": 38,
+            "value": "no hay"
+          },
+          {
+            "row": 44,
+            "value": "no hay"
+          },
+          {
+            "row": 45,
+            "value": "no hay"
+          },
+          {
+            "row": 46,
+            "value": "no hay"
+          },
+          {
+            "row": 56,
+            "value": "no hay"
+          },
+          {
+            "row": 60,
+            "value": "no hay"
+          },
+          {
+            "row": 61,
+            "value": "no hay"
+          },
+          {
+            "row": 63,
+            "value": "no especificado"
+          },
+          {
+            "row": 65,
+            "value": "no hay"
+          },
+          {
+            "row": 85,
+            "value": "no hay"
+          },
+          {
+            "row": 91,
+            "value": "no hay"
+          }
+        ]
+      },
+      "recommendation": "Diferenciar claramente vacio real vs valor de negocio utilizable."
+    },
+    {
+      "severity": "MEDIUM",
+      "area": "SHEET_DATA",
+      "title": "Multiples emails en una celda",
+      "detail": "4 filas con emails concatenados",
+      "evidence": {
+        "examples": [
+          {
+            "row": 5,
+            "value": "inscripciones.premios@academusica.es, info@academusica.es"
+          },
+          {
+            "row": 15,
+            "value": "info@universifest.es / pablo@universifest.es"
+          },
+          {
+            "row": 67,
+            "value": "info@sonorama-aranda.com, veronica@planetasonoro.es"
+          },
+          {
+            "row": 77,
+            "value": "jmarganzuela@madrid.es / npartcarganzuela@madrid.es"
+          }
+        ]
+      },
+      "recommendation": "Separar en columnas o usar delimitador estandar para automatizacion de envios."
+    },
+    {
+      "severity": "LOW",
+      "area": "SHEET_PROTECTION",
+      "title": "Sin protecciones",
+      "detail": "No hay rangos protegidos",
+      "evidence": {
+        "totalProtectedRanges": 0
+      },
+      "recommendation": "Proteger celdas críticas."
+    },
+    {
+      "severity": "LOW",
+      "area": "SHEET_AUDIT_MODE",
+      "title": "Auditoría en modo fallback XLSX",
+      "detail": "Google Sheets API no disponible; se usó exportación XLSX por Drive API.",
+      "evidence": {
+        "error": "HTTP 403 https://sheets.googleapis.com/v4/spreadsheets/1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA?includeGridData=false&fields=spreadsheetId,properties(title,locale,timeZone),sheets(properties(sheetId,title,index,hidden,gridProperties(rowCount,columnCount,frozenRowCount,frozenColumnCount)),merges,basicFilter,filterViews,conditionalFormats,protectedRanges) :: {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Google Sheets API has not been used in project 1072944905499 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=1072944905499 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.\",\n    \"status\": \"PERMISSION_DENIED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.ErrorInfo\",\n        \"reason\": \"SERVICE_DISABLED\",\n        \"domain\": \"googleapis.com\",\n        \"metadata\": {\n          \"activationUrl\": \"https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=1072944905499\",\n          \"service\": \"sheets.googleapis.com\",\n          \"containerInfo\": \"1072944905499\",\n          \"consumer\": "
+      },
+      "recommendation": "Si quieres inspección con metadato nativo completo, habilitar Sheets API en el proyecto OAuth."
+    }
+  ]
+}
