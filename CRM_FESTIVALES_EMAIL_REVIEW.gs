@@ -4,6 +4,11 @@ function auditarEmailsCRMFestivales() {
   SpreadsheetApp.getUi().alert(summary);
 }
 
+function botonAuditarContactosWebCRMFestivales() {
+  const summary = ejecutarAuditoriaEmailsFestivales_({ source: 'manual_button', showUi: true, forceRun: true });
+  SpreadsheetApp.getUi().alert(summary);
+}
+
 function auditarEmailsAutomaticaCRMFestivales_() {
   try {
     ejecutarAuditoriaEmailsFestivales_({ source: 'trigger', showUi: false, forceRun: true });
@@ -13,20 +18,13 @@ function auditarEmailsAutomaticaCRMFestivales_() {
 }
 
 function auditarEmailsAlAbrirCRMFestivales_() {
-  try {
-    if (!debeEjecutarseRevisionAlAbrir_()) return;
-    ejecutarAuditoriaEmailsFestivales_({ source: 'open', showUi: false, forceRun: false });
-  } catch (err) {
-    Logger.log('auditarEmailsAlAbrirCRMFestivales_ ERROR: ' + (err && err.message ? err.message : err));
-  }
+  // Desactivado por requerimiento: auditoria de contactos solo por boton manual.
+  return;
 }
 
 function ejecutarAuditoriaAlAbrirSiCorrespondeCRMFestivales_() {
-  try {
-    auditarEmailsAlAbrirCRMFestivales_();
-  } catch (err) {
-    Logger.log('ejecutarAuditoriaAlAbrirSiCorrespondeCRMFestivales_ ERROR: ' + (err && err.message ? err.message : err));
-  }
+  // Desactivado por requerimiento: auditoria de contactos solo por boton manual.
+  return;
 }
 
 function debeEjecutarseRevisionAlAbrir_() {
@@ -102,16 +100,25 @@ function instalarTriggerRevisionEmailsCRMFestivales() {
 }
 
 function limpiarTriggerRevisionEmailsCRMFestivales() {
+  const deleted = desactivarTriggersAutoRevisionEmailsSilencioso_();
+  SpreadsheetApp.getUi().alert('Triggers de revision emails eliminados: ' + deleted);
+}
+
+function desactivarTriggersAutoRevisionEmailsSilencioso_() {
   const existing = ScriptApp.getProjectTriggers();
   let deleted = 0;
   for (let i = 0; i < existing.length; i++) {
     const fn = existing[i].getHandlerFunction();
     if (fn === FEST_EMAIL_TRIGGER_HANDLER || fn === FEST_EMAIL_OPEN_TRIGGER_HANDLER) {
-      ScriptApp.deleteTrigger(existing[i]);
-      deleted++;
+      try {
+        ScriptApp.deleteTrigger(existing[i]);
+        deleted++;
+      } catch (err) {
+        // no-op
+      }
     }
   }
-  SpreadsheetApp.getUi().alert('Triggers de revision emails eliminados: ' + deleted);
+  return deleted;
 }
 
 function ejecutarAuditoriaEmailsFestivales_(opts) {

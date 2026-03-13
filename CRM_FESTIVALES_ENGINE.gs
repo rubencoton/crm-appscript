@@ -106,9 +106,14 @@ function getFestGeminiApiKey_() {
 function onOpen(e) {
   crearMenuCRMFestivales_();
   try {
-    ejecutarAuditoriaAlAbrirSiCorrespondeCRMFestivales_();
+    aplicarAjustesVisualesAlAbrirCRMFestivales_();
   } catch (err) {
-    Logger.log('onOpen auto email audit skip: ' + (err && err.message ? err.message : err));
+    Logger.log('onOpen visual refresh skip: ' + (err && err.message ? err.message : err));
+  }
+  try {
+    desactivarTriggersAutoRevisionEmailsSilencioso_();
+  } catch (err) {
+    Logger.log('onOpen auto-trigger cleanup skip: ' + (err && err.message ? err.message : err));
   }
 }
 
@@ -124,7 +129,7 @@ function crearMenuCRMFestivales_() {
     .addItem('Solo armonizar diseno visual (seguro)', 'menuAplicarDisenoCRMFestivales')
     .addItem('Depurar contactos local (seguro)', 'menuDepurarContactosCRMFestivales')
     .addItem('Depurar contactos con Gemini (seguro)', 'menuDepurarContactosGeminiCRMFestivales')
-    .addItem('Auditar emails + duplicados (seguro)', 'menuAuditarEmailsCRMFestivales')
+    .addItem('BOTON | Auditar contactos web (bloquea + progreso)', 'botonAuditarContactosWebCRMFestivales')
     .addItem('Auditar estructura (seguro)', 'menuAuditarEstructuraCRMFestivales')
     .addItem('Auditar genero + tamano S/L/XL (seguro)', 'menuAuditarClasificacionCRMFestivales')
     .addItem('Modo auditor extremo (stress test)', 'menuAuditorExtremoCRMFestivales')
@@ -132,16 +137,36 @@ function crearMenuCRMFestivales_() {
     .addSeparator()
     .addItem('Instalar trigger de menu (seguro)', 'menuInstalarTriggerCRMFestivales')
     .addItem('Limpiar triggers de menu (seguro)', 'menuLimpiarTriggersCRMFestivales')
-    .addItem('Instalar trigger revision emails (6h)', 'menuInstalarTriggerRevisionEmailsCRMFestivales')
-    .addItem('Limpiar trigger revision emails', 'menuLimpiarTriggerRevisionEmailsCRMFestivales')
+    .addItem('Limpiar auto-auditoria de contactos', 'menuLimpiarTriggerRevisionEmailsCRMFestivales')
     .addSeparator()
     .addItem('Guia de arquitectura (seguro)', 'menuGuiaArquitecturaCRMFestivales')
     .addToUi();
+}
 
+function aplicarAjustesVisualesAlAbrirCRMFestivales_() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(500)) return;
   try {
-    asegurarTriggersAutoRevisionEmailsCRMFestivales_();
-  } catch (err) {
-    Logger.log('No se pudieron autoasegurar triggers de revision email: ' + (err && err.message ? err.message : err));
+    const props = PropertiesService.getScriptProperties();
+    const now = Date.now();
+    const cooldownMs = 90 * 1000;
+    const last = Number(props.getProperty('FEST_LAST_VISUAL_OPEN_TS') || '0');
+    if (last && now - last < cooldownMs) return;
+    props.setProperty('FEST_LAST_VISUAL_OPEN_TS', String(now));
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheets = getFestivalSheets_(ss);
+    for (let i = 0; i < sheets.length; i++) {
+      const sh = sheets[i];
+      const data = sh.getDataRange().getValues();
+      if (!isHeaderInCanonicalOrder_(data.length ? data[0] : [])) {
+        const rows = normalizeSheetRows_(data, sh.getName());
+        rewriteSheet_(sh, rows);
+      }
+      applyVisualDesignToSheet_(sh);
+    }
+  } finally {
+    lock.releaseLock();
   }
 }
 
