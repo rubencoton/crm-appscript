@@ -368,6 +368,191 @@ def audit_sheet(token: str, spreadsheet_id: str) -> tuple[dict, list[dict]]:
     return overview, findings
 
 
+def audit_sheet_xlsx_fallback(token: str, spreadsheet_id: str) -> tuple[dict, list[dict]]:
+    from openpyxl import load_workbook
+    from openpyxl.utils.cell import range_boundaries
+
+    findings: list[dict[str, Any]] = []
+    tmp = os.path.join(tempfile.gettempdir(), f"crm_ayudas_audit_{spreadsheet_id}.xlsx")
+    export_sheet_xlsx(token, spreadsheet_id, tmp)
+    wb = load_workbook(tmp, data_only=False)
+
+    try:
+        dfile = http_json(
+            "GET",
+            f"https://www.googleapis.com/drive/v3/files/{spreadsheet_id}?fields=id,name,mimeType,modifiedTime",
+            token,
+        )
+        title = dfile.get("name", "")
+    except Exception:
+        title = ""
+
+    structure, feats, fmt, vprev = [], {}, {}, {}
+    concursos_rows: list[list[Any]] = []
+
+    for ws in wb.worksheets:
+        dim = ws.calculate_dimension()
+        used_rows = int(ws.max_row or 0)
+        used_cols = int(ws.max_column or 0)
+        structure.append(
+            {
+                "title": ws.title,
+                "sheetId": None,
+                "index": wb.sheetnames.index(ws.title),
+                "hidden": ws.sheet_state != "visible",
+                "rowsConfigured": used_rows,
+                "colsConfigured": used_cols,
+                "frozenRows": ws.freeze_panes.row - 1 if ws.freeze_panes else 0,
+                "frozenCols": ws.freeze_panes.column - 1 if ws.freeze_panes else 0,
+                "usedRows": used_rows,
+                "usedCols": used_cols,
+                "usedRange": dim,
+            }
+        )
+
+        merges = len(list(ws.merged_cells.ranges))
+        cond_rules = len(ws.conditional_formatting)
+        has_filter = bool(ws.auto_filter and ws.auto_filter.ref)
+        prot = 1 if ws.protection and ws.protection.sheet else 0
+
+        feats[ws.title] = {
+            "merges": merges,
+            "basicFilter": has_filter,
+            "filterViews": 0,
+            "conditionalRules": cond_rules,
+            "protectedRanges": prot,
+        }
+
+        val_count = 0
+        val_by_col = collections.Counter()
+        if ws.data_validations and ws.data_validations.dataValidation:
+            for dv in ws.data_validations.dataValidation:
+                for r in str(dv.sqref).split():
+                    try:
+                        min_col, min_row, max_col, max_row = range_boundaries(r)
+                    except Exception:
+                        continue
+                    cells = max(1, (max_col - min_col + 1) * (max_row - min_row + 1))
+                    val_count += cells
+                    for c in range(min_col, max_col + 1):
+                        val_by_col[c] += max(1, max_row - min_row + 1)
+
+        errs = 0
+        scanned = 0
+        for row in ws.iter_rows(min_row=1, max_row=used_rows, min_col=1, max_col=used_cols):
+            for cell in row:
+                scanned += 1
+                if cell.data_type == "e":
+                    errs += 1
+
+        fmt[ws.title] = {
+            "cellsScanned": scanned,
+            "validations": int(val_count),
+            "errorsInCells": int(errs),
+            "validationsByCol": {str(k): int(v) for k, v in val_by_col.items()},
+        }
+
+        header = [ws.cell(row=1, column=c).value for c in range(1, min(used_cols, 25) + 1)]
+        sample = []
+        for r in range(2, min(used_rows, 6) + 1):
+            sample.append([ws.cell(row=r, column=c).value for c in range(1, min(used_cols, 25) + 1)])
+        vprev[ws.title] = {"usedRange": dim, "usedRows": used_rows, "usedCols": used_cols, "header": header, "sampleRows": sample}
+
+        if ws.title == "CONCURSOS":
+            for r in ws.iter_rows(min_row=1, max_row=used_rows, min_col=1, max_col=used_cols, values_only=True):
+                concursos_rows.append(list(r))
+
+    # mismos checks de calidad de datos sobre CONCURSOS
+    if not concursos_rows:
+        findings.append({"severity": "CRITICAL", "area": "SHEET_DATA", "title": "CONCURSOS vacío/no legible",
+                         "detail": "No hay matriz de datos disponible", "evidence": {}, "recommendation": "Revisar pestaña/permisos."})
+    else:
+        h = [norm(str(x) if x is not None else "") for x in concursos_rows[0]]
+        rows = concursos_rows[1:]
+        hm = {h[i]: i for i in range(len(h))}
+        exp = ["NOMBRE CONCURSO", "ESTADO", "INSCRIPCION", "FECHA LIMITE INSCRIPCION", "EMAIL"]
+        miss = [x for x in exp if x not in hm]
+        if miss:
+            findings.append({"severity": "HIGH", "area": "SHEET_STRUCTURE", "title": "Cabeceras ausentes",
+                             "detail": "Faltan columnas clave", "evidence": {"missing": miss}, "recommendation": "Alinear cabeceras."})
+        i_nom = hm.get("NOMBRE CONCURSO", 0); i_est = hm.get("ESTADO", 1); i_ins = hm.get("INSCRIPCION", 2)
+        i_fli = hm.get("FECHA LIMITE INSCRIPCION", 3); i_ema = hm.get("EMAIL", 14)
+        i_l1 = hm.get("LINK BASES/FORMULARIO", 11); i_l2 = hm.get("WEB / BASES / FORMULARIO ANO ANTERIOR", 12); i_l3 = hm.get("WEB / BASES / FORMULARIO 2 ANOS ANTERIOR", 13)
+        ok_est = {"REVISAR", "REVISADO IA", "REVISADO HUMANO", "NUEVO DESCUBRIMIENTO"}
+        ok_ins = {"ABIERTA", "CERRADA", "SIN PUBLICAR"}
+        bad_est = []; bad_ins = []; bad_mail = []; bad_link = []; bad_name = []; bad_date = []
+        dups = collections.defaultdict(list)
+        for rn, row in enumerate(rows, start=2):
+            v = lambda i: str(row[i]).strip() if i < len(row) and row[i] is not None else ""
+            nom = v(i_nom); est = norm(v(i_est)); ins = norm(v(i_ins)); fl = v(i_fli); em = v(i_ema).lower()
+            if not nom and any((str(x).strip() if x is not None else "") for x in row):
+                bad_name.append(rn)
+            if nom:
+                dups[norm(nom)].append(rn)
+            if est and est not in ok_est:
+                bad_est.append({"row": rn, "value": est})
+            if ins and ins not in ok_ins:
+                bad_ins.append({"row": rn, "value": ins})
+            if em and "no publicado" not in em and "no localizado" not in em and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", em):
+                bad_mail.append({"row": rn, "value": em})
+            for lk in [v(i_l1), v(i_l2), v(i_l3)]:
+                if lk and "NO PUBLICADO" not in norm(lk) and "NO LOCALIZADO" not in norm(lk) and not re.match(r"^https?://", lk, re.I):
+                    bad_link.append({"row": rn, "value": lk})
+            if fl and "ESTIMADO" not in norm(fl):
+                if not (re.match(r"^\d+(\.\d+)?$", fl) or re.search(r"\d{1,2}/\d{1,2}/\d{2,4}", fl) or re.search(r"\d{4}-\d{1,2}-\d{1,2}", fl)):
+                    bad_date.append({"row": rn, "value": fl})
+        dup_groups = [{"nameNorm": k, "rows": v} for k, v in dups.items() if k and len(v) > 1]
+        if bad_est:
+            findings.append({"severity": "HIGH", "area": "SHEET_DATA", "title": "ESTADO inválido",
+                             "detail": f"{len(bad_est)} filas", "evidence": {"examples": bad_est[:15]}, "recommendation": "Corregir catálogo ESTADO."})
+        if bad_ins:
+            findings.append({"severity": "HIGH", "area": "SHEET_DATA", "title": "INSCRIPCIÓN inválida",
+                             "detail": f"{len(bad_ins)} filas", "evidence": {"examples": bad_ins[:15]}, "recommendation": "Corregir catálogo INSCRIPCIÓN."})
+        if bad_mail:
+            findings.append({"severity": "MEDIUM", "area": "SHEET_DATA", "title": "Email sospechoso",
+                             "detail": f"{len(bad_mail)} filas", "evidence": {"examples": bad_mail[:15]}, "recommendation": "Revisar formato email."})
+        if bad_link:
+            findings.append({"severity": "MEDIUM", "area": "SHEET_DATA", "title": "Links inválidos",
+                             "detail": f"{len(bad_link)} filas", "evidence": {"examples": bad_link[:15]}, "recommendation": "Añadir https://."})
+        if bad_name:
+            findings.append({"severity": "MEDIUM", "area": "SHEET_DATA", "title": "Filas sin nombre",
+                             "detail": f"{len(bad_name)} filas", "evidence": {"rows": bad_name[:30]}, "recommendation": "Completar o limpiar filas."})
+        if dup_groups:
+            findings.append({"severity": "MEDIUM", "area": "SHEET_DATA", "title": "Posibles duplicados",
+                             "detail": f"{len(dup_groups)} grupos", "evidence": {"examples": dup_groups[:15]}, "recommendation": "Depurar duplicados."})
+        if bad_date:
+            findings.append({"severity": "MEDIUM", "area": "SHEET_DATA", "title": "Fecha límite no parseable",
+                             "detail": f"{len(bad_date)} filas", "evidence": {"examples": bad_date[:15]}, "recommendation": "Estandarizar fecha."})
+        dat_rows = max(vprev.get("CONCURSOS", {}).get("usedRows", 0) - 1, 0)
+        vbc = {int(k): int(v) for k, v in fmt.get("CONCURSOS", {}).get("validationsByCol", {}).items()}
+        weak = []
+        for cname, idx in [("ESTADO", i_est + 1), ("INSCRIPCION", i_ins + 1)]:
+            if dat_rows > 0 and vbc.get(idx, 0) < int(dat_rows * 0.8):
+                weak.append({"column": cname, "index": idx, "validatedCells": vbc.get(idx, 0), "dataRows": dat_rows})
+        if weak:
+            findings.append({"severity": "HIGH", "area": "SHEET_VALIDATIONS", "title": "Validaciones incompletas",
+                             "detail": "Columnas clave sin validación consistente", "evidence": {"columns": weak}, "recommendation": "Aplicar dropdown a toda la matriz."})
+
+    err_sheets = [{"sheet": n, "errorsInCells": x["errorsInCells"]} for n, x in fmt.items() if int(x.get("errorsInCells", 0)) > 0]
+    if err_sheets:
+        findings.append({"severity": "HIGH", "area": "SHEET_FORMULAS", "title": "Errores de fórmula/valor",
+                         "detail": "Hay celdas con error efectivo", "evidence": {"sheets": err_sheets}, "recommendation": "Corregir celdas con #ERROR/#REF."})
+    total_prot = sum(feats[n]["protectedRanges"] for n in feats)
+    if total_prot == 0:
+        findings.append({"severity": "LOW", "area": "SHEET_PROTECTION", "title": "Sin protecciones",
+                         "detail": "No hay rangos protegidos", "evidence": {"totalProtectedRanges": 0}, "recommendation": "Proteger celdas críticas."})
+
+    overview = {
+        "spreadsheet": {"id": spreadsheet_id, "title": title, "locale": "", "timeZone": "", "sheetCount": len(wb.worksheets)},
+        "structure": structure,
+        "sheetFeatures": feats,
+        "formatsSummary": fmt,
+        "valuesPreview": vprev,
+        "fallback": {"mode": "xlsx_export", "path": tmp},
+    }
+    return overview, findings
+
+
 def render_md(rep: dict) -> str:
     c = collections.Counter([f["severity"] for f in rep["findings"]])
     lines = [
@@ -377,6 +562,7 @@ def render_md(rep: dict) -> str:
         f"- Spreadsheet: `{rep['context']['spreadsheetId']}`",
         f"- ScriptId: `{rep['context']['scriptId']}`",
         f"- READY: `{rep['context']['ready']}`",
+        f"- Modo auditoría hoja: `{rep['context'].get('sheetAuditMode','')}`",
         "",
         "## Resumen",
         "",
@@ -424,11 +610,24 @@ def main() -> int:
     token = refresh_token(args.clasprc)
     sm = script_project(token, script_id)
     ready = sm.get("parentId") == args.spreadsheet_id
-    sh_over, sh_find = audit_sheet(token, args.spreadsheet_id)
+    sheet_mode = "sheets_api"
+    try:
+        sh_over, sh_find = audit_sheet(token, args.spreadsheet_id)
+    except Exception as e:
+        sheet_mode = "xlsx_fallback"
+        sh_over, sh_find = audit_sheet_xlsx_fallback(token, args.spreadsheet_id)
+        sh_find.append({
+            "severity": "LOW",
+            "area": "SHEET_AUDIT_MODE",
+            "title": "Auditoría en modo fallback XLSX",
+            "detail": "Google Sheets API no disponible; se usó exportación XLSX por Drive API.",
+            "evidence": {"error": str(e)[:1200]},
+            "recommendation": "Si quieres inspección con metadato nativo completo, habilitar Sheets API en el proyecto OAuth.",
+        })
     code_over, code_find = audit_code(args.project_dir, token, script_id)
     report = {
         "meta": {"timestamp": dt.datetime.now().isoformat(timespec="seconds"), "tool": "auditar_crm_ayudas_extremo.py"},
-        "context": {"spreadsheetId": args.spreadsheet_id, "scriptId": script_id, "scriptTitle": sm.get("title", ""), "scriptParentId": sm.get("parentId", ""), "ready": ready, "projectDir": args.project_dir},
+        "context": {"spreadsheetId": args.spreadsheet_id, "scriptId": script_id, "scriptTitle": sm.get("title", ""), "scriptParentId": sm.get("parentId", ""), "ready": ready, "projectDir": args.project_dir, "sheetAuditMode": sheet_mode},
         "sheetOverview": sh_over,
         "codeOverview": code_over,
         "findings": sh_find + code_find,

@@ -283,76 +283,368 @@ function extraerDominiosDeEmails_(emails) {
   return out;
 }
 
-function calcularEstadoAutoRevisionEmail_(record, checks) {
-  if (!record.email) {
-    return {
-      status: 'SIN_EMAIL',
-      dnsSummary: 'N/D',
-      action: 'Buscar email oficial y completar.'
-    };
-  }
+function obtenerResultadoRevisionEmail_(record, counter, checks, webBudget) {
+  const out = {
+    status: 'MAL',
+    finalEmail: record.emailBefore,
+    dnsSummary: resumirDnsFila_(record, checks),
+    webEvidence: '',
+    webEmails: '',
+    action: ''
+  };
 
-  if (!record.tokens.length) {
-    return {
-      status: 'CORREGIR_EMAIL',
-      dnsSummary: 'Formato invalido',
-      action: 'Corregir formato del email.'
-    };
+  const web = buscarEvidenciaWebCorreo_(record, webBudget);
+  out.webEvidence = web.evidenceUrls.length ? web.evidenceUrls[0] : '';
+  out.webEmails = web.emails.join('; ');
+
+  const current = record.tokens.length ? record.tokens[0] : '';
+  const best = web.bestEmail || '';
+
+  if (current && web.matchCurrent) {
+    out.status = 'BIEN';
+    out.finalEmail = current;
+    out.action = 'Email confirmado en web.';
+  } else if (best) {
+    out.finalEmail = best;
+    out.status = (current && best === current) ? 'BIEN' : 'CAMBIADO';
+    out.action = out.status === 'CAMBIADO'
+      ? 'Email actualizado segun evidencia web.'
+      : 'Email confirmado en web.';
+  } else {
+    out.status = 'MAL';
+    out.finalEmail = current || '';
+    out.action = current
+      ? 'No se pudo validar ese email en la web.'
+      : 'No hay email y no se encontro uno fiable en web.';
   }
 
   if (record.duplicate) {
-    return {
-      status: 'DUPLICADO',
-      dnsSummary: 'Duplicado',
-      action: 'Consolidar contacto repetido.'
-    };
+    if (out.status === 'CAMBIADO') {
+      const cnt = counter[out.finalEmail] || 0;
+      if (cnt > 1) {
+        out.status = 'MAL';
+        out.action = appendReason_(out.action, 'Sigue duplicado tras el cambio.');
+      } else {
+        out.action = appendReason_(out.action, 'Cambio aplicado para resolver duplicado.');
+      }
+    } else {
+      out.status = 'MAL';
+      out.action = appendReason_(out.action, 'Email duplicado en CRM.');
+    }
   }
 
-  let hasUnknown = false;
-  let hasNoDns = false;
-  const dnsParts = [];
+  if (!out.finalEmail) out.status = 'MAL';
+  return out;
+}
 
+function resumirDnsFila_(record, checks) {
+  if (!record.domains.length) return 'N/D';
+  const parts = [];
   for (let i = 0; i < record.domains.length; i++) {
     const domain = record.domains[i];
     const chk = checks[domain];
     if (!chk || !chk.checked) {
-      hasUnknown = true;
-      dnsParts.push(domain + ':N/D');
-      continue;
-    }
-    if (!chk.hasMx && !chk.hasA) {
-      hasNoDns = true;
-      dnsParts.push(domain + ':SIN_DNS');
-      continue;
-    }
-    if (chk.hasMx) {
-      dnsParts.push(domain + ':MX_OK');
+      parts.push(domain + ':N/D');
+    } else if (chk.hasMx) {
+      parts.push(domain + ':MX_OK');
+    } else if (chk.hasA) {
+      parts.push(domain + ':A_OK');
     } else {
-      dnsParts.push(domain + ':A_OK');
+      parts.push(domain + ':SIN_DNS');
+    }
+  }
+  return parts.join(' | ');
+}
+
+function buscarEvidenciaWebCorreo_(record, webBudget) {
+  const emailsSet = {};
+  const evidence = [];
+  let matchCurrent = false;
+  const currentSet = {};
+  for (let i = 0; i < record.tokens.length; i++) currentSet[record.tokens[i]] = true;
+
+  const urls = construirUrlsCandidatasFila_(record);
+  const maxUrlsPerRow = 8;
+  for (let i = 0; i < urls.length && i < maxUrlsPerRow; i++) {
+    const hit = buscarEmailEnSitio_(urls[i], webBudget);
+    if (!hit || !hit.emails.length) continue;
+    evidence.push(hit.url);
+    for (let j = 0; j < hit.emails.length; j++) {
+      const email = hit.emails[j];
+      emailsSet[email] = true;
+      if (currentSet[email]) matchCurrent = true;
+    }
+    if (matchCurrent) break;
+  }
+
+  if (!matchCurrent && !Object.keys(emailsSet).length) {
+    const searchUrls = buscarUrlsWebPorFestival_(record.festival, webBudget);
+    for (let i = 0; i < searchUrls.length && i < 4; i++) {
+      const hit = buscarEmailEnSitio_(searchUrls[i], webBudget);
+      if (!hit || !hit.emails.length) continue;
+      evidence.push(hit.url);
+      for (let j = 0; j < hit.emails.length; j++) {
+        const email = hit.emails[j];
+        emailsSet[email] = true;
+        if (currentSet[email]) matchCurrent = true;
+      }
     }
   }
 
-  if (hasNoDns) {
-    return {
-      status: 'CORREGIR_EMAIL',
-      dnsSummary: dnsParts.join(' | '),
-      action: 'Dominio no resoluble, revisar email oficial.'
-    };
-  }
-
-  if (hasUnknown) {
-    return {
-      status: 'PENDIENTE_REVISION',
-      dnsSummary: dnsParts.join(' | '),
-      action: 'Reintentar auditoria para completar contraste DNS.'
-    };
-  }
-
+  const allEmails = Object.keys(emailsSet);
+  const bestEmail = seleccionarMejorEmailCandidato_(allEmails, record);
   return {
-    status: 'REVISAR_WEB',
-    dnsSummary: dnsParts.join(' | '),
-    action: 'Contrastar en web oficial y marcar OK_VERIFICADO_WEB.'
+    emails: allEmails,
+    bestEmail: bestEmail,
+    evidenceUrls: dedupeStrings_(evidence).slice(0, 5),
+    matchCurrent: matchCurrent
   };
+}
+
+function construirUrlsCandidatasFila_(record) {
+  const out = [];
+  const seen = {};
+  function add(url) {
+    const u = normalizarUrlSegura_(url);
+    if (!u || seen[u]) return;
+    seen[u] = true;
+    out.push(u);
+  }
+  for (let i = 0; i < record.seedUrls.length; i++) add(record.seedUrls[i]);
+  for (let i = 0; i < record.domains.length; i++) {
+    const domain = record.domains[i];
+    if (!domain) continue;
+    add('https://' + domain);
+    if (domain.indexOf('www.') !== 0) add('https://www.' + domain);
+    add('https://' + domain + '/contacto');
+    add('https://' + domain + '/contact');
+    add('https://' + domain + '/contact-us');
+    add('https://' + domain + '/about');
+  }
+  return out;
+}
+
+function buscarEmailEnSitio_(url, webBudget) {
+  const normalized = normalizarUrlSegura_(url);
+  if (!normalized) return null;
+  const html = obtenerHtmlCacheado_(normalized, webBudget, 'web');
+  if (!html) return null;
+  const emails = extraerEmailsDesdeHtml_(html);
+  if (!emails.length) return null;
+  return { url: normalized, emails: emails };
+}
+
+function obtenerHtmlCacheado_(url, webBudget, mode) {
+  const cache = CacheService.getScriptCache();
+  const key = 'FEST_WEB_HTML_' + hashText_(url);
+  const cached = cache.get(key);
+  if (cached) {
+    if (mode === 'search') webBudget.searchCached++;
+    else webBudget.webCached++;
+    return cached;
+  }
+
+  if (mode === 'search') {
+    if (webBudget.searchRemaining <= 0) return '';
+    webBudget.searchRemaining--;
+    webBudget.searchFetched++;
+  } else {
+    if (webBudget.webRemaining <= 0) return '';
+    webBudget.webRemaining--;
+    webBudget.webFetched++;
+  }
+
+  try {
+    const res = UrlFetchApp.fetch(url, {
+      method: 'get',
+      muteHttpExceptions: true,
+      followRedirects: true,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CRM-FESTIVALES/1.0)' }
+    });
+    const code = res.getResponseCode();
+    if (code < 200 || code >= 400) return '';
+    const html = res.getContentText() || '';
+    if (html) cache.put(key, html, FEST_EMAIL_WEB_CACHE_TTL_SEC);
+    return html;
+  } catch (err) {
+    return '';
+  }
+}
+
+function buscarUrlsWebPorFestival_(festivalName, webBudget) {
+  const query = cleanText_(festivalName);
+  if (!query) return [];
+  const url = 'https://duckduckgo.com/html/?q=' + encodeURIComponent(query + ' festival email contacto');
+  const html = obtenerHtmlCacheado_(url, webBudget, 'search');
+  if (!html) return [];
+  return extraerUrlsDeDuckDuckGo_(html).slice(0, 8);
+}
+
+function extraerUrlsDeDuckDuckGo_(html) {
+  const urls = [];
+  const seen = {};
+  const reUddg = /uddg=([^\"&]+)/ig;
+  let m;
+  while ((m = reUddg.exec(html)) !== null) {
+    const decoded = decodeURIComponent(m[1] || '');
+    const url = normalizarUrlSegura_(decoded);
+    if (!url || seen[url]) continue;
+    if (!esUrlCandidataParaRevision_(url)) continue;
+    seen[url] = true;
+    urls.push(url);
+  }
+  return urls;
+}
+
+function esUrlCandidataParaRevision_(url) {
+  const t = cleanText_(url).toLowerCase();
+  if (!t) return false;
+  if (t.indexOf('duckduckgo.com') > -1) return false;
+  if (t.indexOf('google.com/search') > -1) return false;
+  if (t.indexOf('instagram.com') > -1) return false;
+  if (t.indexOf('facebook.com') > -1) return false;
+  if (t.indexOf('x.com/') > -1 || t.indexOf('twitter.com/') > -1) return false;
+  return /^https?:\/\//i.test(t);
+}
+
+function extraerEmailsDesdeHtml_(html) {
+  const raw = String(html || '');
+  const matches = raw.match(/[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/ig) || [];
+  const out = [];
+  const seen = {};
+  for (let i = 0; i < matches.length; i++) {
+    let email = cleanText_(matches[i]).toLowerCase();
+    email = email.replace(/[),.;:]+$/g, '');
+    if (!isValidEmail_(email)) continue;
+    if (seen[email]) continue;
+    seen[email] = true;
+    out.push(email);
+  }
+  return out;
+}
+
+function seleccionarMejorEmailCandidato_(emails, record) {
+  if (!emails || !emails.length) return '';
+  const currentSet = {};
+  const domainSet = {};
+  for (let i = 0; i < record.tokens.length; i++) currentSet[record.tokens[i]] = true;
+  for (let i = 0; i < record.domains.length; i++) domainSet[record.domains[i]] = true;
+
+  const keys = normalizeHeader_(record.festival).toLowerCase().split(/[^a-z0-9]+/).filter((x) => x && x.length >= 4);
+  let best = '';
+  let bestScore = -9999;
+  for (let i = 0; i < emails.length; i++) {
+    const email = emails[i];
+    const at = email.indexOf('@');
+    const local = at > 0 ? email.substring(0, at) : '';
+    const domain = at > 0 ? email.substring(at + 1) : '';
+    let score = 0;
+    if (currentSet[email]) score += 30;
+    if (domainSet[domain]) score += 12;
+    if (/info|contact|booking|prensa|press|admin|oficina/i.test(local)) score += 4;
+    if (/noreply|no-reply|do-not-reply/i.test(local)) score -= 8;
+    for (let k = 0; k < keys.length; k++) {
+      if (domain.indexOf(keys[k]) > -1) score += 2;
+      if (local.indexOf(keys[k]) > -1) score += 2;
+    }
+    if (score > bestScore || (score === bestScore && email < best)) {
+      bestScore = score;
+      best = email;
+    }
+  }
+  return best;
+}
+
+function extraerUrlsDesdeTexto_(text) {
+  const raw = cleanText_(text);
+  if (!raw) return [];
+  const out = [];
+  const seen = {};
+  const re = /((https?:\/\/|www\.)[^\s,;]+)/ig;
+  let m;
+  while ((m = re.exec(raw)) !== null) {
+    const u = normalizarUrlSegura_(m[1]);
+    if (!u || seen[u]) continue;
+    seen[u] = true;
+    out.push(u);
+  }
+  return out;
+}
+
+function normalizarUrlSegura_(url) {
+  let t = cleanText_(url);
+  if (!t) return '';
+  if (!/^https?:\/\//i.test(t)) t = 'https://' + t;
+  t = t.replace(/[#].*$/g, '');
+  if (t.length > 400) return '';
+  if (!/^https?:\/\/[a-z0-9.\-]+/i.test(t)) return '';
+  return t;
+}
+
+function appendReason_(base, extra) {
+  const a = cleanText_(base);
+  const b = cleanText_(extra);
+  if (!a) return b;
+  if (!b) return a;
+  return a + ' ' + b;
+}
+
+function dedupeStrings_(arr) {
+  const out = [];
+  const seen = {};
+  for (let i = 0; i < arr.length; i++) {
+    const t = cleanText_(arr[i]);
+    if (!t || seen[t]) continue;
+    seen[t] = true;
+    out.push(t);
+  }
+  return out;
+}
+
+function hashText_(input) {
+  const bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.MD5,
+    cleanText_(input),
+    Utilities.Charset.UTF_8
+  );
+  const chars = [];
+  for (let i = 0; i < bytes.length; i++) {
+    const v = (bytes[i] + 256) % 256;
+    chars.push((v < 16 ? '0' : '') + v.toString(16));
+  }
+  return chars.join('');
+}
+
+function actualizarContadorEmailsTrasCambio_(counter, oldTokens, newEmail) {
+  for (let i = 0; i < oldTokens.length; i++) {
+    const old = oldTokens[i];
+    if (!counter[old]) continue;
+    counter[old] = Math.max(0, counter[old] - 1);
+  }
+  const newTokens = extraerEmailsValidos_(newEmail);
+  for (let i = 0; i < newTokens.length; i++) {
+    const e = newTokens[i];
+    counter[e] = (counter[e] || 0) + 1;
+  }
+}
+
+function colorPorEstadoRevisionEmail_(status) {
+  const s = cleanText_(status).toUpperCase();
+  if (s === 'BIEN') return '#D9EAD3';
+  if (s === 'CAMBIADO') return '#D9E8FB';
+  return '#F4CCCC';
+}
+
+function construirMatrizColorFilas_(rowColors, totalCols) {
+  const cols = Math.max(1, Number(totalCols) || 1);
+  const out = [];
+  for (let r = 0; r < rowColors.length; r++) {
+    const color = rowColors[r] || FEST_HOMO.COLORS.BODY_BG;
+    const row = [];
+    for (let c = 0; c < cols; c++) row.push(color);
+    out.push(row);
+  }
+  return out;
 }
 
 function obtenerEstadoDominiosEnLote_(domains, maxChecks) {
