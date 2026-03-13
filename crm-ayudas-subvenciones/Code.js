@@ -137,6 +137,12 @@ function onOpen() {
     .addSeparator()
     .addItem('🧹 Purgar estado/logs', 'purgarSistema')
     .addToUi();
+
+  try {
+    codexEjecutarLimpiezaPendienteOnOpen_();
+  } catch (err) {
+    Logger.log('Auto-limpieza onOpen no ejecutada: ' + (err && err.message ? err.message : err));
+  }
 }
 
 function configurarSistema() {

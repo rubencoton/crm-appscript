@@ -1,6 +1,39 @@
+function codexEjecutarLimpiezaPendienteOnOpen_() {
+  var targetSpreadsheetId = '1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA';
+  var doneKey = 'CODEX_CLEANUP_ONOPEN_V1_DONE';
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) return;
+  if (ss.getId() !== targetSpreadsheetId) return;
+
+  var props = PropertiesService.getDocumentProperties();
+  if (props.getProperty(doneKey) === '1') return;
+
+  try {
+    codexAplicarLimpiezaOperativaAyudas(ss.getId());
+    props.setProperty(doneKey, '1');
+  } catch (err) {
+    Logger.log('Error en auto-limpieza onOpen: ' + (err && err.message ? err.message : err));
+  }
+}
+
 function codexAplicarLimpiezaOperativaAyudas(spreadsheetId) {
-  var sid = spreadsheetId || '1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA';
-  var ss = SpreadsheetApp.openById(sid);
+  var defaultId = '1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA';
+  var active = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = null;
+
+  if (spreadsheetId) {
+    if (active && active.getId() === spreadsheetId) {
+      ss = active;
+    } else {
+      ss = SpreadsheetApp.openById(spreadsheetId);
+    }
+  } else if (active) {
+    ss = active;
+  } else {
+    ss = SpreadsheetApp.openById(defaultId);
+  }
+
+  var sid = ss.getId();
   var concursos = ss.getSheetByName('CONCURSOS');
   if (!concursos) throw new Error('No existe la pestana CONCURSOS.');
 
