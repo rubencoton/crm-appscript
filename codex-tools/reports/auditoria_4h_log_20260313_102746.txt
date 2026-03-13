@@ -50,3 +50,6 @@
 [2026-03-13 13:09:40] CICLO 17 - inicio
 [2026-03-13 13:09:47] CICLO 17 - OK findings=7 (C=0 H=0 M=4 L=3)
 [2026-03-13 13:09:47] CICLO 17 - espera 600 segundos
+[2026-03-13 13:19:47] CICLO 18 - inicio
+[2026-03-13 13:19:56] CICLO 18 - OK findings=7 (C=0 H=0 M=4 L=3)
+[2026-03-13 13:19:56] CICLO 18 - espera 600 segundos
