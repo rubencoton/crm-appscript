@@ -15,13 +15,14 @@ const FEST_HOMO = {
     'TELEFONO',
     'NOMBRE CONTACTO',
     'OBSERVACIONES',
-    'REVISION EMAIL'
+    'REVISION EMAIL',
+    'Merge status'
   ],
   COLORS: {
     HEADER_BG: '#8B0000',
     HEADER_FG: '#FFFFFF',
     BODY_BG: '#FFFFFF',
-    BAND_BG: '#FAF3F3',
+    BAND_BG: '#FFF9CC',
     WARN_BG: '#FFF4CC',
     ERROR_BG: '#FDE2E2',
     GRID: '#D9D9D9'
@@ -45,6 +46,7 @@ const FEST_GEMINI_RETRY_MAX_OUTPUT_TOKENS = 4096;
 const FEST_GEMINI_RESPONSE_CACHE_TTL_SEC = 6 * 60 * 60;
 const FEST_MAX_RUNTIME_MS = 4.7 * 60 * 1000;
 const FEST_ARCHITECT = 'RUBEN COTON';
+const FEST_MERGE_STATUS_HEADER = 'Merge status';
 const FEST_GENRE_DROPDOWN = [
   'URBANO', 'URBAN',
   'POP', 'INDIE', 'ROCK',
@@ -353,7 +355,7 @@ function homogeneizarCRMFestivales() {
       'Homogeneidad aplicada.\n' +
       'Pestanas procesadas: ' + totalSheets + '\n' +
       'Filas normalizadas: ' + totalRows + '\n\n' +
-      'Columnas fijadas en A:K con el mismo orden para todas.'
+      'Columnas fijadas en A:L con el mismo orden para todas.'
     );
   } finally {
     lock.releaseLock();
@@ -470,7 +472,7 @@ function auditarEstructuraCRMFestivales() {
     } else {
       let msg = sheet.getName() + ': revisar';
       if (missing.length) msg += ' | faltan: ' + missing.join(', ');
-      if (!inOrder) msg += ' | orden distinto en A:K';
+      if (!inOrder) msg += ' | orden distinto en A:L';
       lines.push(msg);
     }
   });
@@ -752,7 +754,8 @@ function normalizeSheetRows_(data, sheetName) {
       telefono: normalizePhoneCell_(valueAt_(row, map.telefono)),
       contacto: normalizeContactName_(valueAt_(row, map.contacto)),
       observaciones: cleanText_(valueAt_(row, map.observaciones)),
-      revisionEmail: normalizeRevisionStatus_(valueAt_(row, map.reviewEmail))
+      revisionEmail: normalizeRevisionStatus_(valueAt_(row, map.reviewEmail)),
+      mergeStatus: cleanText_(valueAt_(row, map.mergeStatus))
     };
 
     if (!hasAnyValue_(obj)) continue;
@@ -767,7 +770,8 @@ function normalizeSheetRows_(data, sheetName) {
       obj.telefono,
       obj.contacto,
       obj.observaciones,
-      obj.revisionEmail
+      obj.revisionEmail,
+      obj.mergeStatus
     ]);
   }
 
@@ -791,10 +795,8 @@ function applyVisualDesignToSheet_(sheet) {
   sheet.getBandings().forEach((b) => b.remove());
 
   const tax = parseSheetTaxonomy_(sheet.getName());
-  const tabColors = { URBAN: '#FB8C00', POP: '#EC407A', INDIE: '#546E7A', ROCK: '#E53935', ELECTR: '#00ACC1', JAZZ: '#3949AB', FLAM: '#D81B60', RUMBA: '#43A047', MEC: '#6D4C41', MFR: '#8D6E63', PTE: '#757575' };
-  if (tabColors[tax.genre]) {
-    try { sheet.setTabColor(tabColors[tax.genre]); } catch (err) {}
-  }
+  const tabColor = tax.genre === 'PTE' ? '#FBC02D' : '#C00000';
+  try { sheet.setTabColor(tabColor); } catch (err) {}
 
   const headerRange = sheet.getRange(1, 1, 1, lastCol);
   headerRange
@@ -839,8 +841,13 @@ function applyVisualDesignToSheet_(sheet) {
   sheet.setColumnWidth(9, 190);
   sheet.setColumnWidth(10, 260);
   sheet.setColumnWidth(11, 190);
+  sheet.setColumnWidth(12, 150);
 
   if (lastRow > 1) {
+    const map = buildHeaderMap_(sheet.getRange(1, 1, 1, lastCol).getValues()[0]);
+    const reviewCol = map.reviewEmail + 1;
+    const reviewColLetter = columnNumberToLetter_(reviewCol);
+
     sheet.getRange(2, 3, lastRow - 1, 1).setHorizontalAlignment('center');
     sheet.getRange(2, 2, lastRow - 1, 1).setHorizontalAlignment('center');
     sheet.getRange(2, 7, lastRow - 1, 2).setHorizontalAlignment('left');
@@ -850,24 +857,30 @@ function applyVisualDesignToSheet_(sheet) {
       .setAllowInvalid(false)
       .build();
     sheet.getRange(2, 2, lastRow - 1, 1).setDataValidation(generoRule);
-    sheet.getRange(2, 11, lastRow - 1, 1).setDataValidation(buildEmailReviewValidationRule_());
+    sheet.getRange(2, reviewCol, lastRow - 1, 1).setDataValidation(buildEmailReviewValidationRule_());
+
+    const rangeForRules = sheet.getRange(2, 1, Math.max(1, lastRow - 1), lastCol);
+
+    const bienRule = SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=AND($A2<>"";$' + reviewColLetter + '2="BIEN")')
+      .setBackground('#D9EAD3')
+      .setRanges([rangeForRules])
+      .build();
+
+    const cambiadoRule = SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=AND($A2<>"";$' + reviewColLetter + '2="CAMBIADO")')
+      .setBackground('#D9E8FB')
+      .setRanges([rangeForRules])
+      .build();
+
+    const malRule = SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=AND($A2<>"";$' + reviewColLetter + '2="MAL")')
+      .setBackground('#FDE2E2')
+      .setRanges([rangeForRules])
+      .build();
+
+    sheet.setConditionalFormatRules([bienRule, cambiadoRule, malRule]);
   }
-
-  const rangeForRules = sheet.getRange(2, 1, Math.max(1, lastRow - 1), lastCol);
-
-  const warnRule = SpreadsheetApp.newConditionalFormatRule()
-    .whenFormulaSatisfied('=AND($A2<>"";OR($G2="";$H2=""))')
-    .setBackground(FEST_HOMO.COLORS.WARN_BG)
-    .setRanges([rangeForRules])
-    .build();
-
-  const errorRule = SpreadsheetApp.newConditionalFormatRule()
-    .whenFormulaSatisfied('=AND($A2<>"";$G2="";$H2="";$I2="")')
-    .setBackground(FEST_HOMO.COLORS.ERROR_BG)
-    .setRanges([rangeForRules])
-    .build();
-
-  sheet.setConditionalFormatRules([warnRule, errorRule]);
 }
 
 function buildHeaderMap_(headerRow) {
@@ -887,6 +900,7 @@ function buildHeaderMap_(headerRow) {
     if ((h === 'NOMBRE CONTACTO' || h === 'CONTACTO') && map.contacto === undefined) map.contacto = c;
     if ((h === 'OBSERVACIONES' || h === 'NOTAS') && map.observaciones === undefined) map.observaciones = c;
     if ((h === 'REVISION EMAIL' || h === 'ESTADO EMAIL' || h === 'EMAIL REVISADO') && map.reviewEmail === undefined) map.reviewEmail = c;
+    if ((h === 'MERGE STATUS' || h === 'MERGESTATUS' || h === 'MERGE') && map.mergeStatus === undefined) map.mergeStatus = c;
   }
 
   if (map.nombre === undefined) map.nombre = 0;
@@ -900,6 +914,7 @@ function buildHeaderMap_(headerRow) {
   if (map.contacto === undefined) map.contacto = 8;
   if (map.observaciones === undefined) map.observaciones = 9;
   if (map.reviewEmail === undefined) map.reviewEmail = 10;
+  if (map.mergeStatus === undefined) map.mergeStatus = 11;
 
   return map;
 }
@@ -940,6 +955,17 @@ function normalizeHeader_(v) {
     .toUpperCase();
 }
 
+function columnNumberToLetter_(col) {
+  let n = Math.max(1, Number(col) || 1);
+  let out = '';
+  while (n > 0) {
+    const rem = (n - 1) % 26;
+    out = String.fromCharCode(65 + rem) + out;
+    n = Math.floor((n - 1) / 26);
+  }
+  return out;
+}
+
 function valueAt_(row, idx) {
   if (idx === undefined || idx < 0 || idx >= row.length) return '';
   return row[idx];
@@ -961,7 +987,9 @@ function hasAnyValue_(obj) {
     obj.email ||
     obj.telefono ||
     obj.contacto ||
-    obj.observaciones
+    obj.observaciones ||
+    obj.revisionEmail ||
+    obj.mergeStatus
   );
 }
 
