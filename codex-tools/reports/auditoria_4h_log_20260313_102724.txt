@@ -1,0 +1,2 @@
+[2026-03-13 10:27:24] INICIO auditoria profunda. Horas=0 IntervaloMin=1 SpreadsheetId=1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA
+[2026-03-13 10:27:24] FIN auditoria profunda.

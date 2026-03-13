@@ -183,7 +183,7 @@ function mostrarVisorCodigoProyecto_() {
       <p class="sub">Introduce password para cargar el codigo con desplegable por archivo.</p>
       <input id="pwd" type="password" placeholder="Password del CRM">
       <div class="row">
-        <button class="ok" onclick="cargar()">🔓 Cargar codigo</button>
+        <button class="ok" onclick="cargarCodigo()">🔓 Cargar codigo</button>
         <button class="soft" onclick="google.script.host.close()">Cerrar</button>
       </div>
       <div id="msg"></div>
@@ -193,11 +193,11 @@ function mostrarVisorCodigoProyecto_() {
       <h3>🧠 CODIGO DEL PROYECTO</h3>
       <div id="meta"></div>
       <div class="row">
-        <select id="sel" onchange="render()"></select>
+        <select id="sel" onchange="renderCodigo()"></select>
       </div>
       <div class="row">
-        <button class="aux" onclick="copiar()">📋 Copiar archivo</button>
-        <button class="soft" onclick="abrirEditor()">🌐 Abrir editor</button>
+        <button class="aux" onclick="copiarCodigo()">📋 Copiar archivo</button>
+        <button class="soft" onclick="abrirEditorCodigo()">🌐 Abrir editor</button>
       </div>
       <pre id="code"></pre>
     </div>
@@ -206,7 +206,7 @@ function mostrarVisorCodigoProyecto_() {
     let payload = null;
     let files = [];
 
-    function cargar() {
+    function cargarCodigo() {
       const pass = (document.getElementById('pwd').value || '').trim();
       const msg = document.getElementById('msg');
       msg.textContent = 'Cargando codigo...';
@@ -233,7 +233,7 @@ function mostrarVisorCodigoProyecto_() {
             ' | Archivos: ' + files.length +
             ' | Cargado: ' + (payload.fetchedAt || '');
 
-          render();
+          renderCodigo();
         })
         .withFailureHandler(function(e) {
           msg.textContent = '❌ ' + (e && e.message ? e.message : e);
@@ -241,18 +241,18 @@ function mostrarVisorCodigoProyecto_() {
         .obtenerCodigoProyectoSeguro_(pass);
     }
 
-    function render() {
+    function renderCodigo() {
       const idx = Number(document.getElementById('sel').value || '0');
       const f = files[idx] || files[0] || {};
       document.getElementById('code').textContent = String(f.source || '');
     }
 
-    function copiar() {
+    function copiarCodigo() {
       const txt = document.getElementById('code').textContent || '';
       navigator.clipboard.writeText(txt).then(function(){ alert('✅ Archivo copiado'); });
     }
 
-    function abrirEditor() {
+    function abrirEditorCodigo() {
       const url = payload && payload.editUrl ? payload.editUrl : '';
       if (!url) {
         alert('No hay URL de editor disponible.');
@@ -332,14 +332,14 @@ function mostrarPanelEstadoTecnico_() {
       <h3>📟 ESTADO TECNICO | RUBEN COTON</h3>
       <div id="meta">Cargando...</div>
       <div class="row">
-        <button class="ok" onclick="cargar()">🔄 Refrescar</button>
-        <button class="aux" onclick="copiar()">📋 Copiar JSON</button>
+        <button class="ok" onclick="cargarEstadoTecnico()">🔄 Refrescar</button>
+        <button class="aux" onclick="copiarEstadoTecnico()">📋 Copiar JSON</button>
       </div>
       <pre id="out"></pre>
     </div>
   </div>
   <script>
-    function cargar() {
+    function cargarEstadoTecnico() {
       google.script.run.withSuccessHandler(function(data){
         document.getElementById('meta').textContent = 'Script ID: ' + (data.scriptId || '') + ' | Hora: ' + (data.now || '');
         document.getElementById('out').textContent = JSON.stringify(data, null, 2);
@@ -349,12 +349,12 @@ function mostrarPanelEstadoTecnico_() {
       }).obtenerEstadoTecnico_();
     }
 
-    function copiar() {
+    function copiarEstadoTecnico() {
       const txt = document.getElementById('out').textContent || '';
       navigator.clipboard.writeText(txt).then(function(){ alert('✅ Estado copiado'); });
     }
 
-    cargar();
+    cargarEstadoTecnico();
   </script>
 </body>
 </html>`).setWidth(920).setHeight(690);
@@ -608,7 +608,7 @@ function mostrarConsolaSegura_(mode, titleText) {
       <div id="fase">Preparando...</div>
       <div id="terminal"></div>
       <div class="bar">
-        <button class="copy" onclick="copiar()">📋 Copiar logs</button>
+        <button class="copy" onclick="copiarLogsConsola()">📋 Copiar logs</button>
         <button id="btnContinue" class="continue" onclick="continuar()">⏯️ Continuar</button>
         <button class="danger" onclick="apagar()">🛑 Apagado</button>
       </div>
@@ -718,7 +718,7 @@ function mostrarConsolaSegura_(mode, titleText) {
         })
         .solicitarParada();
     }
-    function copiar() {
+    function copiarLogsConsola() {
       navigator.clipboard.writeText(rawLogs || '').then(function(){
         alert('✅ Logs copiados');
       });
