@@ -14,7 +14,8 @@ const FEST_HOMO = {
     'EMAIL',
     'TELEFONO',
     'NOMBRE CONTACTO',
-    'OBSERVACIONES'
+    'OBSERVACIONES',
+    'REVISION EMAIL'
   ],
   COLORS: {
     HEADER_BG: '#8B0000',
@@ -48,6 +49,19 @@ const FEST_GENRE_DROPDOWN = [
   'URBAN', 'POP', 'INDIE', 'ROCK', 'ELECTR',
   'JAZZ', 'FLAM', 'RUMBA', 'MEC', 'MFR'
 ];
+const FEST_EMAIL_REVIEW_OPTIONS = [
+  'PENDIENTE_REVISION',
+  'OK_VERIFICADO_WEB',
+  'REVISAR_WEB',
+  'CORREGIR_EMAIL',
+  'SIN_EMAIL',
+  'DUPLICADO'
+];
+const FEST_EMAIL_REVIEW_SHEET_NAME = 'REVISION_EMAILS';
+const FEST_EMAIL_TRIGGER_HANDLER = 'auditarEmailsAutomaticaCRMFestivales_';
+const FEST_EMAIL_TRIGGER_INTERVAL_HOURS = 6;
+const FEST_EMAIL_MAX_DOMAIN_CHECKS_PER_RUN = 140;
+const FEST_EMAIL_DOMAIN_CACHE_TTL_HOURS = 24;
 
 // Si no tienes otro onOpen en el proyecto, este ya deja el menu automatico.
 
@@ -93,6 +107,7 @@ function crearMenuCRMFestivales_() {
     .addItem('Solo armonizar diseno visual (seguro)', 'menuAplicarDisenoCRMFestivales')
     .addItem('Depurar contactos local (seguro)', 'menuDepurarContactosCRMFestivales')
     .addItem('Depurar contactos con Gemini (seguro)', 'menuDepurarContactosGeminiCRMFestivales')
+    .addItem('Auditar emails + duplicados (seguro)', 'menuAuditarEmailsCRMFestivales')
     .addItem('Auditar estructura (seguro)', 'menuAuditarEstructuraCRMFestivales')
     .addItem('Auditar genero + tamano S/L/XL (seguro)', 'menuAuditarClasificacionCRMFestivales')
     .addItem('Modo auditor extremo (stress test)', 'menuAuditorExtremoCRMFestivales')
@@ -100,6 +115,8 @@ function crearMenuCRMFestivales_() {
     .addSeparator()
     .addItem('Instalar trigger de menu (seguro)', 'menuInstalarTriggerCRMFestivales')
     .addItem('Limpiar triggers de menu (seguro)', 'menuLimpiarTriggersCRMFestivales')
+    .addItem('Instalar trigger revision emails (6h)', 'menuInstalarTriggerRevisionEmailsCRMFestivales')
+    .addItem('Limpiar trigger revision emails', 'menuLimpiarTriggerRevisionEmailsCRMFestivales')
     .addSeparator()
     .addItem('Guia de arquitectura (seguro)', 'menuGuiaArquitecturaCRMFestivales')
     .addToUi();
@@ -208,6 +225,10 @@ function menuDepurarContactosGeminiCRMFestivales() {
   ejecutarConPassword_(depurarContactosConGeminiCRMFestivales, 'Depurar contactos con Gemini');
 }
 
+function menuAuditarEmailsCRMFestivales() {
+  ejecutarConPassword_(auditarEmailsCRMFestivales, 'Auditar emails + duplicados');
+}
+
 function menuAuditarEstructuraCRMFestivales() {
   ejecutarConPassword_(auditarEstructuraCRMFestivales, 'Auditar estructura');
 }
@@ -226,6 +247,14 @@ function menuInstalarTriggerCRMFestivales() {
 
 function menuLimpiarTriggersCRMFestivales() {
   ejecutarConPassword_(limpiarTriggersMenuCRMFestivales, 'Limpiar triggers de menu');
+}
+
+function menuInstalarTriggerRevisionEmailsCRMFestivales() {
+  ejecutarConPassword_(instalarTriggerRevisionEmailsCRMFestivales, 'Instalar trigger revision emails');
+}
+
+function menuLimpiarTriggerRevisionEmailsCRMFestivales() {
+  ejecutarConPassword_(limpiarTriggerRevisionEmailsCRMFestivales, 'Limpiar trigger revision emails');
 }
 
 function menuGuiaArquitecturaCRMFestivales() {
@@ -303,7 +332,7 @@ function homogeneizarCRMFestivales() {
       'Homogeneidad aplicada.\n' +
       'Pestanas procesadas: ' + totalSheets + '\n' +
       'Filas normalizadas: ' + totalRows + '\n\n' +
-      'Columnas fijadas en A:J con el mismo orden para todas.'
+      'Columnas fijadas en A:K con el mismo orden para todas.'
     );
   } finally {
     lock.releaseLock();
@@ -406,7 +435,7 @@ function auditarEstructuraCRMFestivales() {
   const lines = [];
 
   sheets.forEach((sheet) => {
-    const firstRow = sheet.getRange(1, 1, 1, Math.max(10, sheet.getLastColumn())).getValues()[0];
+    const firstRow = sheet.getRange(1, 1, 1, Math.max(FEST_HOMO.HEADER.length, sheet.getLastColumn())).getValues()[0];
     const norm = firstRow.map((x) => normalizeHeader_(x));
 
     const missing = [];
@@ -420,7 +449,7 @@ function auditarEstructuraCRMFestivales() {
     } else {
       let msg = sheet.getName() + ': revisar';
       if (missing.length) msg += ' | faltan: ' + missing.join(', ');
-      if (!inOrder) msg += ' | orden distinto en A:J';
+      if (!inOrder) msg += ' | orden distinto en A:K';
       lines.push(msg);
     }
   });
@@ -701,7 +730,8 @@ function normalizeSheetRows_(data, sheetName) {
       email: normalizeEmailCell_(valueAt_(row, map.email)),
       telefono: normalizePhoneCell_(valueAt_(row, map.telefono)),
       contacto: normalizeContactName_(valueAt_(row, map.contacto)),
-      observaciones: cleanText_(valueAt_(row, map.observaciones))
+      observaciones: cleanText_(valueAt_(row, map.observaciones)),
+      revisionEmail: normalizeRevisionStatus_(valueAt_(row, map.reviewEmail))
     };
 
     if (!hasAnyValue_(obj)) continue;
@@ -715,7 +745,8 @@ function normalizeSheetRows_(data, sheetName) {
       obj.email,
       obj.telefono,
       obj.contacto,
-      obj.observaciones
+      obj.observaciones,
+      obj.revisionEmail
     ]);
   }
 
@@ -786,6 +817,7 @@ function applyVisualDesignToSheet_(sheet) {
   sheet.setColumnWidth(8, 140);
   sheet.setColumnWidth(9, 190);
   sheet.setColumnWidth(10, 260);
+  sheet.setColumnWidth(11, 190);
 
   if (lastRow > 1) {
     sheet.getRange(2, 3, lastRow - 1, 1).setHorizontalAlignment('center');
@@ -797,6 +829,7 @@ function applyVisualDesignToSheet_(sheet) {
       .setAllowInvalid(true)
       .build();
     sheet.getRange(2, 2, lastRow - 1, 1).setDataValidation(generoRule);
+    sheet.getRange(2, 11, lastRow - 1, 1).setDataValidation(buildEmailReviewValidationRule_());
   }
 
   const rangeForRules = sheet.getRange(2, 1, Math.max(1, lastRow - 1), lastCol);
@@ -832,6 +865,7 @@ function buildHeaderMap_(headerRow) {
     if (h === 'TELEFONO' && map.telefono === undefined) map.telefono = c;
     if ((h === 'NOMBRE CONTACTO' || h === 'CONTACTO') && map.contacto === undefined) map.contacto = c;
     if ((h === 'OBSERVACIONES' || h === 'NOTAS') && map.observaciones === undefined) map.observaciones = c;
+    if ((h === 'REVISION EMAIL' || h === 'ESTADO EMAIL' || h === 'EMAIL REVISADO') && map.reviewEmail === undefined) map.reviewEmail = c;
   }
 
   if (map.nombre === undefined) map.nombre = 0;
@@ -844,8 +878,25 @@ function buildHeaderMap_(headerRow) {
   if (map.telefono === undefined) map.telefono = 7;
   if (map.contacto === undefined) map.contacto = 8;
   if (map.observaciones === undefined) map.observaciones = 9;
+  if (map.reviewEmail === undefined) map.reviewEmail = 10;
 
   return map;
+}
+
+function buildEmailReviewValidationRule_() {
+  return SpreadsheetApp.newDataValidation()
+    .requireValueInList(FEST_EMAIL_REVIEW_OPTIONS, true)
+    .setAllowInvalid(false)
+    .build();
+}
+
+function normalizeRevisionStatus_(v) {
+  const t = cleanText_(v).toUpperCase();
+  if (!t) return 'PENDIENTE_REVISION';
+  for (let i = 0; i < FEST_EMAIL_REVIEW_OPTIONS.length; i++) {
+    if (t === FEST_EMAIL_REVIEW_OPTIONS[i]) return t;
+  }
+  return 'PENDIENTE_REVISION';
 }
 
 function isHeaderInCanonicalOrder_(headerRow) {
@@ -1326,5 +1377,4 @@ function parseGeminiJson_(rawText) {
     return null;
   }
 }
-
 

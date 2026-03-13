@@ -206,15 +206,20 @@ function Set-LocalClaspScriptId {
 function Invoke-ClaspCommand {
   param(
     [string]$ProjectDir,
-    [string]$Args
+    [string]$ClaspArgs
   )
   $node = Get-NodeExe
   $claspJs = Join-Path (Split-Path -Parent $ProjectDir) 'node_modules\@google\clasp\build\src\index.js'
   if (-not (Test-Path -LiteralPath $claspJs)) {
     throw "No se encontro clasp local en $claspJs"
   }
-  $argList = @($claspJs) + (@($Args -split '\s+') | Where-Object { $_ })
+  $argList = @($claspJs) + (@($ClaspArgs -split '\s+') | Where-Object { $_ })
   Push-Location $ProjectDir
+  $hasNativePref = $null -ne (Get-Variable -Name PSNativeCommandUseErrorActionPreference -Scope Global -ErrorAction SilentlyContinue)
+  if ($hasNativePref) {
+    $oldNativePref = $Global:PSNativeCommandUseErrorActionPreference
+    $Global:PSNativeCommandUseErrorActionPreference = $false
+  }
   try {
     $out = & $node @argList 2>&1
     return [PSCustomObject]@{
@@ -223,6 +228,9 @@ function Invoke-ClaspCommand {
     }
   }
   finally {
+    if ($hasNativePref) {
+      $Global:PSNativeCommandUseErrorActionPreference = $oldNativePref
+    }
     Pop-Location
   }
 }
@@ -343,13 +351,23 @@ try {
   }
 
   if ($Pull) {
-    $st = Invoke-ClaspCommand -ProjectDir $ProjectDir -Args 'status'
-    Add-Check $checks 'clasp.status' ($st.exitCode -eq 0) (($st.output -join ' | '))
-    if ($st.exitCode -eq 0) {
-      $pl = Invoke-ClaspCommand -ProjectDir $ProjectDir -Args 'pull'
-      $ok = ($pl.exitCode -eq 0)
-      Add-Check $checks 'clasp.pull' $ok (($pl.output -join ' | '))
-      $action.pullApplied = $ok
+    try {
+      $st = Invoke-ClaspCommand -ProjectDir $ProjectDir -ClaspArgs 'status'
+      Add-Check $checks 'clasp.status' ($st.exitCode -eq 0) (($st.output -join ' | '))
+      if ($st.exitCode -eq 0) {
+        try {
+          $pl = Invoke-ClaspCommand -ProjectDir $ProjectDir -ClaspArgs 'pull'
+          $ok = ($pl.exitCode -eq 0)
+          Add-Check $checks 'clasp.pull' $ok (($pl.output -join ' | '))
+          $action.pullApplied = $ok
+        }
+        catch {
+          Add-Check $checks 'clasp.pull' $false (Parse-ApiError $_)
+        }
+      }
+    }
+    catch {
+      Add-Check $checks 'clasp.status' $false (Parse-ApiError $_)
     }
   }
 

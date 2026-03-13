@@ -1,3 +1,4 @@
 **/*
 !appsscript.json
 !CRM_FESTIVALES_ENGINE.gs
+!CRM_FESTIVALES_EMAIL_REVIEW.gs

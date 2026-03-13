@@ -144,7 +144,21 @@ try {
 
   $nodeExe = Get-NodeExe
   $claspJs = Join-Path (Split-Path -Parent $ProjectDir) 'node_modules\@google\clasp\build\src\index.js'
-  $statusOut = & $nodeExe $claspJs status 2>&1
+  Push-Location $ProjectDir
+  $hasNativePref = $null -ne (Get-Variable -Name PSNativeCommandUseErrorActionPreference -Scope Global -ErrorAction SilentlyContinue)
+  if ($hasNativePref) {
+    $oldNativePref = $Global:PSNativeCommandUseErrorActionPreference
+    $Global:PSNativeCommandUseErrorActionPreference = $false
+  }
+  try {
+    $statusOut = & $nodeExe $claspJs status 2>&1
+  }
+  finally {
+    if ($hasNativePref) {
+      $Global:PSNativeCommandUseErrorActionPreference = $oldNativePref
+    }
+    Pop-Location
+  }
   $statusOk = ($LASTEXITCODE -eq 0)
   $statusDetail = if ($statusOk) { 'OK' } else { ($statusOut -join ' | ') }
   Add-Check $checks 'clasp.status' $statusOk $statusDetail
