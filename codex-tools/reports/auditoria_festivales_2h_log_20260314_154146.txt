@@ -1,0 +1,5 @@
+[2026-03-14 15:41:46] INICIO auditoria festivales 2h. IntervaloMin=10
+[2026-03-14 15:41:46] CICLO 1 inicio
+[2026-03-14 15:41:47] CICLO 1 audit_auto exit=0 pass=58 fail=0
+[2026-03-14 15:42:20] CICLO 1 audit_ultra exit=0 pass=28 fail=0
+[2026-03-14 15:42:20] CICLO 1 cambios detectados por auditoria, creando commit de trazabilidad.

@@ -1,71 +1,113 @@
 # CRM FESTIVALES - ARTES BUHO
 
-Aplicacion de Google Apps Script conectada a Google Sheets para gestionar y auditar contactos de festivales.
+Proyecto de Google Apps Script para el CRM de festivales.
+Este README esta pensado para que cualquier persona (o IA) entienda el sistema al abrirlo desde cualquier hilo o equipo.
 
-## Autor y empresa
-- Desarrollador: `RUBEN COTON`
+## 1) Contexto del proyecto
 - Empresa: `ARTES BUHO`
+- Desarrollador: `RUBEN COTON`
+- Objetivo principal:
+  - mantener datos limpios,
+  - auditar emails con contraste web,
+  - autocompletar vacios con ayuda IA,
+  - preservar columna de merge para YAMM.
 
-## Objetivo del sistema
-- Mantener la hoja CRM homogénea y util para operativa comercial.
-- Auditar emails de contactos con contraste web.
-- Reducir errores en datos clave sin tocar la columna de merge para YAMM.
+## 2) Regla critica de negocio
+- La columna `Merge status`:
+  - siempre es la ultima columna,
+  - no se modifica en auditoria ni autocompletado,
+  - no usa desplegable.
 
-## Regla clave de columnas
-- La columna `Merge status` debe ser siempre la ultima.
-- El contenido de `Merge status` no se modifica durante auditorias ni autocompletado.
-- `Merge status` no usa desplegable (campo libre).
+## 3) Comportamiento al abrir la hoja
+- `onOpen` NO ejecuta auditoria de contactos.
+- `onOpen` solo aplica ajustes visuales ligeros del sheet activo.
+- Objetivo de apertura: respuesta rapida (meta <= 5 segundos).
 
-## Comportamiento al abrir la hoja (onOpen)
-- Se aplican solo ajustes visuales rapidos del sheet activo.
-- Objetivo de tiempo: no superar ~5 segundos.
-- No se ejecuta auditoria de contactos automaticamente.
-- Se limpian triggers de auto-auditoria para forzar modo manual por boton.
-
-## Botones del menu CRM
+## 4) Menu operativo (arriba en Google Sheets)
 Menu: `CRM FESTIVALES | RUBEN COTON`
 
 1. `BOTON | Auditar contactos web (bloquea + progreso)`
-- Lanza auditoria manual de emails fila a fila.
+- Ejecuta auditoria manual de emails con scraping.
 - Bloquea temporalmente la hoja mientras corre.
-- Muestra progreso 0%-100% con panel emergente.
-- Estados finales por fila:
-  - `BIEN` -> fila verde.
-  - `CORREGIDO` -> fila azul (se encontro email alternativo y se sustituyo).
-  - `MAL` -> fila roja (no valido / no recuperable).
-- La auditoria sobrescribe el estado previo de revision (no reutiliza lo que habia).
+- Muestra progreso de 0% a 100%.
+- Sobrescribe estado previo de revision en cada fila.
+
+Estados y color por fila:
+- `BIEN` -> verde (email validado).
+- `CORREGIDO` -> azul (se encontro y sustituyo email alternativo).
+- `MAL` -> rojo (no validable o no recuperable).
 
 2. `BOTON | Autocompletado de celdas (IA)`
-- Recorre celdas vacias y busca datos por scraping web.
-- Si encuentra dato valido, lo escribe.
-- Si no encuentra nada, escribe `IA NO ENCUENTRA`.
-- No modifica `Merge status`.
+- Recorre celdas vacias y busca datos en web.
+- Si encuentra dato fiable, lo escribe.
+- Si no encuentra dato, escribe `IA NO ENCUENTRA`.
+- Nunca toca `Merge status`.
 
-## Pestaña de progreso
-- Nombre: `PROGRESO_CRM`
-- Muestra:
+## 5) Progreso en tiempo real
+- Pestaña de progreso: `PROGRESO_CRM`.
+- Datos visibles:
   - estado actual,
   - porcentaje,
-  - barra visual,
-  - timestamp,
-  - indicador de bloqueo.
+  - barra de progreso,
+  - ultima actualizacion,
+  - bloqueo activo SI/NO.
+- Tambien hay panel emergente con estilo futurista para la auditoria manual.
 
-## Ficheros principales
+## 6) Archivos clave y para que sirve cada uno
 - `CRM_FESTIVALES_ENGINE.gs`
-  - menu, onOpen, formato visual, normalizacion base.
+  - menu, onOpen, formato visual, cabeceras, validaciones, reglas de estructura.
 - `CRM_FESTIVALES_EMAIL_REVIEW.gs`
-  - auditoria de contactos/email, progreso, bloqueo, autocompletado IA.
+  - auditoria de emails, scraping, bloqueo, progreso, autocompletado IA.
 - `INSPECCION_HOJA.gs`
-  - utilidades de inspeccion completa (estructura/formato/validaciones/etc).
+  - inspeccion tecnica de estructura/formato/validaciones/protecciones.
+- `codex-tools/audit_auto.js`
+  - auditoria tecnica automatica (sintaxis, secretos, stress local).
+- `codex-tools/audit_ultra.js`
+  - auditoria profunda con checks avanzados.
+- `codex-tools/auditoria_festivales_2h.ps1`
+  - ciclo de auditoria continua 2h con logs y csv de trazabilidad.
 
-## Sincronizacion
-- ScriptId Apps Script: `1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea`
-- Comandos:
+## 7) Flujo recomendado de trabajo
+1. Cambiar codigo en repo.
+2. Actualizar README cuando cambie funcionalidad.
+3. Commit con mensaje claro.
+4. `git push`.
+5. `gas:push` para subir a Apps Script.
+6. Verificar en hoja real usando botones del menu.
+
+## 8) Comandos utiles
+- Estado Git:
+  - `git status -sb`
+- Estado Apps Script:
   - `npm run gas:status`
-  - `npm run gas:pull`
+- Subir codigo a Apps Script:
   - `npm run gas:push`
+- Deploy (si el dominio lo permite):
   - `npm run gas:deploy`
+- Auditoria tecnica:
+  - `node codex-tools/audit_auto.js`
+  - `node codex-tools/audit_ultra.js`
+- Auditoria continua 2h:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\codex-tools\auditoria_festivales_2h.ps1 -Horas 2 -IntervaloMin 10`
 
-## Nota de despliegue
-- Si `gas:deploy` devuelve error de dominio (`Only users in the same domain...`), el codigo puede estar igualmente subido con `gas:push`.
-- En ese caso, validar cambios abriendo la hoja vinculada y usando los botones del menu.
+## 9) Trazabilidad y reportes
+- Reportes en `codex-tools/reports/`.
+- Cada cambio funcional debe dejar:
+  - commit en GitHub,
+  - README actualizado,
+  - nota de estado de push a Apps Script.
+
+## 10) Limitaciones conocidas
+- `gas:deploy` puede fallar por restriccion de dominio:
+  - mensaje tipico: `Only users in the same domain as the script owner may deploy this script.`
+- `clasp push` puede requerir reautenticacion Google (error `invalid_rapt`).
+
+## 11) Script ID y enlace tecnico
+- Script ID (Apps Script): `1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea`
+- Vinculacion local: `.clasp.json`
+
+## 12) Regla de mantenimiento
+Siempre que se toque funcionalidad:
+- se actualiza este README,
+- se deja commit en GitHub,
+- se intenta push a Apps Script y se reporta resultado.

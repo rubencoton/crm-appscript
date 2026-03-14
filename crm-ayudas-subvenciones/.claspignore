@@ -2,5 +2,6 @@
 !appsscript.json
 !Code.js
 !DecisionInstantanea.js
+!DecisionInstantanea.gs
 !CodexAudit.js
 !CodexCleanup.js

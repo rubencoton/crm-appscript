@@ -94,7 +94,7 @@ function log(msg) {
 async function runAuditAutoStability() {
   for (let i = 1; i <= 3; i++) {
     check('audit:auto stable run #' + i, () => {
-      const out = execFileSync('cmd', ['/c', 'npm.cmd run audit:auto'], {
+      const out = execFileSync(process.execPath, [path.join(__dirname, 'audit_auto.js')], {
         cwd: ROOT,
         encoding: 'utf8',
         maxBuffer: 30 * 1024 * 1024
