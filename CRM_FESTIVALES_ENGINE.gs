@@ -60,7 +60,7 @@ const FEST_GENRE_DROPDOWN = [
 ];
 const FEST_EMAIL_REVIEW_OPTIONS = [
   'BIEN',
-  'CAMBIADO',
+  'CORREGIDO',
   'MAL'
 ];
 const FEST_EMAIL_REVIEW_SHEET_NAME = 'REVISION_EMAILS';
@@ -125,21 +125,8 @@ function onOpenFestivalesHomogeneidad_() {
 function crearMenuCRMFestivales_() {
   SpreadsheetApp.getUi()
     .createMenu('CRM FESTIVALES | RUBEN COTON')
-    .addItem('Escaner total + homogeneizar (seguro)', 'menuHomogeneizarCRMFestivales')
-    .addItem('Solo armonizar diseno visual (seguro)', 'menuAplicarDisenoCRMFestivales')
-    .addItem('Depurar contactos local (seguro)', 'menuDepurarContactosCRMFestivales')
-    .addItem('Depurar contactos con Gemini (seguro)', 'menuDepurarContactosGeminiCRMFestivales')
     .addItem('BOTON | Auditar contactos web (bloquea + progreso)', 'botonAuditarContactosWebCRMFestivales')
-    .addItem('Auditar estructura (seguro)', 'menuAuditarEstructuraCRMFestivales')
-    .addItem('Auditar genero + tamano S/L/XL (seguro)', 'menuAuditarClasificacionCRMFestivales')
-    .addItem('Modo auditor extremo (stress test)', 'menuAuditorExtremoCRMFestivales')
-    .addItem('Configurar credenciales Gemini', 'menuConfigurarCredencialesCRMFestivales')
-    .addSeparator()
-    .addItem('Instalar trigger de menu (seguro)', 'menuInstalarTriggerCRMFestivales')
-    .addItem('Limpiar triggers de menu (seguro)', 'menuLimpiarTriggersCRMFestivales')
-    .addItem('Limpiar auto-auditoria de contactos', 'menuLimpiarTriggerRevisionEmailsCRMFestivales')
-    .addSeparator()
-    .addItem('Guia de arquitectura (seguro)', 'menuGuiaArquitecturaCRMFestivales')
+    .addItem('BOTON | Autocompletado de celdas (IA)', 'botonAutocompletadoCeldasIA_CRMFestivales')
     .addToUi();
 }
 
@@ -147,27 +134,51 @@ function aplicarAjustesVisualesAlAbrirCRMFestivales_() {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(500)) return;
   try {
-    const props = PropertiesService.getScriptProperties();
-    const now = Date.now();
-    const cooldownMs = 90 * 1000;
-    const last = Number(props.getProperty('FEST_LAST_VISUAL_OPEN_TS') || '0');
-    if (last && now - last < cooldownMs) return;
-    props.setProperty('FEST_LAST_VISUAL_OPEN_TS', String(now));
-
+    const started = Date.now();
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheets = getFestivalSheets_(ss);
-    for (let i = 0; i < sheets.length; i++) {
-      const sh = sheets[i];
-      const data = sh.getDataRange().getValues();
-      if (!isHeaderInCanonicalOrder_(data.length ? data[0] : [])) {
-        const rows = normalizeSheetRows_(data, sh.getName());
-        rewriteSheet_(sh, rows);
-      }
-      applyVisualDesignToSheet_(sh);
+    const sh = ss.getActiveSheet();
+    if (!sh) return;
+    if (!isFestivalSheetName_(sh.getName())) return;
+
+    const lastCol = Math.max(sh.getLastColumn(), FEST_HOMO.HEADER.length);
+    const header = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+    const map = buildHeaderMap_(header);
+    const reviewCol = map.reviewEmail + 1;
+    const mergeCol = map.mergeStatus + 1;
+    const usedCols = Math.max(lastCol, reviewCol, mergeCol);
+
+    sh.getRange(1, 1, 1, usedCols)
+      .setBackground(FEST_HOMO.COLORS.HEADER_BG)
+      .setFontColor(FEST_HOMO.COLORS.HEADER_FG)
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center');
+    sh.getRange(1, mergeCol, 1, 1).setValue(FEST_MERGE_STATUS_HEADER);
+    sh.getRange(1, reviewCol, 1, 1)
+      .setValue('REVISION EMAIL')
+      .setBackground('#FBC02D')
+      .setFontColor('#8B0000')
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center');
+
+    const rows = Math.max(0, sh.getLastRow() - 1);
+    if (rows > 0) {
+      sh.getRange(2, reviewCol, rows, 1)
+        .setDataValidation(buildEmailReviewValidationRule_())
+        .setHorizontalAlignment('center')
+        .setFontWeight('bold');
+      sh.getRange(2, mergeCol, rows, 1).clearDataValidations().setHorizontalAlignment('left').setFontWeight('normal');
     }
+    Logger.log('Ajuste visual rapido onOpen ms=' + (Date.now() - started));
   } finally {
     lock.releaseLock();
   }
+}
+
+function isFestivalSheetName_(name) {
+  const n = cleanText_(name).toUpperCase();
+  if (!n) return false;
+  if (/^PTE[_-]/.test(n)) return true;
+  return /^(URBAN|POP|INDIE|ROCK|ELECTR|JAZZ|FLAM|RUMBA|MR|MC|MFR|MEC)_(S|L|XL)$/.test(n);
 }
 
 function instalarTriggerMenuCRMFestivales() {
@@ -903,8 +914,8 @@ function applyVisualDesignToSheet_(sheet) {
       .setRanges([rangeForRules])
       .build();
 
-    const cambiadoRule = SpreadsheetApp.newConditionalFormatRule()
-      .whenFormulaSatisfied('=AND($A2<>"";$' + reviewColLetter + '2="CAMBIADO")')
+    const corregidoRule = SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=AND($A2<>"";$' + reviewColLetter + '2="CORREGIDO")')
       .setBackground('#D9E8FB')
       .setRanges([rangeForRules])
       .build();
@@ -915,7 +926,7 @@ function applyVisualDesignToSheet_(sheet) {
       .setRanges([rangeForRules])
       .build();
 
-    sheet.setConditionalFormatRules([bienRule, cambiadoRule, malRule]);
+    sheet.setConditionalFormatRules([bienRule, corregidoRule, malRule]);
   }
 }
 
@@ -969,7 +980,7 @@ function normalizeRevisionStatus_(v) {
     if (t === FEST_EMAIL_REVIEW_OPTIONS[i]) return t;
   }
   if (t === 'OK_VERIFICADO_WEB' || t === 'VERIFICADO' || t === 'CORRECTO') return 'BIEN';
-  if (t === 'CAMBIO' || t === 'ACTUALIZADO') return 'CAMBIADO';
+  if (t === 'CAMBIO' || t === 'ACTUALIZADO' || t === 'CAMBIADO') return 'CORREGIDO';
   if (t === 'PENDIENTE_REVISION' || t === 'REVISAR_WEB' || t === 'CORREGIR_EMAIL' || t === 'SIN_EMAIL' || t === 'DUPLICADO') return 'MAL';
   return 'MAL';
 }

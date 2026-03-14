@@ -5,8 +5,64 @@ function auditarEmailsCRMFestivales() {
 }
 
 function botonAuditarContactosWebCRMFestivales() {
-  const summary = ejecutarAuditoriaEmailsFestivales_({ source: 'manual_button', showUi: true, forceRun: true });
-  SpreadsheetApp.getUi().alert(summary);
+  abrirPanelAuditoriaContactosCRMFestivales_();
+}
+
+function abrirPanelAuditoriaContactosCRMFestivales_() {
+  const html = HtmlService.createHtmlOutput(buildHtmlPanelAuditoriaContactos_())
+    .setWidth(560)
+    .setHeight(460);
+  SpreadsheetApp.getUi().showModelessDialog(html, 'AUDITORIA IA | ARTES BUHO');
+}
+
+function iniciarAuditoriaContactosDesdeDialogoCRMFestivales_() {
+  return ejecutarAuditoriaEmailsFestivales_({ source: 'manual_button', showUi: false, forceRun: true });
+}
+
+function obtenerEstadoAuditoriaContactosCRMFestivales_() {
+  try {
+    const raw = PropertiesService.getScriptProperties().getProperty('FEST_AUDIT_PROGRESS_JSON');
+    if (!raw) return { pct: 0, label: 'Esperando inicio...', status: 'IDLE' };
+    return JSON.parse(raw);
+  } catch (err) {
+    return { pct: 0, label: 'Estado no disponible', status: 'ERROR' };
+  }
+}
+
+function buildHtmlPanelAuditoriaContactos_() {
+  return [
+    '<!doctype html><html><head><meta charset="utf-8">',
+    '<style>',
+    'body{font-family:Arial,sans-serif;margin:0;padding:0;background:radial-gradient(circle at 20% 20%,#1f2a44,#070b14 60%);color:#fff;}',
+    '.wrap{padding:18px;}',
+    '.card{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:16px;}',
+    '.hero{height:110px;border-radius:10px;background-image:url(\"https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=60\");background-size:cover;background-position:center;margin-bottom:12px;box-shadow:inset 0 0 0 9999px rgba(0,0,0,0.35);} ',
+    '.title{font-size:20px;font-weight:800;letter-spacing:1px;margin-bottom:10px;}',
+    '.sub{font-size:12px;opacity:.85;margin-bottom:14px;}',
+    '.bar{height:18px;background:#222;border-radius:20px;overflow:hidden;border:1px solid #555;}',
+    '.fill{height:100%;width:0%;background:linear-gradient(90deg,#00e5ff,#00ff9c);} ',
+    '.pct{margin-top:8px;font-size:26px;font-weight:900;color:#ffd54f;}',
+    '.log{margin-top:10px;background:#0b1020;border:1px solid #2f3d67;border-radius:10px;padding:10px;height:120px;overflow:auto;font-size:12px;white-space:pre-wrap;}',
+    '.meta{margin-top:10px;font-size:12px;opacity:.9;}',
+    '</style></head><body>',
+    '<div class="wrap"><div class="card">',
+    '<div class="hero"></div>',
+    '<div class="title">AUDITORIA IA DE CONTACTOS</div>',
+    '<div class="sub">Desarrollador: RUBEN COTON | Empresa: ARTES BUHO</div>',
+    '<div class="bar"><div id="fill" class="fill"></div></div>',
+    '<div id="pct" class="pct">0%</div>',
+    '<div id="log" class="log">Iniciando...</div>',
+    '<div class="meta" id="meta">Estado: preparando...</div>',
+    '</div></div>',
+    '<script>',
+    'const logEl=document.getElementById("log"); const pctEl=document.getElementById("pct"); const fillEl=document.getElementById("fill"); const metaEl=document.getElementById("meta");',
+    'function add(msg){logEl.textContent=(logEl.textContent+"\\n"+msg).trim(); logEl.scrollTop=logEl.scrollHeight;}',
+    'function paint(st){const p=Math.max(0,Math.min(100,Number(st.pct||0))); pctEl.textContent=p+"%"; fillEl.style.width=p+"%"; metaEl.textContent="Estado: "+(st.status||"RUNNING")+" | "+(st.updatedAt||""); if(st.label) add("["+new Date().toLocaleTimeString()+"] "+st.label);}',
+    'function poll(){google.script.run.withSuccessHandler(function(st){paint(st||{}); if((st&&st.status)==="DONE"||(st&&st.status)==="ERROR"){return;} setTimeout(poll,900);}).obtenerEstadoAuditoriaContactosCRMFestivales_();}',
+    'google.script.run.withSuccessHandler(function(msg){add("Finalizado: "+(msg||"OK")); poll();}).withFailureHandler(function(err){add("Error: "+(err&&err.message?err.message:err)); poll();}).iniciarAuditoriaContactosDesdeDialogoCRMFestivales_();',
+    'setTimeout(poll,600);',
+    '</script></body></html>'
+  ].join('');
 }
 
 function auditarEmailsAutomaticaCRMFestivales_() {
@@ -121,6 +177,118 @@ function desactivarTriggersAutoRevisionEmailsSilencioso_() {
   return deleted;
 }
 
+function botonAutocompletadoCeldasIA_CRMFestivales() {
+  const summary = autocompletarCeldasIA_CRMFestivales_();
+  SpreadsheetApp.getUi().alert(summary);
+}
+
+function autocompletarCeldasIA_CRMFestivales_() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return 'Hay otro proceso en curso. Intenta de nuevo en unos segundos.';
+  let progressCtx = null;
+  let ok = false;
+  let finishMsg = '';
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheets = getFestivalSheets_(ss);
+    if (!sheets.length) return 'No hay pestañas de festivales para autocompletar.';
+
+    progressCtx = iniciarProcesoRevisionConBloqueo_(ss);
+    actualizarProgresoRevision_(progressCtx, 0, 'Iniciando autocompletado IA...');
+
+    const webBudget = {
+      webRemaining: Math.max(0, Number(FEST_EMAIL_MAX_WEB_FETCHES_PER_RUN) || 0),
+      searchRemaining: Math.max(0, Number(FEST_EMAIL_MAX_SEARCH_FETCHES_PER_RUN) || 0),
+      webFetched: 0,
+      webCached: 0,
+      searchFetched: 0,
+      searchCached: 0
+    };
+
+    let totalRows = 0;
+    for (let s = 0; s < sheets.length; s++) totalRows += Math.max(0, sheets[s].getLastRow() - 1);
+    totalRows = Math.max(1, totalRows);
+
+    let touched = 0;
+    let placeholders = 0;
+    let scanned = 0;
+
+    for (let s = 0; s < sheets.length; s++) {
+      const sheet = sheets[s];
+      const values = sheet.getDataRange().getValues();
+      if (values.length < 2) continue;
+      const map = buildHeaderMap_(values[0]);
+
+      for (let r = 1; r < values.length; r++) {
+        const row = values[r];
+        const festival = cleanText_(valueAt_(row, map.nombre));
+        if (!festival) continue;
+        scanned++;
+
+        const rec = {
+          festival: festival,
+          tokens: extraerEmailsValidos_(normalizeEmailCell_(valueAt_(row, map.email))),
+          domains: extraerDominiosDeEmails_(extraerEmailsValidos_(normalizeEmailCell_(valueAt_(row, map.email)))),
+          seedUrls: extraerUrlsDesdeTexto_(cleanText_(valueAt_(row, map.observaciones)))
+        };
+
+        if (!cleanText_(valueAt_(row, map.email))) {
+          const web = buscarEvidenciaWebCorreo_(rec, webBudget);
+          const email = cleanText_(web.bestEmail || '');
+          const v = email || 'IA NO ENCUENTRA';
+          sheet.getRange(r + 1, map.email + 1).setValue(v);
+          if (email) touched++;
+          else placeholders++;
+        }
+
+        if (!cleanText_(valueAt_(row, map.telefono))) {
+          const tel = buscarTelefonoWebFila_(rec, webBudget);
+          const v = tel || 'IA NO ENCUENTRA';
+          sheet.getRange(r + 1, map.telefono + 1).setValue(v);
+          if (tel) touched++;
+          else placeholders++;
+        }
+
+        if (!cleanText_(valueAt_(row, map.contacto))) {
+          sheet.getRange(r + 1, map.contacto + 1).setValue('IA NO ENCUENTRA');
+          placeholders++;
+        }
+        if (!cleanText_(valueAt_(row, map.ubicacion))) {
+          sheet.getRange(r + 1, map.ubicacion + 1).setValue('IA NO ENCUENTRA');
+          placeholders++;
+        }
+        if (!cleanText_(valueAt_(row, map.provincia))) {
+          sheet.getRange(r + 1, map.provincia + 1).setValue('IA NO ENCUENTRA');
+          placeholders++;
+        }
+        if (!cleanText_(valueAt_(row, map.ccaa))) {
+          sheet.getRange(r + 1, map.ccaa + 1).setValue('IA NO ENCUENTRA');
+          placeholders++;
+        }
+
+        if (scanned === 1 || scanned % 20 === 0 || scanned === totalRows) {
+          const pct = Math.round((scanned / totalRows) * 100);
+          actualizarProgresoRevision_(progressCtx, pct, 'Autocompletando fila ' + scanned + ' de ' + totalRows + '...');
+        }
+      }
+    }
+
+    const summary = [
+      'AUTOCOMPLETADO IA COMPLETADO',
+      'Filas escaneadas: ' + scanned,
+      'Celdas completadas con dato: ' + touched,
+      'Celdas marcadas IA NO ENCUENTRA: ' + placeholders
+    ].join('\n');
+    actualizarProgresoRevision_(progressCtx, 100, 'Autocompletado finalizado');
+    ok = true;
+    finishMsg = summary;
+    return summary;
+  } finally {
+    finalizarProcesoRevisionConBloqueo_(progressCtx, ok, finishMsg || 'Autocompletado IA finalizado');
+    lock.releaseLock();
+  }
+}
+
 function ejecutarAuditoriaEmailsFestivales_(opts) {
   const options = opts || {};
   const lock = LockService.getScriptLock();
@@ -168,7 +336,6 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
       const reviewCol = map.reviewEmail + 1;
       const emailCol = map.email + 1;
       const lastCol = Math.max(sheet.getLastColumn(), FEST_HOMO.HEADER.length, reviewCol);
-      const currentReview = rowsCount ? sheet.getRange(2, reviewCol, rowsCount, 1).getValues() : [];
       const currentEmail = rowsCount ? sheet.getRange(2, emailCol, rowsCount, 1).getValues() : [];
       const reviewOut = [];
       const emailOut = [];
@@ -189,7 +356,7 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
         if (map.provincia >= 0 && map.provincia < row.length) row[map.provincia] = normProvincia;
         if (map.ccaa >= 0 && map.ccaa < row.length) row[map.ccaa] = normCcaa;
 
-        reviewOut.push([normalizeRevisionStatus_(currentReview[r][0]) || 'MAL']);
+        reviewOut.push(['MAL']);
         emailOut.push([normalizeEmailCell_(currentEmail[r][0]) || '']);
         rowColors.push(FEST_HOMO.COLORS.BODY_BG);
         ubicacionOut.push([normUbicacion]);
@@ -270,7 +437,7 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
     for (let c = 0; c < contexts.length; c++) bySheet[contexts[c].sheet.getName()] = contexts[c];
 
     let bienCount = 0;
-    let cambiadoCount = 0;
+    let corregidoCount = 0;
     let malCount = 0;
     let changedEmailCount = 0;
     let duplicateCount = 0;
@@ -311,7 +478,7 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
       ctx.reviewOut[rec.rowOffset][0] = rec.status;
       ctx.rowColors[rec.rowOffset] = colorPorEstadoRevisionEmail_(rec.status);
       if (rec.status === 'BIEN') bienCount++;
-      else if (rec.status === 'CAMBIADO') cambiadoCount++;
+      else if (rec.status === 'CORREGIDO') corregidoCount++;
       else malCount++;
       if (rec.duplicate) duplicateCount++;
     }
@@ -346,7 +513,7 @@ function ejecutarAuditoriaEmailsFestivales_(opts) {
       'Filas analizadas: ' + records.length,
       'Columna \"REVISION EMAIL\" creada: ' + reviewColumnCreated,
       'Estado BIEN: ' + bienCount,
-      'Estado CAMBIADO: ' + cambiadoCount,
+      'Estado CORREGIDO: ' + corregidoCount,
       'Estado MAL: ' + malCount,
       'Correos actualizados: ' + changedEmailCount,
       'Duplicados detectados: ' + duplicateCount,
@@ -407,6 +574,19 @@ function finalizarProcesoRevisionConBloqueo_(ctx, ok, summary) {
     const sh = ctx.progressSheet || asegurarPestanaProgresoRevision_(ctx.ss);
     sh.getRange('A6').setValue('RESUMEN');
     sh.getRange('B6').setValue(cleanText_(summary || '').substring(0, 500));
+  } catch (err) {
+    // no-op
+  }
+  try {
+    PropertiesService.getScriptProperties().setProperty(
+      'FEST_AUDIT_PROGRESS_JSON',
+      JSON.stringify({
+        pct: 100,
+        label: ok ? 'Auditoria completada' : 'Auditoria con incidencias',
+        status: ok ? 'DONE' : 'ERROR',
+        updatedAt: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss')
+      })
+    );
   } catch (err) {
     // no-op
   }
@@ -479,6 +659,19 @@ function actualizarProgresoRevision_(ctx, pct, label) {
   sh.getRange('C3').setValue(renderBarraProgreso_(safePct));
   sh.getRange('B4').setValue(now);
   sh.getRange('B5').setValue(ctx.protection ? 'SI' : 'NO');
+  try {
+    PropertiesService.getScriptProperties().setProperty(
+      'FEST_AUDIT_PROGRESS_JSON',
+      JSON.stringify({
+        pct: safePct,
+        label: safeLabel || 'En curso',
+        status: safePct >= 100 ? 'DONE' : 'RUNNING',
+        updatedAt: now
+      })
+    );
+  } catch (err) {
+    // no-op
+  }
   try {
     ctx.ss.toast('Revision emails: ' + safePct + '% - ' + (safeLabel || 'En curso'), 'CRM FESTIVALES', 5);
   } catch (err) {}
@@ -611,8 +804,8 @@ function obtenerResultadoRevisionEmail_(record, counter, checks, webBudget) {
     out.action = 'Email confirmado en web.';
   } else if (best) {
     out.finalEmail = best;
-    out.status = (current && best === current) ? 'BIEN' : 'CAMBIADO';
-    out.action = out.status === 'CAMBIADO'
+    out.status = (current && best === current) ? 'BIEN' : 'CORREGIDO';
+    out.action = out.status === 'CORREGIDO'
       ? 'Email actualizado segun evidencia web.'
       : 'Email confirmado en web.';
   } else if (currentLooksValid && (dnsStatusCurrent === 'MX_OK' || dnsStatusCurrent === 'A_OK')) {
@@ -632,7 +825,7 @@ function obtenerResultadoRevisionEmail_(record, counter, checks, webBudget) {
   }
 
   if (record.duplicate) {
-    if (out.status === 'CAMBIADO') {
+    if (out.status === 'CORREGIDO') {
       const cnt = counter[out.finalEmail] || 0;
       if (cnt > 1) {
         out.status = 'MAL';
@@ -723,6 +916,24 @@ function buscarEvidenciaWebCorreo_(record, webBudget) {
     evidenceUrls: dedupeStrings_(evidence).slice(0, 5),
     matchCurrent: matchCurrent
   };
+}
+
+function buscarTelefonoWebFila_(record, webBudget) {
+  const urls = construirUrlsCandidatasFila_(record).slice(0, 8);
+  for (let i = 0; i < urls.length; i++) {
+    const html = obtenerHtmlCacheado_(urls[i], webBudget, 'web');
+    if (!html) continue;
+    const phones = extraerTelefonosDesdeHtml_(html);
+    if (phones.length) return phones[0];
+  }
+  const searchUrls = buscarUrlsWebPorFestival_(record.festival, webBudget).slice(0, 4);
+  for (let i = 0; i < searchUrls.length; i++) {
+    const html = obtenerHtmlCacheado_(searchUrls[i], webBudget, 'search');
+    if (!html) continue;
+    const phones = extraerTelefonosDesdeHtml_(html);
+    if (phones.length) return phones[0];
+  }
+  return '';
 }
 
 function construirUrlsCandidatasFila_(record) {
@@ -847,6 +1058,20 @@ function extraerEmailsDesdeHtml_(html) {
   return out;
 }
 
+function extraerTelefonosDesdeHtml_(html) {
+  const raw = String(html || '');
+  const matches = raw.match(/(?:\+34|0034)?[\s().-]*(?:\d[\s().-]*){9,12}/g) || [];
+  const out = [];
+  const seen = {};
+  for (let i = 0; i < matches.length; i++) {
+    const normalized = formatSpanishPhone_(matches[i]);
+    if (!normalized || seen[normalized]) continue;
+    seen[normalized] = true;
+    out.push(normalized);
+  }
+  return out;
+}
+
 function seleccionarMejorEmailCandidato_(emails, record) {
   if (!emails || !emails.length) return '';
   const currentSet = {};
@@ -955,7 +1180,7 @@ function actualizarContadorEmailsTrasCambio_(counter, oldTokens, newEmail) {
 function colorPorEstadoRevisionEmail_(status) {
   const s = cleanText_(status).toUpperCase();
   if (s === 'BIEN') return '#D9EAD3';
-  if (s === 'CAMBIADO') return '#D9E8FB';
+  if (s === 'CORREGIDO') return '#D9E8FB';
   return '#F4CCCC';
 }
 
