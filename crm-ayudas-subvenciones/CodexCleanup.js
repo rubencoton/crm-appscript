@@ -1,19 +1,47 @@
 function codexEjecutarLimpiezaPendienteOnOpen_() {
   var targetSpreadsheetId = '1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA';
-  var doneKey = 'CODEX_CLEANUP_ONOPEN_V1_DONE';
+  var doneKey = 'CODEX_CLEANUP_ONOPEN_V2_DONE';
+  var lastRunKey = 'CODEX_CLEANUP_ONOPEN_V2_LASTRUN_TS';
+  var minIntervalMs = 6 * 60 * 60 * 1000;
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   if (!ss) return;
   if (ss.getId() !== targetSpreadsheetId) return;
 
   var props = PropertiesService.getDocumentProperties();
-  if (props.getProperty(doneKey) === '1') return;
+  var done = props.getProperty(doneKey) === '1';
+  var lastRunTs = Number(props.getProperty(lastRunKey) || 0);
+  var nowTs = Date.now();
+  if (done && lastRunTs > 0 && (nowTs - lastRunTs) < minIntervalMs) return;
 
   try {
-    codexAplicarLimpiezaOperativaAyudas(ss.getId());
+    var reportJson = codexAplicarLimpiezaOperativaAyudas(ss.getId());
+    props.setProperty('CODEX_CLEANUP_LAST_REPORT_JSON', String(reportJson || ''));
     props.setProperty(doneKey, '1');
+    props.setProperty(lastRunKey, String(nowTs));
   } catch (err) {
     Logger.log('Error en auto-limpieza onOpen: ' + (err && err.message ? err.message : err));
   }
+}
+
+function codexForzarLimpiezaOperativaAyudas() {
+  var reportJson = codexAplicarLimpiezaOperativaAyudas();
+  var summary = 'Limpieza operativa ejecutada.';
+  try {
+    var report = JSON.parse(reportJson || '{}');
+    var emails = report && report.steps && report.steps.emails ? report.steps.emails : {};
+    var trimRows = report && report.steps && report.steps.trimRows ? report.steps.trimRows : {};
+    var residual = report && report.steps && report.steps.residualTabs ? report.steps.residualTabs : {};
+    summary =
+      'Limpieza operativa completada\n' +
+      '- Emails normalizados: ' + Number(emails.changedEmails || 0) + '\n' +
+      '- Emails extra movidos a notas: ' + Number(emails.extraEmailsMovedToNotes || 0) + '\n' +
+      '- Filas eliminadas: ' + Number(trimRows.deletedRows || 0) + '\n' +
+      '- Pestanas residuales eliminadas: ' + Number(residual.deletedCount || 0);
+  } catch (e) {
+    summary = 'Limpieza operativa ejecutada, pero no se pudo resumir el reporte.';
+  }
+  SpreadsheetApp.getActiveSpreadsheet().toast(summary, 'Codex Cleanup', 8);
+  return reportJson;
 }
 
 function codexAplicarLimpiezaOperativaAyudas(spreadsheetId) {
@@ -157,6 +185,12 @@ function _codexNormalizeEmailCell_(raw) {
   var placeholders = {
     'n/a': true,
     'na': true,
+    'none': true,
+    'null': true,
+    's/d': true,
+    's/n': true,
+    'no aplica': true,
+    'pendiente': true,
     'sin email': true,
     'sin correo': true,
     'no email': true,
@@ -181,7 +215,16 @@ function _codexNormalizeEmailCell_(raw) {
     };
   }
 
-  var compact = source.replace(/[\n\r\t]+/g, ' ').replace(/[;|/]+/g, ',').replace(/\s+/g, ' ');
+  var compact = source
+    .replace(/[\n\r\t]+/g, ' ')
+    .replace(/(\(|\[)?\s*arroba\s*(\)|\])?/ig, '@')
+    .replace(/\s*(\(at\)|\[at\])\s*/ig, '@')
+    .replace(/\s+(dot|punto)\s+/ig, '.')
+    .replace(/\s*@\s*/g, '@')
+    .replace(/\s*\.\s*/g, '.')
+    .replace(/[;|/]+/g, ',')
+    .replace(/\s+y\s+/ig, ',')
+    .replace(/\s+/g, ' ');
   var matches = compact.match(/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/ig) || [];
   var unique = [];
   var seen = {};
@@ -238,7 +281,7 @@ function _codexRecortarFilasSobrantes_(sheet) {
   }
 
   var bufferRows = 50;
-  var minRows = 200;
+  var minRows = 160;
   var targetRows = Math.max(minRows, lastMeaningfulRow + bufferRows);
   var beforeRows = sheet.getMaxRows();
   var deleted = 0;
@@ -306,16 +349,48 @@ function _codexSheetHasRealData_(sheet) {
   var vals = sheet.getRange(1, 1, rows, cols).getDisplayValues();
   var forms = sheet.getRange(1, 1, rows, cols).getFormulas();
   var nonEmpty = 0;
+  var nonEmptyRows = 0;
+  var firstRowNonEmpty = 0;
 
   for (var r = 0; r < rows; r++) {
+    var rowHasData = false;
+    var rowNonEmpty = 0;
     for (var c = 0; c < cols; c++) {
       if (_codexSan_(vals[r][c]) || _codexSan_(forms[r][c])) {
         nonEmpty++;
-        if (nonEmpty > 3) return true;
+        rowHasData = true;
+        rowNonEmpty++;
       }
     }
+    if (r === 0) firstRowNonEmpty = rowNonEmpty;
+    if (rowHasData) nonEmptyRows++;
   }
-  return false;
+  if (nonEmpty <= 3) return false;
+
+  // Cabecera suelta duplicada (sin filas reales) se considera residual.
+  if (nonEmptyRows === 1 && firstRowNonEmpty >= 6 && _codexLooksLikeConcursosHeader_(vals[0])) {
+    return false;
+  }
+
+  return true;
+}
+
+function _codexLooksLikeConcursosHeader_(rowValues) {
+  if (!rowValues || !rowValues.length) return false;
+  var expected = {
+    'NOMBRE CONCURSO': true,
+    ESTADO: true,
+    INSCRIPCION: true,
+    'FECHA LIMITE INSCRIPCION': true,
+    'LINK BASES/FORMULARIO': true,
+    EMAIL: true
+  };
+  var matches = 0;
+  for (var i = 0; i < rowValues.length; i++) {
+    var key = _codexNorm_(rowValues[i]);
+    if (expected[key]) matches++;
+  }
+  return matches >= 4;
 }
 
 function _codexFindHeaderIndex_(headers, candidates) {
@@ -332,12 +407,9 @@ function _codexFindHeaderIndex_(headers, candidates) {
 
 function _codexNorm_(value) {
   var s = _codexSan_(value).toUpperCase();
-  s = s.replace(/[ÁÀÂÄ]/g, 'A');
-  s = s.replace(/[ÉÈÊË]/g, 'E');
-  s = s.replace(/[ÍÌÎÏ]/g, 'I');
-  s = s.replace(/[ÓÒÔÖ]/g, 'O');
-  s = s.replace(/[ÚÙÛÜ]/g, 'U');
-  s = s.replace(/[Ñ]/g, 'N');
+  if (s.normalize) {
+    s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
   s = s.replace(/\s+/g, ' ').trim();
   return s;
 }
@@ -346,3 +418,4 @@ function _codexSan_(value) {
   if (value === null || value === undefined) return '';
   return String(value).trim();
 }
+

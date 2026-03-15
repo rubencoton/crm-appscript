@@ -136,49 +136,88 @@ function aplicarAjustesVisualesAlAbrirCRMFestivales_() {
   try {
     const started = Date.now();
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sh = ss.getActiveSheet();
-    if (!sh) return;
-    if (!isFestivalSheetName_(sh.getName())) return;
-
-    const lastCol = Math.max(sh.getLastColumn(), FEST_HOMO.HEADER.length);
-    const header = sh.getRange(1, 1, 1, lastCol).getValues()[0];
-    const map = buildHeaderMap_(header);
-    const reviewCol = map.reviewEmail + 1;
-    const mergeCol = map.mergeStatus + 1;
-    const usedCols = Math.max(lastCol, reviewCol, mergeCol);
-
-    sh.getRange(1, 1, 1, usedCols)
-      .setBackground(FEST_HOMO.COLORS.HEADER_BG)
-      .setFontColor(FEST_HOMO.COLORS.HEADER_FG)
-      .setFontWeight('bold')
-      .setHorizontalAlignment('center');
-    sh.getRange(1, mergeCol, 1, 1).setValue(FEST_MERGE_STATUS_HEADER);
-    sh.getRange(1, reviewCol, 1, 1)
-      .setValue('REVISION EMAIL')
-      .setBackground('#FBC02D')
-      .setFontColor('#8B0000')
-      .setFontWeight('bold')
-      .setHorizontalAlignment('center');
-
-    const rows = Math.max(0, sh.getLastRow() - 1);
-    if (rows > 0) {
-      sh.getRange(2, reviewCol, rows, 1)
-        .setDataValidation(buildEmailReviewValidationRule_())
-        .setHorizontalAlignment('center')
-        .setFontWeight('bold');
-      sh.getRange(2, mergeCol, rows, 1).clearDataValidations().setHorizontalAlignment('left').setFontWeight('normal');
+    if (!ss) return;
+    const sheets = getFestivalSheets_(ss);
+    if (!sheets.length) {
+      const active = ss.getActiveSheet();
+      if (active && isFestivalSheetName_(active.getName())) sheets.push(active);
     }
-    Logger.log('Ajuste visual rapido onOpen ms=' + (Date.now() - started));
+    if (!sheets.length) return;
+
+    const hardLimitMs = 4500;
+    let applied = 0;
+    let skipped = 0;
+    for (let i = 0; i < sheets.length; i++) {
+      if (Date.now() - started > hardLimitMs) {
+        skipped += Math.max(0, sheets.length - i);
+        break;
+      }
+      try {
+        if (aplicarAjustesVisualesRapidosEnSheet_(sheets[i])) applied++;
+        else skipped++;
+      } catch (err) {
+        skipped++;
+      }
+    }
+    Logger.log('Ajuste visual rapido onOpen ms=' + (Date.now() - started) + ' | aplicadas=' + applied + ' | omitidas=' + skipped);
   } finally {
     lock.releaseLock();
   }
+}
+
+function aplicarAjustesVisualesRapidosEnSheet_(sh) {
+  if (!sh || !isFestivalSheetName_(sh.getName())) return false;
+  const lastCol = Math.max(sh.getLastColumn(), FEST_HOMO.HEADER.length);
+  const header = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+  if (!isHeaderInCanonicalOrder_(header)) return false;
+
+  const map = buildHeaderMap_(header);
+  const reviewCol = map.reviewEmail + 1;
+  const mergeCol = map.mergeStatus + 1;
+  const genreCol = map.genero + 1;
+  const usedCols = Math.max(lastCol, reviewCol, mergeCol);
+
+  sh.getRange(1, 1, 1, usedCols)
+    .setBackground(FEST_HOMO.COLORS.HEADER_BG)
+    .setFontColor(FEST_HOMO.COLORS.HEADER_FG)
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+
+  sh.getRange(1, mergeCol, 1, 1).setValue(FEST_MERGE_STATUS_HEADER);
+  sh.getRange(1, reviewCol, 1, 1)
+    .setValue('REVISION EMAIL')
+    .setBackground('#FBC02D')
+    .setFontColor('#8B0000')
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+
+  const rows = Math.max(0, sh.getLastRow() - 1);
+  if (rows > 0) {
+    const generoRule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(FEST_GENRE_DROPDOWN, true)
+      .setAllowInvalid(false)
+      .build();
+    sh.getRange(2, genreCol, rows, 1)
+      .setDataValidation(generoRule)
+      .setHorizontalAlignment('center');
+    sh.getRange(2, reviewCol, rows, 1)
+      .setDataValidation(buildEmailReviewValidationRule_())
+      .setHorizontalAlignment('center')
+      .setFontWeight('bold');
+    sh.getRange(2, mergeCol, rows, 1)
+      .clearDataValidations()
+      .setHorizontalAlignment('left')
+      .setFontWeight('normal');
+  }
+
+  return true;
 }
 
 function isFestivalSheetName_(name) {
   const n = cleanText_(name).toUpperCase();
   if (!n) return false;
   if (/^PTE[_-]/.test(n)) return true;
-  return /^(URBAN|POP|INDIE|ROCK|ELECTR|JAZZ|FLAM|RUMBA|MR|MC|MFR|MEC)_(S|L|XL)$/.test(n);
+  return /^(URBANO?|POP|INDIE|ROCK|ELECTR(?:ONICA)?|JAZZ|FLAM(?:ENCO)?|RUMBA|MR|MC|MFR|MEC)_(S|L|XL)$/.test(n);
 }
 
 function instalarTriggerMenuCRMFestivales() {
@@ -719,7 +758,7 @@ function mostrarGuiaIntegracionCRMFestivales() {
 
 function getFestivalSheets_(ss) {
   const valid = [];
-  const reMain = /^(URBAN|POP|INDIE|ROCK|ELECTR|JAZZ|FLAM|RUMBA|MR|MC|MFR|MEC)_(S|L|XL)$/i;
+  const reMain = /^(URBANO?|POP|INDIE|ROCK|ELECTR(?:ONICA)?|JAZZ|FLAM(?:ENCO)?|RUMBA|MR|MC|MFR|MEC)_(S|L|XL)$/i;
   const rePending = /^PTE[_\-]/i;
 
   ss.getSheets().forEach((sheet) => {
@@ -736,10 +775,13 @@ function parseSheetTaxonomy_(sheetName) {
   const name = cleanText_(sheetName).toUpperCase();
   if (/^PTE[_-]/.test(name)) return { genre: 'PTE', size: '' };
 
-  const m = name.match(/^(URBAN|POP|INDIE|ROCK|ELECTR|JAZZ|FLAM|RUMBA|MR|MC|MFR|MEC)_(S|L|XL)$/);
+  const m = name.match(/^(URBANO?|POP|INDIE|ROCK|ELECTR(?:ONICA)?|JAZZ|FLAM(?:ENCO)?|RUMBA|MR|MC|MFR|MEC)_(S|L|XL)$/);
   if (!m) return { genre: '', size: '' };
 
   let genre = m[1];
+  if (genre === 'URBANO') genre = 'URBAN';
+  if (genre === 'ELECTRONICA') genre = 'ELECTR';
+  if (genre === 'FLAMENCO') genre = 'FLAM';
   if (genre === 'MR') genre = 'MFR';
   if (genre === 'MC') genre = 'MEC';
   return { genre: genre, size: m[2] };
@@ -931,9 +973,10 @@ function applyVisualDesignToSheet_(sheet) {
 }
 
 function buildHeaderMap_(headerRow) {
+  const safeHeader = Array.isArray(headerRow) ? headerRow : [];
   const map = {};
-  for (let c = 0; c < headerRow.length; c++) {
-    const h = normalizeHeader_(headerRow[c]);
+  for (let c = 0; c < safeHeader.length; c++) {
+    const h = normalizeHeader_(safeHeader[c]);
     if (!h) continue;
 
     if (h.indexOf('NOMBRE FESTIVAL') > -1 && map.nombre === undefined) map.nombre = c;
@@ -960,8 +1003,25 @@ function buildHeaderMap_(headerRow) {
   if (map.telefono === undefined) map.telefono = 7;
   if (map.contacto === undefined) map.contacto = 8;
   if (map.observaciones === undefined) map.observaciones = 9;
+  if (map.reviewEmail === undefined && map.mergeStatus !== undefined) map.reviewEmail = map.mergeStatus + 1;
+  if (map.reviewEmail !== undefined && map.mergeStatus === undefined) map.mergeStatus = map.reviewEmail + 1;
   if (map.reviewEmail === undefined) map.reviewEmail = 10;
   if (map.mergeStatus === undefined) map.mergeStatus = 11;
+
+  if (map.reviewEmail === map.mergeStatus) {
+    const idx = Math.max(0, Number(map.reviewEmail) || 0);
+    const h = normalizeHeader_(valueAt_(safeHeader, idx));
+    if (h === 'MERGE STATUS' || h === 'MERGESTATUS' || h === 'MERGE') {
+      map.mergeStatus = idx;
+      map.reviewEmail = idx + 1;
+    } else {
+      map.reviewEmail = idx;
+      map.mergeStatus = idx + 1;
+    }
+  }
+
+  map.reviewEmail = Math.max(0, Number(map.reviewEmail) || 0);
+  map.mergeStatus = Math.max(0, Number(map.mergeStatus) || 0);
 
   return map;
 }

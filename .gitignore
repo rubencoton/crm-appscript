@@ -22,6 +22,7 @@ INSPECCION_HOJA.js
 
 # Generated logs
 logs/
+codex-tools/reports/*.xlsx
 
 # Apps Script transient duplicates in CRM ayudas
 crm-ayudas-subvenciones/DecisionInstantanea.js

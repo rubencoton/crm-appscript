@@ -1,113 +1,113 @@
 # CRM FESTIVALES - ARTES BUHO
 
-Proyecto de Google Apps Script para el CRM de festivales.
-Este README esta pensado para que cualquier persona (o IA) entienda el sistema al abrirlo desde cualquier hilo o equipo.
+Proyecto de Google Apps Script para CRM de festivales.
+Este README sirve como guia rapida para cualquier persona o IA.
 
-## 1) Contexto del proyecto
+## 1) Contexto
 - Empresa: `ARTES BUHO`
 - Desarrollador: `RUBEN COTON`
-- Objetivo principal:
-  - mantener datos limpios,
+- Objetivo:
+  - limpiar datos,
   - auditar emails con contraste web,
-  - autocompletar vacios con ayuda IA,
-  - preservar columna de merge para YAMM.
+  - autocompletar huecos con IA,
+  - mantener `Merge status` intacto para YAMM.
 
-## 2) Regla critica de negocio
-- La columna `Merge status`:
-  - siempre es la ultima columna,
-  - no se modifica en auditoria ni autocompletado,
-  - no usa desplegable.
+## 2) Regla critica
+- `Merge status`:
+  - siempre ultima columna,
+  - sin desplegable,
+  - nunca se toca en auditoria/autocompletado.
 
-## 3) Comportamiento al abrir la hoja
-- `onOpen` NO ejecuta auditoria de contactos.
-- `onOpen` solo aplica ajustes visuales ligeros del sheet activo.
-- Objetivo de apertura: respuesta rapida (meta <= 5 segundos).
+## 3) Comportamiento al abrir la hoja (`onOpen`)
+- No se ejecuta auditoria de contactos automaticamente.
+- Si aplica ajustes visuales rapidos en pestanas de festivales.
+- Tiempo objetivo: <= 5 segundos.
+- Seguridad extra:
+  - solo aplica ajustes cuando la cabecera esta en orden canonico,
+  - evita tocar estructuras ambiguas para no romper `Merge status`.
 
-## 4) Menu operativo (arriba en Google Sheets)
+## 4) Menu operativo en Google Sheets
 Menu: `CRM FESTIVALES | RUBEN COTON`
 
 1. `BOTON | Auditar contactos web (bloquea + progreso)`
-- Ejecuta auditoria manual de emails con scraping.
-- Bloquea temporalmente la hoja mientras corre.
-- Muestra progreso de 0% a 100%.
-- Sobrescribe estado previo de revision en cada fila.
+- Auditoria manual de emails con scraping.
+- Bloqueo temporal durante ejecucion.
+- Progreso 0% a 100%.
+- Sobrescribe estado previo de revision.
 
-Estados y color por fila:
-- `BIEN` -> verde (email validado).
-- `CORREGIDO` -> azul (se encontro y sustituyo email alternativo).
-- `MAL` -> rojo (no validable o no recuperable).
+Estados:
+- `BIEN` -> fila verde.
+- `CORREGIDO` -> fila azul.
+- `MAL` -> fila roja.
 
 2. `BOTON | Autocompletado de celdas (IA)`
-- Recorre celdas vacias y busca datos en web.
-- Si encuentra dato fiable, lo escribe.
-- Si no encuentra dato, escribe `IA NO ENCUENTRA`.
+- Completa celdas vacias con datos encontrados en web.
+- Si no encuentra datos: `IA NO ENCUENTRA`.
 - Nunca toca `Merge status`.
 
-## 5) Progreso en tiempo real
-- Pestaña de progreso: `PROGRESO_CRM`.
-- Datos visibles:
-  - estado actual,
+## 5) Progreso visible
+- Pestana: `PROGRESO_CRM`
+- Muestra:
+  - estado,
   - porcentaje,
-  - barra de progreso,
+  - barra,
   - ultima actualizacion,
-  - bloqueo activo SI/NO.
-- Tambien hay panel emergente con estilo futurista para la auditoria manual.
+  - bloqueo SI/NO.
+- Dialogo de auditoria con estilo futurista.
 
-## 6) Archivos clave y para que sirve cada uno
+## 6) Archivos clave
 - `CRM_FESTIVALES_ENGINE.gs`
-  - menu, onOpen, formato visual, cabeceras, validaciones, reglas de estructura.
+  - menu, onOpen, formato, cabeceras, validaciones.
 - `CRM_FESTIVALES_EMAIL_REVIEW.gs`
-  - auditoria de emails, scraping, bloqueo, progreso, autocompletado IA.
+  - auditoria emails, scraping, bloqueo, progreso, autocompletado.
 - `INSPECCION_HOJA.gs`
-  - inspeccion tecnica de estructura/formato/validaciones/protecciones.
+  - inspeccion tecnica de estructura, formatos, validaciones y protecciones.
 - `codex-tools/audit_auto.js`
-  - auditoria tecnica automatica (sintaxis, secretos, stress local).
+  - auditoria automatica local.
 - `codex-tools/audit_ultra.js`
-  - auditoria profunda con checks avanzados.
-- `codex-tools/auditoria_festivales_2h.ps1`
-  - ciclo de auditoria continua 2h con logs y csv de trazabilidad.
+  - auditoria profunda con stress y validacion live.
+- `codex-tools/run-node.ps1`
+  - lanzador robusto de Node para Windows cuando `node` no esta en PATH.
 
-## 7) Flujo recomendado de trabajo
-1. Cambiar codigo en repo.
-2. Actualizar README cuando cambie funcionalidad.
-3. Commit con mensaje claro.
-4. `git push`.
-5. `gas:push` para subir a Apps Script.
-6. Verificar en hoja real usando botones del menu.
+## 7) Cambios importantes de la auditoria profunda (2026-03-15)
+- Corregido mapeo de cabeceras para evitar colision entre:
+  - `REVISION EMAIL`
+  - `Merge status`
+- Mejorado `onOpen` para cubrir todas las pestanas de festivales sin romper estructura.
+- Ampliado soporte de nombres de pestana:
+  - `URBANO`, `ELECTRONICA`, `FLAMENCO` y alias.
+- `npm run audit:auto` y `npm run audit:ultra` ahora funcionan sin depender de PATH global.
 
 ## 8) Comandos utiles
-- Estado Git:
-  - `git status -sb`
-- Estado Apps Script:
-  - `npm run gas:status`
-- Subir codigo a Apps Script:
-  - `npm run gas:push`
-- Deploy (si el dominio lo permite):
-  - `npm run gas:deploy`
-- Auditoria tecnica:
-  - `node codex-tools/audit_auto.js`
-  - `node codex-tools/audit_ultra.js`
-- Auditoria continua 2h:
-  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\codex-tools\auditoria_festivales_2h.ps1 -Horas 2 -IntervaloMin 10`
+- `git status -sb`
+- `npm run gas:status`
+- `npm run gas:push`
+- `npm run gas:deploy`
+- `npm run audit:auto`
+- `npm run audit:ultra`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\\codex-tools\\auditoria_festivales_2h.ps1 -Horas 2 -IntervaloMin 10`
 
-## 9) Trazabilidad y reportes
+## 9) Trazabilidad
 - Reportes en `codex-tools/reports/`.
-- Cada cambio funcional debe dejar:
+- Regla operativa:
+  - actualizar README,
   - commit en GitHub,
-  - README actualizado,
-  - nota de estado de push a Apps Script.
+  - push Apps Script,
+  - registrar resultado (ok/error).
 
 ## 10) Limitaciones conocidas
-- `gas:deploy` puede fallar por restriccion de dominio:
-  - mensaje tipico: `Only users in the same domain as the script owner may deploy this script.`
-- `clasp push` puede requerir reautenticacion Google (error `invalid_rapt`).
+- `gas:deploy` puede fallar por dominio:
+  - `Only users in the same domain as the script owner may deploy this script.`
+- `INSPECCION_HOJA.gs` via `clasp run` requiere despliegue API ejecutable.
+- Si no hay API ejecutable disponible, usar reporte fallback en `codex-tools/reports/`.
 
-## 11) Script ID y enlace tecnico
-- Script ID (Apps Script): `1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea`
-- Vinculacion local: `.clasp.json`
+## 11) Script ID
+- Apps Script ID: `1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea`
+- Vinculo local: `.clasp.json`
 
-## 12) Regla de mantenimiento
-Siempre que se toque funcionalidad:
-- se actualiza este README,
-- se deja commit en GitHub,
-- se intenta push a Apps Script y se reporta resultado.
+## 12) Mantenimiento
+Siempre:
+- actualizar README,
+- versionar en GitHub,
+- sincronizar Apps Script,
+- documentar bloqueos de permisos si aparecen.

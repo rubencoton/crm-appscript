@@ -135,6 +135,7 @@ function onOpen() {
     .addSeparator()
     .addItem('📨 Enviar boletin a BANDAS', 'verificarYEnviarCorreos')
     .addSeparator()
+    .addItem('Limpieza operativa ahora', 'codexForzarLimpiezaOperativaAyudas')
     .addItem('🧹 Purgar estado/logs', 'purgarSistema')
     .addToUi();
 

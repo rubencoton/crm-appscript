@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-03-15T11:11:12",
+  "status": "local_changes_prepared_not_deployed",
+  "deploymentBlocker": {
+    "clasp_push_default": "invalid_grant invalid_rapt",
+    "clasp_push_booking_workspace_full_bella": "Insufficient Permission",
+    "clasp_push_booking_ecosistema_apis": "Insufficient Permission"
+  },
+  "projectedImpactOnSheet": {
+    "emailChangesProjected": 23,
+    "emailPlaceholdersProjected": 17,
+    "emailInvalidProjected": 2,
+    "multiEmailCellsProjected": 4,
+    "extraEmailsProjected": 4,
+    "lastMeaningfulRow": 105,
+    "targetRowsAfterTrim": 160,
+    "rowsToDeleteProjected": 740,
+    "residualTabsDeletableProjected": [
+      "Hoja 11"
+    ]
+  }
+}
