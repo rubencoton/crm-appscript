@@ -1002,7 +1002,14 @@ function obtenerHtmlCacheado_(url, webBudget, mode) {
     const code = res.getResponseCode();
     if (code < 200 || code >= 400) return '';
     const html = res.getContentText() || '';
-    if (html) cache.put(key, html, FEST_EMAIL_WEB_CACHE_TTL_SEC);
+    if (html) {
+      try {
+        // CacheService limita el tamano por entrada. Si no cabe, no rompemos la auditoria.
+        if (html.length <= 90000) cache.put(key, html, FEST_EMAIL_WEB_CACHE_TTL_SEC);
+      } catch (cacheErr) {
+        // no-op
+      }
+    }
     return html;
   } catch (err) {
     return '';

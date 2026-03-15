@@ -129,7 +129,16 @@ Estados:
 - Conclusión:
   - la via ADC no desbloquea despliegue de este script sin habilitacion previa del usuario.
 
-## 11) Comandos utiles
+## 11) Mejora de calidad aplicada (2026-03-15 15:12)
+- Se corrigio un bug de auditoria web en `obtenerHtmlCacheado_`:
+  - antes: si `CacheService.put` fallaba por tamano de HTML, la funcion devolvia vacio y perdia evidencia web,
+  - ahora: si falla cache, devuelve igualmente el HTML descargado.
+- Impacto esperado:
+  - menos falsos `MAL`,
+  - mejor contraste real de emails en web,
+  - mejor estabilidad con paginas grandes.
+
+## 12) Comandos utiles
 - `git status -sb`
 - `npm run gas:status`
 - `npm run gas:push`
@@ -140,7 +149,7 @@ Estados:
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\\codex-tools\\auditoria_remota_festivales.ps1`
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\\codex-tools\\auditoria_festivales_2h.ps1 -Horas 2 -IntervaloMin 10`
 
-## 12) Trazabilidad
+## 13) Trazabilidad
 - Reportes en `codex-tools/reports/`.
 - Regla operativa:
   - actualizar README,
@@ -148,7 +157,7 @@ Estados:
   - push Apps Script,
   - registrar resultado (ok/error).
 
-## 13) Limitaciones conocidas
+## 14) Limitaciones conocidas
 - `gas:deploy` puede fallar por dominio:
   - `Only users in the same domain as the script owner may deploy this script.`
 - `gas:push`/`gas:deploy` pueden fallar por sesion expirada:
@@ -157,11 +166,11 @@ Estados:
 - `INSPECCION_HOJA.gs` via `clasp run` requiere despliegue API ejecutable.
 - Si no hay API ejecutable disponible, usar reporte fallback en `codex-tools/reports/`.
 
-## 14) Script ID
+## 15) Script ID
 - Apps Script ID: `1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea`
 - Vinculo local: `.clasp.json`
 
-## 15) Mantenimiento
+## 16) Mantenimiento
 Siempre:
 - actualizar README,
 - versionar en GitHub,
