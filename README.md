@@ -104,7 +104,22 @@ Estados:
   - `gas:push`: error de sesion Google (`invalid_rapt`),
   - `gas:deploy`: error de sesion Google (`invalid_rapt`).
 
-## 9) Comandos utiles
+## 9) Estado autenticacion clasp (2026-03-15 14:40)
+- Perfiles detectados en `.clasprc.json`:
+  - `default`,
+  - `booking_workspace_full_bella`,
+  - `booking_ecosistema_apis`,
+  - `booking_clasp_admin`.
+- Resultado de pruebas de `push` por perfil:
+  - `default`: `invalid_rapt`,
+  - `booking_clasp_admin`: `invalid_rapt`,
+  - `booking_workspace_full_bella`: `Insufficient Permission`,
+  - `booking_ecosistema_apis`: `Insufficient Permission`.
+- Conclusión operativa:
+  - el codigo y GitHub estan actualizados,
+  - falta reautenticacion Google para sincronizar Apps Script remoto.
+
+## 10) Comandos utiles
 - `git status -sb`
 - `npm run gas:status`
 - `npm run gas:push`
@@ -115,7 +130,7 @@ Estados:
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\\codex-tools\\auditoria_remota_festivales.ps1`
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\\codex-tools\\auditoria_festivales_2h.ps1 -Horas 2 -IntervaloMin 10`
 
-## 10) Trazabilidad
+## 11) Trazabilidad
 - Reportes en `codex-tools/reports/`.
 - Regla operativa:
   - actualizar README,
@@ -123,7 +138,7 @@ Estados:
   - push Apps Script,
   - registrar resultado (ok/error).
 
-## 11) Limitaciones conocidas
+## 12) Limitaciones conocidas
 - `gas:deploy` puede fallar por dominio:
   - `Only users in the same domain as the script owner may deploy this script.`
 - `gas:push`/`gas:deploy` pueden fallar por sesion expirada:
@@ -131,11 +146,11 @@ Estados:
 - `INSPECCION_HOJA.gs` via `clasp run` requiere despliegue API ejecutable.
 - Si no hay API ejecutable disponible, usar reporte fallback en `codex-tools/reports/`.
 
-## 12) Script ID
+## 13) Script ID
 - Apps Script ID: `1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea`
 - Vinculo local: `.clasp.json`
 
-## 13) Mantenimiento
+## 14) Mantenimiento
 Siempre:
 - actualizar README,
 - versionar en GitHub,
