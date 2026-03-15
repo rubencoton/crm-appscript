@@ -144,33 +144,81 @@ function aplicarAjustesVisualesAlAbrirCRMFestivales_() {
     }
     if (!sheets.length) return;
     const activeSheet = ss.getActiveSheet();
-    if (activeSheet) {
-      const idx = sheets.findIndex((x) => x.getSheetId() === activeSheet.getSheetId());
-      if (idx > 0) {
-        const first = sheets[idx];
-        sheets.splice(idx, 1);
-        sheets.unshift(first);
-      }
-    }
+    const activeSheetId = activeSheet ? activeSheet.getSheetId() : null;
+    const order = ordenarSheetsParaAjusteRapido_(sheets, activeSheetId);
+    const orderedSheets = order.list;
+    const hasActivePinned = order.activePinned;
 
     const hardLimitMs = 4500;
     let applied = 0;
     let skipped = 0;
-    for (let i = 0; i < sheets.length; i++) {
+    let advancedCursor = 0;
+    for (let i = 0; i < orderedSheets.length; i++) {
       if (Date.now() - started > hardLimitMs) {
-        skipped += Math.max(0, sheets.length - i);
+        skipped += Math.max(0, orderedSheets.length - i);
         break;
       }
+      const isPinnedActive = hasActivePinned && i === 0;
+      if (!isPinnedActive) advancedCursor++;
       try {
-        if (aplicarAjustesVisualesRapidosEnSheet_(sheets[i])) applied++;
+        if (aplicarAjustesVisualesRapidosEnSheet_(orderedSheets[i])) applied++;
         else skipped++;
       } catch (err) {
         skipped++;
       }
     }
+    actualizarCursorAjusteRapido_(order.cursorStart, advancedCursor, order.rotatableCount);
     Logger.log('Ajuste visual rapido onOpen ms=' + (Date.now() - started) + ' | aplicadas=' + applied + ' | omitidas=' + skipped);
   } finally {
     lock.releaseLock();
+  }
+}
+
+function ordenarSheetsParaAjusteRapido_(sheets, activeSheetId) {
+  const list = Array.isArray(sheets) ? sheets.slice() : [];
+  let activePinned = false;
+  let activeSheet = null;
+  if (activeSheetId) {
+    const idx = list.findIndex((x) => x && x.getSheetId && x.getSheetId() === activeSheetId);
+    if (idx >= 0) {
+      activePinned = true;
+      activeSheet = list[idx];
+      list.splice(idx, 1);
+    }
+  }
+
+  const rotatableCount = list.length;
+  let cursorStart = 0;
+  if (rotatableCount > 0) {
+    try {
+      const raw = Number(PropertiesService.getScriptProperties().getProperty('FEST_FAST_OPEN_CURSOR') || '0');
+      cursorStart = ((raw % rotatableCount) + rotatableCount) % rotatableCount;
+    } catch (err) {
+      cursorStart = 0;
+    }
+  }
+
+  const rotated = rotatableCount > 0
+    ? list.slice(cursorStart).concat(list.slice(0, cursorStart))
+    : [];
+
+  const out = activePinned && activeSheet ? [activeSheet].concat(rotated) : rotated;
+  return {
+    list: out,
+    activePinned: activePinned && !!activeSheet,
+    cursorStart: cursorStart,
+    rotatableCount: rotatableCount
+  };
+}
+
+function actualizarCursorAjusteRapido_(cursorStart, advanced, rotatableCount) {
+  if (!rotatableCount || rotatableCount <= 0) return;
+  const step = Math.max(1, Number(advanced) || 0);
+  const next = (Math.max(0, Number(cursorStart) || 0) + step) % rotatableCount;
+  try {
+    PropertiesService.getScriptProperties().setProperty('FEST_FAST_OPEN_CURSOR', String(next));
+  } catch (err) {
+    // no-op
   }
 }
 
