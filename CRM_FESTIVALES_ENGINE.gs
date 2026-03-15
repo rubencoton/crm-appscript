@@ -143,6 +143,15 @@ function aplicarAjustesVisualesAlAbrirCRMFestivales_() {
       if (active && isFestivalSheetName_(active.getName())) sheets.push(active);
     }
     if (!sheets.length) return;
+    const activeSheet = ss.getActiveSheet();
+    if (activeSheet) {
+      const idx = sheets.findIndex((x) => x.getSheetId() === activeSheet.getSheetId());
+      if (idx > 0) {
+        const first = sheets[idx];
+        sheets.splice(idx, 1);
+        sheets.unshift(first);
+      }
+    }
 
     const hardLimitMs = 4500;
     let applied = 0;
@@ -167,9 +176,14 @@ function aplicarAjustesVisualesAlAbrirCRMFestivales_() {
 
 function aplicarAjustesVisualesRapidosEnSheet_(sh) {
   if (!sh || !isFestivalSheetName_(sh.getName())) return false;
+  const initialCols = Math.max(sh.getLastColumn(), FEST_HOMO.HEADER.length);
+  const initialHeader = sh.getRange(1, 1, 1, initialCols).getValues()[0];
+  if (!isHeaderInCanonicalOrder_(initialHeader)) {
+    if (!repararCabecerasMinimasEnSheet_(sh, initialHeader)) return false;
+  }
+
   const lastCol = Math.max(sh.getLastColumn(), FEST_HOMO.HEADER.length);
   const header = sh.getRange(1, 1, 1, lastCol).getValues()[0];
-  if (!isHeaderInCanonicalOrder_(header)) return false;
 
   const map = buildHeaderMap_(header);
   const reviewCol = map.reviewEmail + 1;
@@ -210,6 +224,51 @@ function aplicarAjustesVisualesRapidosEnSheet_(sh) {
       .setFontWeight('normal');
   }
 
+  return true;
+}
+
+function repararCabecerasMinimasEnSheet_(sheet, headerRow) {
+  if (!sheet) return false;
+  let cols = Math.max(sheet.getLastColumn(), FEST_HOMO.HEADER.length);
+  let header = Array.isArray(headerRow) ? headerRow.slice() : sheet.getRange(1, 1, 1, cols).getValues()[0];
+
+  function findHeaderIndex(names) {
+    const wanted = {};
+    for (let i = 0; i < names.length; i++) wanted[normalizeHeader_(names[i])] = true;
+    for (let c = 0; c < header.length; c++) {
+      const h = normalizeHeader_(header[c]);
+      if (wanted[h]) return c + 1;
+    }
+    return 0;
+  }
+
+  let reviewCol = findHeaderIndex(['REVISION EMAIL', 'ESTADO EMAIL', 'EMAIL REVISADO']);
+  let mergeCol = findHeaderIndex(['MERGE STATUS', 'MERGESTATUS', 'MERGE']);
+
+  if (!reviewCol && !mergeCol) {
+    reviewCol = Math.max(cols + 1, 11);
+    sheet.getRange(1, reviewCol).setValue('REVISION EMAIL');
+    mergeCol = reviewCol + 1;
+    sheet.getRange(1, mergeCol).setValue(FEST_MERGE_STATUS_HEADER);
+  } else if (!reviewCol && mergeCol) {
+    sheet.insertColumnBefore(mergeCol);
+    reviewCol = mergeCol;
+    mergeCol += 1;
+    sheet.getRange(1, reviewCol).setValue('REVISION EMAIL');
+    sheet.getRange(1, mergeCol).setValue(FEST_MERGE_STATUS_HEADER);
+  } else if (reviewCol && !mergeCol) {
+    mergeCol = Math.max(sheet.getLastColumn() + 1, reviewCol + 1);
+    sheet.getRange(1, mergeCol).setValue(FEST_MERGE_STATUS_HEADER);
+  }
+
+  sheet.getRange(1, reviewCol, 1, 1)
+    .setBackground('#FBC02D')
+    .setFontColor('#8B0000')
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+  sheet.getRange(1, mergeCol, 1, 1)
+    .setValue(FEST_MERGE_STATUS_HEADER)
+    .setHorizontalAlignment('center');
   return true;
 }
 

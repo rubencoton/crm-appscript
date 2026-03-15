@@ -58,3 +58,5 @@
 [2026-03-14 17:38:03] CICLO 12 audit_auto exit=0 pass=58 fail=0
 [2026-03-14 17:38:31] CICLO 12 audit_ultra exit=0 pass=28 fail=0
 [2026-03-14 17:38:32] CICLO 12 cambios detectados por auditoria, creando commit de trazabilidad.
+[2026-03-14 17:38:37] CICLO 12 espera 600 segundos
+[2026-03-14 17:48:37] FIN auditoria festivales 2h.

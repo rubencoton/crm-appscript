@@ -48,6 +48,7 @@ function codexAplicarLimpiezaOperativaAyudas(spreadsheetId) {
   var defaultId = '1LgZG2ObSCJzEQvrysu1NFFEvYlupLXVByDnIMCr-wYA';
   var active = SpreadsheetApp.getActiveSpreadsheet();
   var ss = null;
+  var lock = LockService.getDocumentLock();
 
   if (spreadsheetId) {
     if (active && active.getId() === spreadsheetId) {
@@ -61,27 +62,37 @@ function codexAplicarLimpiezaOperativaAyudas(spreadsheetId) {
     ss = SpreadsheetApp.openById(defaultId);
   }
 
-  var sid = ss.getId();
-  var concursos = ss.getSheetByName('CONCURSOS');
-  if (!concursos) throw new Error('No existe la pestana CONCURSOS.');
+  try {
+    lock.waitLock(15000);
 
-  var report = {
-    ok: true,
-    spreadsheetId: sid,
-    spreadsheetTitle: ss.getName(),
-    timestamp: new Date().toISOString(),
-    steps: {
-      emails: {},
-      trimRows: {},
-      residualTabs: {}
+    var sid = ss.getId();
+    var concursos = ss.getSheetByName('CONCURSOS');
+    if (!concursos) throw new Error('No existe la pestana CONCURSOS.');
+
+    var report = {
+      ok: true,
+      spreadsheetId: sid,
+      spreadsheetTitle: ss.getName(),
+      timestamp: new Date().toISOString(),
+      steps: {
+        emails: {},
+        trimRows: {},
+        residualTabs: {}
+      }
+    };
+
+    report.steps.emails = _codexLimpiarEmailsConcursos_(concursos);
+    report.steps.trimRows = _codexRecortarFilasSobrantes_(concursos);
+    report.steps.residualTabs = _codexLimpiarPestanasResiduales_(ss);
+
+    return JSON.stringify(report);
+  } finally {
+    try {
+      lock.releaseLock();
+    } catch (e) {
+      // Sin accion: releaseLock puede fallar si no se obtuvo el lock.
     }
-  };
-
-  report.steps.emails = _codexLimpiarEmailsConcursos_(concursos);
-  report.steps.trimRows = _codexRecortarFilasSobrantes_(concursos);
-  report.steps.residualTabs = _codexLimpiarPestanasResiduales_(ss);
-
-  return JSON.stringify(report);
+  }
 }
 
 function _codexLimpiarEmailsConcursos_(sheet) {
@@ -111,10 +122,12 @@ function _codexLimpiarEmailsConcursos_(sheet) {
   }
 
   var emailRange = sheet.getRange(2, idxEmail, rows, 1);
-  var emailValues = emailRange.getDisplayValues();
+  var emailValues = emailRange.getValues();
   var noteValues = null;
+  var noteRange = null;
   if (idxNotas > 0) {
-    noteValues = sheet.getRange(2, idxNotas, rows, 1).getDisplayValues();
+    noteRange = sheet.getRange(2, idxNotas, rows, 1);
+    noteValues = noteRange.getValues();
   }
 
   var changedEmails = 0;
@@ -122,21 +135,22 @@ function _codexLimpiarEmailsConcursos_(sheet) {
   var clearedInvalid = 0;
   var multiEmailCells = 0;
   var extraEmailsMovedToNotes = 0;
-  var changedNotes = 0;
+  var changedEmailRows = [];
+  var changedNoteRows = [];
 
   for (var r = 0; r < rows; r++) {
     var original = emailValues[r][0];
     var normalized = _codexNormalizeEmailCell_(original);
+    var currentPrimary = _codexSan_(emailValues[r][0]);
 
     if (normalized.wasPlaceholder) clearedPlaceholders++;
     if (normalized.invalidInput) clearedInvalid++;
     if (normalized.hadMultiple) multiEmailCells++;
 
-    if (normalized.changed) {
+    if (normalized.primary !== currentPrimary) {
       emailValues[r][0] = normalized.primary;
       changedEmails++;
-    } else {
-      emailValues[r][0] = normalized.primary;
+      changedEmailRows.push(r);
     }
 
     if (idxNotas > 0 && normalized.extras.length) {
@@ -144,15 +158,21 @@ function _codexLimpiarEmailsConcursos_(sheet) {
       var extraText = 'Emails extra detectados: ' + normalized.extras.join(', ');
       if (currentNote.indexOf(extraText) === -1) {
         noteValues[r][0] = currentNote ? (currentNote + ' | ' + extraText) : extraText;
-        changedNotes++;
+        changedNoteRows.push(r);
         extraEmailsMovedToNotes += normalized.extras.length;
       }
     }
   }
 
-  emailRange.setValues(emailValues);
-  if (idxNotas > 0 && changedNotes > 0) {
-    sheet.getRange(2, idxNotas, rows, 1).setValues(noteValues);
+  for (var i = 0; i < changedEmailRows.length; i++) {
+    var rowIdx = changedEmailRows[i];
+    sheet.getRange(2 + rowIdx, idxEmail).setValue(emailValues[rowIdx][0]);
+  }
+  if (idxNotas > 0 && changedNoteRows.length > 0) {
+    for (var j = 0; j < changedNoteRows.length; j++) {
+      var noteIdx = changedNoteRows[j];
+      noteRange.getCell(1 + noteIdx, 1).setValue(noteValues[noteIdx][0]);
+    }
   }
 
   return {

@@ -23,8 +23,8 @@ Este README sirve como guia rapida para cualquier persona o IA.
 - Si aplica ajustes visuales rapidos en pestanas de festivales.
 - Tiempo objetivo: <= 5 segundos.
 - Seguridad extra:
-  - solo aplica ajustes cuando la cabecera esta en orden canonico,
-  - evita tocar estructuras ambiguas para no romper `Merge status`.
+  - prioriza la pestana activa para que el cambio se vea al instante,
+  - si detecta cabecera incompleta, repara minimo (`REVISION EMAIL` + `Merge status`) sin romper datos.
 
 ## 4) Menu operativo en Google Sheets
 Menu: `CRM FESTIVALES | RUBEN COTON`
@@ -68,6 +68,8 @@ Estados:
   - auditoria profunda con stress y validacion live.
 - `codex-tools/run-node.ps1`
   - lanzador robusto de Node para Windows cuando `node` no esta en PATH.
+- `codex-tools/auditar_sheet_fallback.py`
+  - auditoria completa de hoja por XLSX cuando la API ejecutable no esta disponible.
 
 ## 7) Cambios importantes de la auditoria profunda (2026-03-15)
 - Corregido mapeo de cabeceras para evitar colision entre:
@@ -85,6 +87,7 @@ Estados:
 - `npm run gas:deploy`
 - `npm run audit:auto`
 - `npm run audit:ultra`
+- `python codex-tools\\auditar_sheet_fallback.py --spreadsheet-id <ID> --xlsx-path <RUTA_XLSX>`
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\\codex-tools\\auditoria_festivales_2h.ps1 -Horas 2 -IntervaloMin 10`
 
 ## 9) Trazabilidad
