@@ -119,7 +119,17 @@ Estados:
   - el codigo y GitHub estan actualizados,
   - falta reautenticacion Google para sincronizar Apps Script remoto.
 
-## 10) Comandos utiles
+## 10) Intento adicional ADC (2026-03-15 15:05)
+- Se probo autenticacion remota con cuenta robot via `GOOGLE_APPLICATION_CREDENTIALS`.
+- Resultado:
+  - autenticacion ADC: OK,
+  - `clasp push --adc`: bloqueado por Apps Script API de usuario.
+- Mensaje exacto:
+  - `User has not enabled the Apps Script API. Enable it by visiting https://script.google.com/home/usersettings`.
+- Conclusión:
+  - la via ADC no desbloquea despliegue de este script sin habilitacion previa del usuario.
+
+## 11) Comandos utiles
 - `git status -sb`
 - `npm run gas:status`
 - `npm run gas:push`
@@ -130,7 +140,7 @@ Estados:
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\\codex-tools\\auditoria_remota_festivales.ps1`
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\\codex-tools\\auditoria_festivales_2h.ps1 -Horas 2 -IntervaloMin 10`
 
-## 11) Trazabilidad
+## 12) Trazabilidad
 - Reportes en `codex-tools/reports/`.
 - Regla operativa:
   - actualizar README,
@@ -138,19 +148,20 @@ Estados:
   - push Apps Script,
   - registrar resultado (ok/error).
 
-## 12) Limitaciones conocidas
+## 13) Limitaciones conocidas
 - `gas:deploy` puede fallar por dominio:
   - `Only users in the same domain as the script owner may deploy this script.`
 - `gas:push`/`gas:deploy` pueden fallar por sesion expirada:
   - `invalid_grant` + `invalid_rapt` (requiere `npm run gas:login`).
+- `clasp --adc` puede autenticar, pero bloquear `push` por ajuste de Apps Script API de usuario.
 - `INSPECCION_HOJA.gs` via `clasp run` requiere despliegue API ejecutable.
 - Si no hay API ejecutable disponible, usar reporte fallback en `codex-tools/reports/`.
 
-## 13) Script ID
+## 14) Script ID
 - Apps Script ID: `1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea`
 - Vinculo local: `.clasp.json`
 
-## 14) Mantenimiento
+## 15) Mantenimiento
 Siempre:
 - actualizar README,
 - versionar en GitHub,
