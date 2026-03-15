@@ -74,6 +74,9 @@ const FEST_EMAIL_DOMAIN_CACHE_TTL_HOURS = 24;
 const FEST_EMAIL_MAX_WEB_FETCHES_PER_RUN = 40;
 const FEST_EMAIL_MAX_SEARCH_FETCHES_PER_RUN = 10;
 const FEST_EMAIL_WEB_CACHE_TTL_SEC = 8 * 60 * 60;
+const FEST_FAST_OPEN_MAX_MS = 4500;
+const FEST_FAST_OPEN_VALIDATION_ROWS = 350;
+const FEST_FAST_OPEN_FULL_EXTRA_MS = 900;
 
 // Si no tienes otro onOpen en el proyecto, este ya deja el menu automatico.
 
@@ -149,7 +152,7 @@ function aplicarAjustesVisualesAlAbrirCRMFestivales_() {
     const orderedSheets = order.list;
     const hasActivePinned = order.activePinned;
 
-    const hardLimitMs = 4500;
+    const hardLimitMs = FEST_FAST_OPEN_MAX_MS;
     let applied = 0;
     let skipped = 0;
     let advancedCursor = 0;
@@ -161,11 +164,17 @@ function aplicarAjustesVisualesAlAbrirCRMFestivales_() {
       const isPinnedActive = hasActivePinned && i === 0;
       if (!isPinnedActive) advancedCursor++;
       try {
-        const fullMode = hasActivePinned ? i === 0 : i === 0;
-        if (aplicarAjustesVisualesRapidosEnSheet_(orderedSheets[i], fullMode)) applied++;
+        if (aplicarAjustesVisualesRapidosEnSheet_(orderedSheets[i], false)) applied++;
         else skipped++;
       } catch (err) {
         skipped++;
+      }
+    }
+    if (hasActivePinned && orderedSheets.length && (Date.now() - started) < Math.max(500, hardLimitMs - FEST_FAST_OPEN_FULL_EXTRA_MS)) {
+      try {
+        aplicarAjustesVisualesRapidosEnSheet_(orderedSheets[0], true);
+      } catch (err) {
+        // no-op
       }
     }
     actualizarCursorAjusteRapido_(order.cursorStart, advancedCursor, order.rotatableCount);
@@ -255,22 +264,35 @@ function aplicarAjustesVisualesRapidosEnSheet_(sh, fullMode) {
     .setFontWeight('bold')
     .setHorizontalAlignment('center');
 
-  if (!useFullMode) return true;
-
   const rows = Math.max(0, sh.getLastRow() - 1);
-  if (rows > 0) {
+  const validationRows = useFullMode ? rows : Math.min(rows, FEST_FAST_OPEN_VALIDATION_ROWS);
+  if (validationRows > 0) {
     const generoRule = SpreadsheetApp.newDataValidation()
       .requireValueInList(FEST_GENRE_DROPDOWN, true)
       .setAllowInvalid(false)
       .build();
-    sh.getRange(2, genreCol, rows, 1)
-      .setDataValidation(generoRule)
-      .setHorizontalAlignment('center');
-    sh.getRange(2, reviewCol, rows, 1)
+    const generoRange = sh.getRange(2, genreCol, validationRows, 1);
+    const generoValues = generoRange.getValues();
+    let generoChanged = false;
+    for (let r = 0; r < generoValues.length; r++) {
+      const current = cleanText_(generoValues[r][0]).toUpperCase();
+      const fixed = normalizarGeneroParaLista_(generoValues[r][0]);
+      if (fixed && current !== fixed) {
+        generoValues[r][0] = fixed;
+        generoChanged = true;
+      }
+    }
+    if (generoChanged) generoRange.setValues(generoValues);
+    generoRange.setDataValidation(generoRule).setHorizontalAlignment('center');
+    sh.getRange(2, reviewCol, validationRows, 1)
       .setDataValidation(buildEmailReviewValidationRule_())
       .setHorizontalAlignment('center')
       .setFontWeight('bold');
-    sh.getRange(2, mergeCol, rows, 1)
+  }
+
+  const mergeRows = Math.max(0, sh.getMaxRows() - 1);
+  if (mergeRows > 0) {
+    sh.getRange(2, mergeCol, mergeRows, 1)
       .clearDataValidations()
       .setHorizontalAlignment('left')
       .setFontWeight('normal');
@@ -914,6 +936,29 @@ function normalizeGenreCode_(raw) {
   return '';
 }
 
+function normalizarGeneroParaLista_(raw) {
+  const original = cleanText_(raw).toUpperCase();
+  const allowed = {};
+  for (let i = 0; i < FEST_GENRE_DROPDOWN.length; i++) {
+    allowed[FEST_GENRE_DROPDOWN[i]] = true;
+  }
+  if (!original) return '';
+  if (allowed[original]) return original;
+
+  const code = normalizeGenreCode_(raw);
+  let candidate = '';
+  if (code === 'URBAN') candidate = 'URBANO';
+  else if (code === 'ELECTR') candidate = 'ELECTRONICA';
+  else if (code === 'FLAM') candidate = 'FLAMENCO';
+  else if (code === 'MFR') candidate = 'MR';
+  else if (code === 'MEC') candidate = 'MC';
+  else if (code === 'PTE') candidate = 'PENDIENTE';
+  else candidate = code;
+
+  if (candidate && allowed[candidate]) return candidate;
+  return original;
+}
+
 function sizeCodeFromAforo_(aforoRaw) {
   const n = parseAforo_(aforoRaw);
   if (n === '' || isNaN(n)) return '';
@@ -1057,7 +1102,10 @@ function applyVisualDesignToSheet_(sheet) {
       .setHorizontalAlignment('center')
       .setFontWeight('bold');
     sheet.getRange(1, mergeCol, 1, 1).setValue(FEST_MERGE_STATUS_HEADER).setHorizontalAlignment('center');
-    sheet.getRange(2, mergeCol, lastRow - 1, 1).clearDataValidations().setHorizontalAlignment('left').setFontWeight('normal');
+    const mergeRows = Math.max(0, sheet.getMaxRows() - 1);
+    if (mergeRows > 0) {
+      sheet.getRange(2, mergeCol, mergeRows, 1).clearDataValidations().setHorizontalAlignment('left').setFontWeight('normal');
+    }
 
     const rangeForRules = sheet.getRange(2, 1, Math.max(1, lastRow - 1), lastCol);
 

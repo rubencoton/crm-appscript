@@ -702,10 +702,13 @@ function aplicarPoliticaColumnasRevision_(sheet, map, rowsCount) {
     .setDataValidation(buildEmailReviewValidationRule_())
     .setHorizontalAlignment('center')
     .setFontWeight('bold');
-  sheet.getRange(2, mergeCol, rowsCount, 1)
-    .clearDataValidations()
-    .setHorizontalAlignment('left')
-    .setFontWeight('normal');
+  const mergeRows = Math.max(0, sheet.getMaxRows() - 1);
+  if (mergeRows > 0) {
+    sheet.getRange(2, mergeCol, mergeRows, 1)
+      .clearDataValidations()
+      .setHorizontalAlignment('left')
+      .setFontWeight('normal');
+  }
 }
 
 function asegurarColumnaRevisionEmailEnSheet_(sheet) {

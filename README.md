@@ -26,7 +26,9 @@ Este README sirve como guia rapida para cualquier persona o IA.
   - prioriza la pestana activa para que el cambio se vea al instante,
   - si detecta cabecera incompleta, repara minimo (`REVISION EMAIL` + `Merge status`) sin romper datos,
   - usa cursor rotativo para no quedarse siempre en las mismas pestanas cuando hay limite de tiempo,
-  - en pestanas no activas aplica modo ligero (solo cabecera) para recorrer muchas hojas en pocos segundos.
+  - en pestanas no activas aplica modo ligero para recorrer muchas hojas en pocos segundos,
+  - limpia validaciones de `Merge status` en toda la columna para evitar desplegables residuales,
+  - corrige valores de `GENERO` en bloque rapido para reducir "valor no valido".
 
 ## 4) Menu operativo en Google Sheets
 Menu: `CRM FESTIVALES | RUBEN COTON`
@@ -81,8 +83,28 @@ Estados:
 - Ampliado soporte de nombres de pestana:
   - `URBANO`, `ELECTRONICA`, `FLAMENCO` y alias.
 - `npm run audit:auto` y `npm run audit:ultra` ahora funcionan sin depender de PATH global.
+- Refuerzo adicional:
+  - limpieza total de validaciones en `Merge status` (sin desplegable),
+  - normalizacion rapida de `GENERO` para evitar errores de validacion visibles,
+  - modo ligero por defecto + pase extra en pestana activa si hay margen de tiempo.
 
-## 8) Comandos utiles
+## 8) Estado de auditoria remota (2026-03-15 14:26)
+- Codigo:
+  - `audit:auto`: `58/58 PASS`.
+  - `audit:ultra`: `28/28 PASS`.
+- Hoja (fallback XLSX):
+  - libro: `32` pestanas,
+  - rango maximo detectado: `12` columnas,
+  - filas usadas acumuladas: `40.354`,
+  - faltan `REVISION EMAIL` en `23` pestanas (hasta que el `onOpen` repare en vivo),
+  - falta `Merge status` en `1` pestana (`PROGRESO_CRM`, no operativa de festivales),
+  - validaciones detectadas en `9` pestanas,
+  - reglas condicionales detectadas en `31` pestanas.
+- Apps Script:
+  - `gas:push`: error de sesion Google (`invalid_rapt`),
+  - `gas:deploy`: error de sesion Google (`invalid_rapt`).
+
+## 9) Comandos utiles
 - `git status -sb`
 - `npm run gas:status`
 - `npm run gas:push`
@@ -90,9 +112,10 @@ Estados:
 - `npm run audit:auto`
 - `npm run audit:ultra`
 - `python codex-tools\\auditar_sheet_fallback.py --spreadsheet-id <ID> --xlsx-path <RUTA_XLSX>`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\\codex-tools\\auditoria_remota_festivales.ps1`
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\\codex-tools\\auditoria_festivales_2h.ps1 -Horas 2 -IntervaloMin 10`
 
-## 9) Trazabilidad
+## 10) Trazabilidad
 - Reportes en `codex-tools/reports/`.
 - Regla operativa:
   - actualizar README,
@@ -100,17 +123,19 @@ Estados:
   - push Apps Script,
   - registrar resultado (ok/error).
 
-## 10) Limitaciones conocidas
+## 11) Limitaciones conocidas
 - `gas:deploy` puede fallar por dominio:
   - `Only users in the same domain as the script owner may deploy this script.`
+- `gas:push`/`gas:deploy` pueden fallar por sesion expirada:
+  - `invalid_grant` + `invalid_rapt` (requiere `npm run gas:login`).
 - `INSPECCION_HOJA.gs` via `clasp run` requiere despliegue API ejecutable.
 - Si no hay API ejecutable disponible, usar reporte fallback en `codex-tools/reports/`.
 
-## 11) Script ID
+## 12) Script ID
 - Apps Script ID: `1OGuPezQ26BFvaLRiy-IYIotGpmVu_Z_b9Mi8tCiprIz8zB4DgqmMc5Ea`
 - Vinculo local: `.clasp.json`
 
-## 12) Mantenimiento
+## 13) Mantenimiento
 Siempre:
 - actualizar README,
 - versionar en GitHub,
