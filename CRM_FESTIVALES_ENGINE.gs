@@ -161,7 +161,8 @@ function aplicarAjustesVisualesAlAbrirCRMFestivales_() {
       const isPinnedActive = hasActivePinned && i === 0;
       if (!isPinnedActive) advancedCursor++;
       try {
-        if (aplicarAjustesVisualesRapidosEnSheet_(orderedSheets[i])) applied++;
+        const fullMode = hasActivePinned ? i === 0 : i === 0;
+        if (aplicarAjustesVisualesRapidosEnSheet_(orderedSheets[i], fullMode)) applied++;
         else skipped++;
       } catch (err) {
         skipped++;
@@ -222,8 +223,9 @@ function actualizarCursorAjusteRapido_(cursorStart, advanced, rotatableCount) {
   }
 }
 
-function aplicarAjustesVisualesRapidosEnSheet_(sh) {
+function aplicarAjustesVisualesRapidosEnSheet_(sh, fullMode) {
   if (!sh || !isFestivalSheetName_(sh.getName())) return false;
+  const useFullMode = fullMode !== false;
   const initialCols = Math.max(sh.getLastColumn(), FEST_HOMO.HEADER.length);
   const initialHeader = sh.getRange(1, 1, 1, initialCols).getValues()[0];
   if (!isHeaderInCanonicalOrder_(initialHeader)) {
@@ -252,6 +254,8 @@ function aplicarAjustesVisualesRapidosEnSheet_(sh) {
     .setFontColor('#8B0000')
     .setFontWeight('bold')
     .setHorizontalAlignment('center');
+
+  if (!useFullMode) return true;
 
   const rows = Math.max(0, sh.getLastRow() - 1);
   if (rows > 0) {

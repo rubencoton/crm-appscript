@@ -1,0 +1,5853 @@
+{
+  "meta": {
+    "generatedAt": "2026-03-15T14:05:18",
+    "mode": "xlsx_fallback",
+    "note": "Inspeccion por exportacion XLSX porque no hay API executable disponible"
+  },
+  "workbook": {
+    "id": "1kRrdCwd0n6FwVp-8rKP3gEeYT-TBXc1JL8sa_xzp1IM",
+    "name": "sheet_snapshot_festivales_direct_20260315_140450.xlsx",
+    "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "modifiedTime": "",
+    "owners": [],
+    "sheetCount": 32,
+    "xlsxPath": "C:\\Users\\elrub\\Desktop\\CARPETA CODEX\\01_PROYECTOS\\festivales-github\\codex-tools\\reports\\sheet_snapshot_festivales_direct_20260315_140450.xlsx"
+  },
+  "sheets": [
+    {
+      "name": "URBAN_S",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2033,
+        "usedCols": 12,
+        "usedRange": "A1:L2033",
+        "nonEmptyRows": 1153
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "OBSERVACIONES",
+          "REVISION EMAIL",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "BLOCK PARTY",
+            "URBAN",
+            500.0,
+            "Madrid",
+            "Madrid",
+            "Madrid",
+            "david@heartofgold.es",
+            null,
+            "Carolina",
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "BLOCK PARTY",
+            "URBAN",
+            500.0,
+            "Madrid",
+            "Madrid",
+            "Madrid",
+            "carolina@heartofgold.es",
+            null,
+            "Carolina",
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "BLOCK PARTY",
+            "URBAN",
+            500.0,
+            "Madrid",
+            "Madrid",
+            "Madrid",
+            "david@heartofgold.es",
+            null,
+            "Carolina",
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "BLOCK PARTY",
+            "URBAN",
+            500.0,
+            "Madrid",
+            "Madrid",
+            "Madrid",
+            "carolina@heartofgold.es",
+            null,
+            "Carolina",
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "DMC FEST",
+            "URBAN",
+            500.0,
+            "Dúrcal",
+            "Granada",
+            "Andalucía",
+            "info@dmcfest.com",
+            "+34 958 247 500",
+            null,
+            null,
+            "MAL",
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF8B0000",
+          "FFBDBDBD",
+          "FFFBC02D",
+          "FFFFF9CC",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial",
+          "Roboto"
+        ],
+        "sizes": [
+          "10.0",
+          "None"
+        ],
+        "bold": [
+          "False",
+          "True"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [
+          "center",
+          "left"
+        ],
+        "align_v": [
+          "center"
+        ],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "medium|medium|medium|",
+          "thin|thin|thin|thin"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 2,
+        "byColumn": {
+          "K": 1,
+          "B": 1
+        },
+        "sample": [
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"BIEN,CAMBIADO,MAL\"",
+            "formula2": "",
+            "ranges": [
+              "K2:K1153"
+            ]
+          },
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"URBANO,URBAN,POP,INDIE,ROCK,ELECTRONICA,ELECTR,JAZZ,FLAMENCO,FLAM,RUMBA,MFR,MR,MEC,MC,PENDIENTE,PTE\"",
+            "formula2": "",
+            "ranges": [
+              "B2:B1153"
+            ]
+          }
+        ]
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1153",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 3,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A2:L1153>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L1153>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L1153>",
+            "type": "expression"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "PROGRESO_CRM",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 5,
+        "usedCols": 3,
+        "usedRange": "A1:C5",
+        "nonEmptyRows": 5
+      },
+      "visibleData": {
+        "header": [
+          "METRICA",
+          "VALOR",
+          "BARRA"
+        ],
+        "sampleRows": [
+          [
+            "ESTADO",
+            "Preparando: INDIE_XL",
+            null
+          ],
+          [
+            "PROGRESO",
+            0.07,
+            "[#-------------------] 7%"
+          ],
+          [
+            "ULTIMA_ACTUALIZACION",
+            "2026-03-13T16:24:21",
+            null
+          ],
+          [
+            "BLOQUEO",
+            "NO",
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FF8B0000"
+        ],
+        "fonts": [
+          "Arial"
+        ],
+        "sizes": [
+          "10.0",
+          "None"
+        ],
+        "bold": [
+          "False",
+          "True"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [
+          "center"
+        ],
+        "align_v": [],
+        "numfmt": [
+          "0%",
+          "General",
+          "yyyy-mm-dd h:mm:ss"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 0,
+        "rules": []
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "URBAN_L",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2023,
+        "usedCols": 12,
+        "usedRange": "A1:L2023",
+        "nonEmptyRows": 1664
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "OBSERVACIONES",
+          "REVISION EMAIL",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Minho Reggae Festival",
+            "URBANO",
+            2000.0,
+            "Tomiño",
+            "Pontevedra",
+            "Galicia",
+            "minhoreggae@gmail.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "NOWA REGGAE",
+            "URBANO",
+            2000.0,
+            null,
+            "Barcelona",
+            "Cataluña",
+            "info@nowareggae.com",
+            null,
+            "Sin información",
+            null,
+            null,
+            null
+          ],
+          [
+            "NOWA REGGAE",
+            "URBANO",
+            2000.0,
+            null,
+            "Barcelona",
+            "Cataluña",
+            "direccio@nowareggae.com",
+            null,
+            "Sin información",
+            null,
+            null,
+            null
+          ],
+          [
+            "EXTRUGA NA RÚA FESTIVAL",
+            "URBANO",
+            2000.0,
+            "Orense",
+            "Orense",
+            "Galicia",
+            "estrugastreet@gmail.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "EXTRUGA NA RÚA FESTIVAL",
+            "URBANO",
+            2000.0,
+            "Orense",
+            "Orense",
+            "Galicia",
+            "extruga@extruga.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF8B0000",
+          "FF980000",
+          "FFBDBDBD",
+          "FFE6B8AF",
+          "FFFAF3F3",
+          "FFFBC02D",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial",
+          "Roboto"
+        ],
+        "sizes": [
+          "10.0",
+          "None"
+        ],
+        "bold": [
+          "False",
+          "True"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [
+          "center",
+          "left"
+        ],
+        "align_v": [
+          "center"
+        ],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "medium|medium|medium|",
+          "thin|thin|thin|thin",
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 2,
+        "byColumn": {
+          "K": 1,
+          "B": 1
+        },
+        "sample": [
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"BIEN,CAMBIADO,MAL\"",
+            "formula2": "",
+            "ranges": [
+              "K2:K1664"
+            ]
+          },
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"URBAN,POP,INDIE,ROCK,ELECTR,JAZZ,FLAM,RUMBA,MEC,MFR\"",
+            "formula2": "",
+            "ranges": [
+              "B2:B1664"
+            ]
+          }
+        ]
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$K$1664",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 2,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A2:K1664>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:K1664>",
+            "type": "expression"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "URBAN_XL",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 49,
+        "usedCols": 12,
+        "usedRange": "A1:L49",
+        "nonEmptyRows": 49
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "OBSERVACIONES",
+          "REVISION EMAIL",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Urban Sound Festival",
+            "URBAN",
+            10000.0,
+            "Madrid",
+            "Madrid",
+            "Madrid",
+            "info@urbansoundprints.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Share Festival",
+            "URBAN",
+            10000.0,
+            "Barcelona",
+            "Barcelona",
+            "Cataluña",
+            "info@sharefestival.org",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Donostia Festibala",
+            "URBAN",
+            10000.0,
+            "San Sebastián",
+            "Guipúzcoa",
+            "País Vasco",
+            "donostiakofestak@donostia.org",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Salinas Sound Festival",
+            "URBAN",
+            10000.0,
+            "Roquetas de Mar",
+            "Almería",
+            "Andalucía",
+            "info@salinassoundfestival.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "O Marisquiño",
+            "URBAN",
+            15000.0,
+            "Vigo",
+            "Pontevedra",
+            "Galicia",
+            "info@omarisquino.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF8B0000",
+          "FFBDBDBD",
+          "FFFBC02D",
+          "FFFFF9CC",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial",
+          "Roboto"
+        ],
+        "sizes": [
+          "10.0",
+          "None"
+        ],
+        "bold": [
+          "False",
+          "True"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [
+          "center",
+          "left"
+        ],
+        "align_v": [
+          "center"
+        ],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "medium|medium|medium|",
+          "thin|thin|thin|thin"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 2,
+        "byColumn": {
+          "K": 1,
+          "B": 1
+        },
+        "sample": [
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"BIEN,CAMBIADO,MAL\"",
+            "formula2": "",
+            "ranges": [
+              "K2:K49"
+            ]
+          },
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"URBANO,URBAN,POP,INDIE,ROCK,ELECTRONICA,ELECTR,JAZZ,FLAMENCO,FLAM,RUMBA,MFR,MR,MEC,MC,PENDIENTE,PTE\"",
+            "formula2": "",
+            "ranges": [
+              "B2:B49"
+            ]
+          }
+        ]
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$49",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 3,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A2:L49>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L49>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L49>",
+            "type": "expression"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "POP_S",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2047,
+        "usedCols": 12,
+        "usedRange": "A1:L2047",
+        "nonEmptyRows": 1182
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "OBSERVACIONES",
+          "REVISION EMAIL",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Festival Festeamus",
+            "POP",
+            1000.0,
+            "Torremocha del Jarama",
+            "Madrid",
+            "C. de Madrid",
+            "festeamus@gmail.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Felicia Pop Festival",
+            "POP",
+            1000.0,
+            "Limodre",
+            "A Coruña",
+            "Galicia",
+            "feliciapopfestival@gmail.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Creampop",
+            "POP",
+            1000.0,
+            "Benissa",
+            "Alicante",
+            "C. Valenciana",
+            "creampopfestival@gmail.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Bubblepop",
+            "POP",
+            1000.0,
+            "Barcelona",
+            "Barcelona",
+            "Cataluña",
+            "bubblepopfest@gmail.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Certamen Música Ciudad de Alcalá de Henares",
+            "POP",
+            500.0,
+            "Alcalá de Henares",
+            "Madrid",
+            "C. de Madrid",
+            "certamen@ayto-alcaladehenares.es",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF8B0000",
+          "FFBDBDBD",
+          "FFFBC02D",
+          "FFFFF9CC",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial",
+          "Roboto"
+        ],
+        "sizes": [
+          "10.0",
+          "None"
+        ],
+        "bold": [
+          "False",
+          "True"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [
+          "center",
+          "left"
+        ],
+        "align_v": [
+          "center"
+        ],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "medium|medium|medium|",
+          "thin|thin|thin|thin"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 2,
+        "byColumn": {
+          "K": 1,
+          "B": 1
+        },
+        "sample": [
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"BIEN,CAMBIADO,MAL\"",
+            "formula2": "",
+            "ranges": [
+              "K2:K1182"
+            ]
+          },
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"URBANO,URBAN,POP,INDIE,ROCK,ELECTRONICA,ELECTR,JAZZ,FLAMENCO,FLAM,RUMBA,MFR,MR,MEC,MC,PENDIENTE,PTE\"",
+            "formula2": "",
+            "ranges": [
+              "B2:B1182"
+            ]
+          }
+        ]
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1182",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 3,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A2:L1182>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L1182>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L1182>",
+            "type": "expression"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "POP_L",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2148,
+        "usedCols": 12,
+        "usedRange": "A1:L2148",
+        "nonEmptyRows": 1188
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "OBSERVACIONES",
+          "REVISION EMAIL",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "UNIVERSAL MUSIC FESTIVAL",
+            "POP",
+            1700.0,
+            "Madrid",
+            "Madrid",
+            "Comunidad de Madrid",
+            "gema.aguilera@gtstalent.com",
+            "+34 917 445 500",
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "UNIVERSAL MUSIC FESTIVAL",
+            "POP",
+            1700.0,
+            "Madrid",
+            "Madrid",
+            "Comunidad de Madrid",
+            "info.spain@umusic.com",
+            "+34 917 445 500",
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Peñíscola From Stage",
+            "POP",
+            2000.0,
+            "Peñíscola",
+            "Castellón",
+            "Comunidad Valenciana",
+            "info@peniscolaremember.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Menorca Music Festival",
+            "POP",
+            2000.0,
+            "Es Mercadal",
+            "Illes Balears",
+            "Islas Baleares",
+            "orquestrademenorca@gmail.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Tio Pepe Festival",
+            "POP",
+            2000.0,
+            "Jerez de la Frontera",
+            "Cádiz",
+            "Andalucía",
+            "info@tiopepefestival.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF8B0000",
+          "FFBDBDBD",
+          "FFFBC02D",
+          "FFFFF9CC",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial",
+          "Roboto"
+        ],
+        "sizes": [
+          "10.0",
+          "None"
+        ],
+        "bold": [
+          "False",
+          "True"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [
+          "center",
+          "left"
+        ],
+        "align_v": [
+          "center"
+        ],
+        "numfmt": [
+          "#,##0",
+          "#,##0\"€\"",
+          "General"
+        ],
+        "borders": [
+          "medium|medium|medium|",
+          "thin|thin|thin|thin"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 2,
+        "byColumn": {
+          "K": 1,
+          "B": 1
+        },
+        "sample": [
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"BIEN,CAMBIADO,MAL\"",
+            "formula2": "",
+            "ranges": [
+              "K2:K1188"
+            ]
+          },
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"URBANO,URBAN,POP,INDIE,ROCK,ELECTRONICA,ELECTR,JAZZ,FLAMENCO,FLAM,RUMBA,MFR,MR,MEC,MC,PENDIENTE,PTE\"",
+            "formula2": "",
+            "ranges": [
+              "B2:B1188"
+            ]
+          }
+        ]
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1188",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 3,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A2:L1188>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L1188>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L1188>",
+            "type": "expression"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "POP_XL",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 66,
+        "usedCols": 12,
+        "usedRange": "A1:L66",
+        "nonEmptyRows": 66
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "OBSERVACIONES",
+          "REVISION EMAIL",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Festival Mil·lenni",
+            "POP",
+            10000.0,
+            "Barcelona",
+            "Barcelona",
+            "Cataluña",
+            "coordinador@concertstudio.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Noches Mediterráneas",
+            "POP",
+            10000.0,
+            "Alicante",
+            "Alicante",
+            "Comunidad Valenciana",
+            "contratacion.gts@umusic.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Música en Grande",
+            "POP",
+            10000.0,
+            "Santander",
+            "Cantabria",
+            "Cantabria",
+            "info@mouroproducciones.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Bahía Sound",
+            "POP",
+            10000.0,
+            "San Fernando",
+            "Cádiz",
+            "Andalucía",
+            "info@bahiasound.es",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Recorda Fest",
+            "POP",
+            10000.0,
+            "A Coruña",
+            "A Coruña",
+            "Galicia",
+            "hola@recordafest.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF8B0000",
+          "FFBDBDBD",
+          "FFFBC02D",
+          "FFFFF9CC",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial",
+          "Roboto"
+        ],
+        "sizes": [
+          "10.0",
+          "None"
+        ],
+        "bold": [
+          "False",
+          "True"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [
+          "center",
+          "left"
+        ],
+        "align_v": [
+          "center"
+        ],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "medium|medium|medium|",
+          "thin|thin|thin|thin"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 2,
+        "byColumn": {
+          "K": 1,
+          "B": 1
+        },
+        "sample": [
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"BIEN,CAMBIADO,MAL\"",
+            "formula2": "",
+            "ranges": [
+              "K2:K66"
+            ]
+          },
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"URBANO,URBAN,POP,INDIE,ROCK,ELECTRONICA,ELECTR,JAZZ,FLAMENCO,FLAM,RUMBA,MFR,MR,MEC,MC,PENDIENTE,PTE\"",
+            "formula2": "",
+            "ranges": [
+              "B2:B66"
+            ]
+          }
+        ]
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$66",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 3,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A2:L66>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L66>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L66>",
+            "type": "expression"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "INDIE_L",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1307,
+        "usedCols": 12,
+        "usedRange": "A1:L1307",
+        "nonEmptyRows": 1087
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "OBSERVACIONES",
+          "REVISION EMAIL",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Nitsa Club / Sala Apolo (Eventos)",
+            "INDIE",
+            1200.0,
+            "Barcelona",
+            "Barcelona",
+            "Cataluña",
+            "info@sala-apolo.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "EL INVERNADERO FEST",
+            "INDIE",
+            1200.0,
+            "Madrid",
+            "Madrid",
+            "Comunidad de Madrid",
+            "contratacion@volteretarecords.com",
+            "+34 914 882 304",
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "RUIDISMO",
+            "INDIE",
+            1200.0,
+            "Murcia",
+            "Murcia",
+            "Región de Murcia",
+            "info@ruidismo.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "FaCeLa Fest",
+            "INDIE",
+            1500.0,
+            "Lugo",
+            "Lugo",
+            "Galicia",
+            "info@facelafest.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Madrid Brillante",
+            "INDIE",
+            1500.0,
+            "Madrid",
+            "Madrid",
+            "Comunidad de Madrid",
+            "info@barelbrillante.es",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF8B0000",
+          "FFBDBDBD",
+          "FFFBC02D",
+          "FFFFF9CC",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial",
+          "Roboto"
+        ],
+        "sizes": [
+          "10.0",
+          "None"
+        ],
+        "bold": [
+          "False",
+          "True"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [
+          "center",
+          "left"
+        ],
+        "align_v": [
+          "center"
+        ],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "medium|medium|medium|",
+          "thin|thin|thin|thin"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 2,
+        "byColumn": {
+          "K": 1,
+          "B": 1
+        },
+        "sample": [
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"BIEN,CAMBIADO,MAL\"",
+            "formula2": "",
+            "ranges": [
+              "K2:K1087"
+            ]
+          },
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"URBANO,URBAN,POP,INDIE,ROCK,ELECTRONICA,ELECTR,JAZZ,FLAMENCO,FLAM,RUMBA,MFR,MR,MEC,MC,PENDIENTE,PTE\"",
+            "formula2": "",
+            "ranges": [
+              "B2:B1087"
+            ]
+          }
+        ]
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1087",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 3,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A2:L1087>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L1087>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L1087>",
+            "type": "expression"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "INDIE_S",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1112,
+        "usedCols": 12,
+        "usedRange": "A1:L1112",
+        "nonEmptyRows": 1112
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "OBSERVACIONES",
+          "REVISION EMAIL",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "QUEMA DE ARTISTAS",
+            "INDIE",
+            200.0,
+            "Teruel",
+            "Teruel",
+            "Aragón",
+            "quemadeartistas@hotmail.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "SOLPORES NO LAGOEIRO",
+            "INDIE",
+            300.0,
+            "La Estrada",
+            "Pontevedra",
+            "Galicia",
+            "prensa@solporesnolagoeiro.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "PITA FEST",
+            "INDIE",
+            300.0,
+            "Boal / Armal",
+            "Asturias",
+            "Asturias",
+            "info@pitafesta.org",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "TRUENO RAYO FEST",
+            "INDIE",
+            480.0,
+            "València",
+            "Valencia",
+            "Comunidad Valenciana",
+            "hola@truenorayofest.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "MUD (Músiques Disperses)",
+            "INDIE",
+            500.0,
+            "Lleida",
+            "Lleida",
+            "Cataluña",
+            "cultura@paeria.cat",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF8B0000",
+          "FFBDBDBD",
+          "FFFBC02D",
+          "FFFFF9CC",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial",
+          "Roboto"
+        ],
+        "sizes": [
+          "10.0",
+          "None"
+        ],
+        "bold": [
+          "False",
+          "True"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [
+          "center",
+          "left"
+        ],
+        "align_v": [
+          "center"
+        ],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "medium|medium|medium|",
+          "thin|thin|thin|thin"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 2,
+        "byColumn": {
+          "K": 1,
+          "B": 1
+        },
+        "sample": [
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"BIEN,CAMBIADO,MAL\"",
+            "formula2": "",
+            "ranges": [
+              "K2:K1112"
+            ]
+          },
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"URBANO,URBAN,POP,INDIE,ROCK,ELECTRONICA,ELECTR,JAZZ,FLAMENCO,FLAM,RUMBA,MFR,MR,MEC,MC,PENDIENTE,PTE\"",
+            "formula2": "",
+            "ranges": [
+              "B2:B1112"
+            ]
+          }
+        ]
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1112",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 3,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A2:L1112>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L1112>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L1112>",
+            "type": "expression"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "INDIE_XL",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1199,
+        "usedCols": 12,
+        "usedRange": "A1:L1199",
+        "nonEmptyRows": 219
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "OBSERVACIONES",
+          "REVISION EMAIL",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Surfing the Lérez",
+            "INDIE",
+            10000.0,
+            "Pontevedra",
+            "Pontevedra",
+            "Galicia",
+            "contacto@metropolitano.gal",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Arrecife en Vivo",
+            "INDIE",
+            10000.0,
+            "Arrecife",
+            "Las Palmas",
+            "Canarias",
+            "medios@arrecifeenvivo.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Oh, See! Málaga",
+            "INDIE",
+            10000.0,
+            "Málaga",
+            "Málaga",
+            "Andalucía",
+            "info@ohseemalaga.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Festival Noroeste",
+            "INDIE",
+            10000.0,
+            "La Coruña",
+            "A Coruña",
+            "Galicia",
+            "festivalnoroestestrellagalicia@gmail.com",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ],
+          [
+            "Ribera Sound",
+            "INDIE",
+            10000.0,
+            "Tudela",
+            "Navarra",
+            "Navarra",
+            "sac010@tudela.es",
+            null,
+            null,
+            null,
+            "MAL",
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FF8B0000",
+          "FFBDBDBD",
+          "FFFBC02D",
+          "FFFFF9CC",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial",
+          "Roboto"
+        ],
+        "sizes": [
+          "10.0",
+          "None"
+        ],
+        "bold": [
+          "False",
+          "True"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [
+          "center",
+          "left"
+        ],
+        "align_v": [
+          "center"
+        ],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "medium|medium|medium|",
+          "thin|thin|thin|thin",
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 2,
+        "byColumn": {
+          "K": 1,
+          "B": 1
+        },
+        "sample": [
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"BIEN,CAMBIADO,MAL\"",
+            "formula2": "",
+            "ranges": [
+              "K2:K219"
+            ]
+          },
+          {
+            "type": "list",
+            "allowBlank": true,
+            "operator": "",
+            "formula1": "\"URBANO,URBAN,POP,INDIE,ROCK,ELECTRONICA,ELECTR,JAZZ,FLAMENCO,FLAM,RUMBA,MFR,MR,MEC,MC,PENDIENTE,PTE\"",
+            "formula2": "",
+            "ranges": [
+              "B2:B219"
+            ]
+          }
+        ]
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$219",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 3,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A2:L219>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L219>",
+            "type": "expression"
+          },
+          {
+            "range": "<ConditionalFormatting A2:L219>",
+            "type": "expression"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "ROCK_S",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2114,
+        "usedCols": 12,
+        "usedRange": "A1:L2114",
+        "nonEmptyRows": 1134
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          null,
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Vidiago Rock",
+            "SI",
+            "ROCK",
+            1000.0,
+            "Vidiago",
+            "Asturias",
+            "Asturias",
+            "vidiagorock@gmail.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Palacio Metal Fest",
+            "SI",
+            "ROCK",
+            1000.0,
+            "Los Palacios",
+            "Sevilla",
+            "Andalucía",
+            "palaciometalfest@gmail.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Osteguna Rock",
+            "SI",
+            "ROCK",
+            1000.0,
+            "Vitoria-Gasteiz",
+            "Álava",
+            "País Vasco",
+            "ostegunarock@gmail.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "CastellHell",
+            "SI",
+            "ROCK",
+            1000.0,
+            "Castellvell del Camp",
+            "Tarragona",
+            "Cataluña",
+            "castellhell@gmail.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Karma Fest",
+            "SI",
+            "ROCK",
+            1000.0,
+            "Pola de Laviana",
+            "Asturias",
+            "Asturias",
+            "karmafest@hotmail.com",
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FFD9D9D9",
+          "FFFFE599",
+          "FFFFF2CC",
+          "FFFFFF00",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1134",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2114 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2114 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2114 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2114 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2114 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2114 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2114 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2114 E1:L2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "ROCK_L",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2178,
+        "usedCols": 12,
+        "usedRange": "A1:L2178",
+        "nonEmptyRows": 1138
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "GURREA ROCK",
+            "ROCK",
+            1200.0,
+            "Huesca",
+            "Huesca",
+            "Aragón",
+            "info@alternativamanagement.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Kristonfest",
+            "ROCK",
+            1500.0,
+            "Bilbao",
+            "Vizcaya",
+            "País Vasco",
+            "jorge@ruta66.es",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Galia Metal Fest",
+            "ROCK",
+            1500.0,
+            "Pozal de Gallinas",
+            "Valladolid",
+            "Castilla y León",
+            "galiametalfest@gmail.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Alcarria Rock",
+            "ROCK",
+            1500.0,
+            "Torija",
+            "Guadalajara",
+            "Castilla-La Mancha",
+            "alcarriarock@gmail.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Víncula Rock",
+            "ROCK",
+            1500.0,
+            "Escañuela",
+            "Jaén",
+            "Andalucía",
+            "vincularock@gmail.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FFD9D9D9",
+          "FFFFE599",
+          "FFFFF2CC",
+          "FFFFFF00",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1138",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2178 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2178 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2178 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2178 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2178 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2178 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2178 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2178 D1:L2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "ROCK_XL",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1104,
+        "usedCols": 10,
+        "usedRange": "A1:J1104",
+        "nonEmptyRows": 120
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Rebujas Rock",
+            "ROCK",
+            10000.0,
+            "San Mateo",
+            "Cantabria",
+            "Cantabria",
+            "pcdrebujas@hotmail.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "Granito Rock",
+            "ROCK",
+            10000.0,
+            "Collado Villalba",
+            "Madrid",
+            "Comunidad de Madrid",
+            "festivalgranitorock@gmail.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "Zurbarán Rock",
+            "ROCK",
+            10000.0,
+            "Burgos",
+            "Burgos",
+            "Castilla y León",
+            "info@zurbaranrockburgos.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "Zaidín Rock",
+            "ROCK",
+            10000.0,
+            "Granada",
+            "Granada",
+            "Andalucía",
+            "espaciojoven@granada.org",
+            null,
+            null,
+            null
+          ],
+          [
+            "Feslloc",
+            "ROCK",
+            10000.0,
+            "Benlloch",
+            "Castellón",
+            "Comunidad Valenciana",
+            "info@feslloc.com",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FFD9D9D9",
+          "FFFFE599",
+          "FFFFF2CC",
+          "FFFFFF00",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$J$104",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1104 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1104 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1104 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1104 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1104 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1104 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1104 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1104 D1:J2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "ELECTR_S",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2019,
+        "usedCols": 11,
+        "usedRange": "A1:K2019",
+        "nonEmptyRows": 1104
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Festival Música Visual Lanzarote",
+            "ELECTRONICA",
+            1000.0,
+            "Varios",
+            "Las Palmas",
+            "Canarias",
+            "cultura@cabildodelanzarote.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Chicharra Festival",
+            "ELECTRONICA",
+            1000.0,
+            "Motril",
+            "Granada",
+            "Andalucía",
+            "chicharrafestival@gmail.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Volumens",
+            "ELECTRONICA",
+            1000.0,
+            "Valencia",
+            "Valencia",
+            "C. Valenciana",
+            "info@volumens.es",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Input High Fidelity",
+            "ELECTRONICA",
+            1000.0,
+            "Barcelona",
+            "Barcelona",
+            "Cataluña",
+            "info@inputbcn.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Bataplán Disco",
+            "ELECTRONICA",
+            1000.0,
+            "San Sebastián",
+            "Guipúzcoa",
+            "País Vasco",
+            "bataplan@bataplandisco.com",
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FF00FF00",
+          "FFB6D7A8",
+          "FFD9EAD3",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$K$1104",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2019 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2019 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2019 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2019 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2019 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2019 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2019 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2019 D1:K2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "ELECTR_L",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2062,
+        "usedCols": 12,
+        "usedRange": "A1:L2062",
+        "nonEmptyRows": 1141
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Talarn Music Experience",
+            "ELECTRONICA",
+            1200.0,
+            "Talarn",
+            "Lleida",
+            "Cataluña",
+            "talarnmusicexperience@gmail.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Paral·lel Festival",
+            "ELECTRONICA",
+            1500.0,
+            "Port del Comte",
+            "Lleida",
+            "Cataluña",
+            "info@parallelfestival.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Barraca Music",
+            "ELECTRONICA",
+            2000.0,
+            "Sueca",
+            "Valencia",
+            "Comunidad Valenciana",
+            "hola@discoruta.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Eden Ibiza",
+            "ELECTRONICA",
+            2000.0,
+            "San Antonio",
+            "Ibiza",
+            "Islas Baleares",
+            "oficinaedenibiza@gmail.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "O Beach Ibiza",
+            "ELECTRONICA",
+            2000.0,
+            "San Antonio",
+            "Ibiza",
+            "Islas Baleares",
+            "reservations@obeachibiza.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FF00FF00",
+          "FFB6D7A8",
+          "FFD9EAD3",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1141",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2062 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2062 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2062 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2062 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2062 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2062 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2062 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2062 D1:L2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "ELECTR_XL",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1046,
+        "usedCols": 10,
+        "usedRange": "A1:J1046",
+        "nonEmptyRows": 52
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Ibiza Global Festival",
+            "ELECTRONICA",
+            10000.0,
+            "San Antonio",
+            "Ibiza (Baleares)",
+            "Islas Baleares",
+            "info@ibizaglobalradio.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "Aquasella Festival",
+            "ELECTRONICA",
+            10000.0,
+            "Aquasella",
+            "Huesca",
+            "Aragón",
+            "info.aquasella@gmail.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "GreenWorld Festival",
+            "ELECTRONICA",
+            10000.0,
+            "San Miguel de Abona",
+            "Santa Cruz de Tenerife",
+            "Canarias",
+            "info@greenworldfestival.eu",
+            null,
+            null,
+            null
+          ],
+          [
+            "Paraíso Festival",
+            "ELECTRONICA",
+            15000.0,
+            "Madrid",
+            "Madrid",
+            "Comunidad de Madrid",
+            "patrocinio@paraisofestival.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival Sónica",
+            "ELECTRONICA",
+            15000.0,
+            "Castro Urdiales",
+            "Cantabria",
+            "Cantabria",
+            "info@festivalsonica.com",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF00FF00",
+          "FFB6D7A8",
+          "FFD9EAD3",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$J$46",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 16,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting B47:B52>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B47:B52>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B47:B52>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B47:B52>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B47:B52>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B47:B52>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B47:B52>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B47:B52>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B46 B53:B1046 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B46 B53:B1046 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B46 B53:B1046 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B46 B53:B1046 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B46 B53:B1046 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B46 B53:B1046 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B46 B53:B1046 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B46 B53:B1046 D1:J2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "JAZZ_S",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2103,
+        "usedCols": 12,
+        "usedRange": "A1:L2103",
+        "nonEmptyRows": 1203
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          null,
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Festival Jazz San Martín",
+            "SI",
+            "JAZZ",
+            300.0,
+            "San Martín de la Vega",
+            "Madrid",
+            "Comunidad de Madrid",
+            "cultura@ayto-smv.es",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival Jazz Daganzo",
+            "SI",
+            "JAZZ",
+            300.0,
+            "Daganzo de Arriba",
+            "Madrid",
+            "Comunidad de Madrid",
+            "cultura@ayto-daganzo.org",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival de Jazz de San Blas",
+            "SI",
+            "JAZZ",
+            300.0,
+            "Madrid",
+            "Madrid",
+            "C. de Madrid",
+            "cultusanblas@madrid.es",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival de Jazz de Barajas",
+            "SI",
+            "JAZZ",
+            300.0,
+            "Madrid",
+            "Madrid",
+            "C. de Madrid",
+            "cultubarajas@madrid.es",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival de Jazz de Moratalaz",
+            "SI",
+            "JAZZ",
+            300.0,
+            "Madrid",
+            "Madrid",
+            "C. de Madrid",
+            "cultumoratalaz@madrid.es",
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 2,
+        "sample": [
+          {
+            "cell": "I493",
+            "formula": "=+33 5 62 92 38 30"
+          },
+          {
+            "cell": "A529",
+            "formula": "=+Que Jazz"
+          }
+        ],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FF00FFFF",
+          "FFA2C4C9",
+          "FFD0E0E3",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1203",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2103 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2103 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2103 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2103 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2103 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2103 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2103 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C2103 E1:L2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "JAZZ_L",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2052,
+        "usedCols": 12,
+        "usedRange": "A1:L2052",
+        "nonEmptyRows": 1332
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Universijazz",
+            "JAZZ",
+            1500.0,
+            "Valladolid",
+            "Valladolid",
+            "Castilla y León",
+            "extension.cultura@uva.es",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival de Blues de Santa Coloma",
+            "JAZZ",
+            1500.0,
+            "Santa Coloma de Gramenet",
+            "Barcelona",
+            "Cataluña",
+            "cultura@gramenet.cat",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "IMAGINA FUNK",
+            "JAZZ",
+            1500.0,
+            null,
+            null,
+            null,
+            "cesarmerinoa@gmail.com",
+            null,
+            "Cesar Merinoa",
+            null,
+            null,
+            null
+          ],
+          [
+            "MIRAMAR GAUAK",
+            "JAZZ",
+            1800.0,
+            "Donostia",
+            "Gipuzkoa",
+            "País Vasco",
+            "miramar@miramar.eus (RECINTO DEL FESTIVAL)",
+            "943 21 90 22 (RECINTO DEL FESTIVAL)",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Jazz Vejer",
+            "JAZZ",
+            2000.0,
+            "Vejer de la Frontera",
+            "Cádiz",
+            "Andalucía",
+            "entradas@jazzvejer.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FF00FFFF",
+          "FFA2C4C9",
+          "FFD0E0E3",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1332",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2052 D1:L2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "JAZZ_XL",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1034,
+        "usedCols": 10,
+        "usedRange": "A1:J1034",
+        "nonEmptyRows": 36
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Benicàssim Blues Festival",
+            "JAZZ",
+            10000.0,
+            "Benicàssim",
+            "Castellón",
+            "Comunidad Valenciana",
+            "info@benicassimblues.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "Bilbao Blues Festival",
+            "JAZZ",
+            10000.0,
+            "Bilbao",
+            "Vizcaya",
+            "País Vasco",
+            "info@bilbaobluesfestival.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival de Jazz de San Sebastián",
+            "JAZZ",
+            10000.0,
+            "San Sebastián",
+            "Guipúzcoa",
+            "País Vasco",
+            "info@jazzaldia.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival de Jazz de Valencia",
+            "JAZZ",
+            10000.0,
+            "Valencia",
+            "Valencia",
+            "Comunidad Valenciana",
+            "festivaljazz@palauvalencia.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "Hondarribia Blues Festival",
+            "JAZZ",
+            20000.0,
+            "Hondarribia",
+            "Guipúzcoa",
+            "País Vasco",
+            "udala@hondarribia.eus",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF00FFFF",
+          "FFA2C4C9",
+          "FFD0E0E3",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$J$34",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 16,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting B35:B36>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B35:B36>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B35:B36>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B35:B36>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B35:B36>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B35:B36>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B35:B36>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting B35:B36>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B34 B37:B1034 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B34 B37:B1034 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B34 B37:B1034 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B34 B37:B1034 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B34 B37:B1034 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B34 B37:B1034 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B34 B37:B1034 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B34 B37:B1034 D1:J2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "FLAM_S",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1015,
+        "usedCols": 12,
+        "usedRange": "A1:L1015",
+        "nonEmptyRows": 1015
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          null,
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Festival Flamenco de la Mistela",
+            "SI",
+            "FLAMENCO",
+            1000.0,
+            "Los Palacios y Villafranca",
+            "Sevilla",
+            "Andalucía",
+            "cultura@lospalacios.org",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Me Vuelves Lorca",
+            "NO",
+            "FLAMENCO",
+            300.0,
+            "Laroles",
+            "Granada",
+            "Andalucía",
+            "info@mevuelveslorca.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "La Caña Flamenca",
+            "SI",
+            "FLAMENCO",
+            1000.0,
+            "Almuñécar",
+            "Granada",
+            "Andalucía",
+            "info@lacanaflamenca.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Jerez Off-Festival de Flamenco",
+            "SI",
+            "FLAMENCO",
+            1000.0,
+            "Jerez de la Frontera",
+            "Cádiz",
+            "Andalucía",
+            "laguaridadelangel@gmail.com",
+            "682 70 49 69 / 616 601 223",
+            "Sin información",
+            null,
+            null
+          ],
+          [
+            "La Caña Flamenca",
+            "SI",
+            "FLAMENCO",
+            1000.0,
+            "Almuñécar",
+            "Granada",
+            "Andalucía",
+            "info@lacanaflamenca.com",
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FF4A86E8",
+          "FFA4C2F4",
+          "FFC9DAF8",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1015",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1015 D8:D27 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1015 D8:D27 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1015 D8:D27 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1015 D8:D27 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1015 D8:D27 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1015 D8:D27 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1015 D8:D27 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1015 D8:D27 E1:L2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "FLAM_L",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2011,
+        "usedCols": 12,
+        "usedRange": "A1:L2011",
+        "nonEmptyRows": 1111
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Caracolá Lebrijana",
+            "FLAMENCO",
+            1500.0,
+            "Lebrija",
+            "Sevilla",
+            "Andalucía",
+            "cultura@lebrija.es",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Potaje Gitano Utrera",
+            "FLAMENCO",
+            2000.0,
+            "Utrera",
+            "Sevilla",
+            "Andalucía",
+            "secretaria@hermandadgitanosdeutrera.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Gazpacho Andaluz",
+            "FLAMENCO",
+            2000.0,
+            "Morón de la Frontera",
+            "Sevilla",
+            "Andalucía",
+            "contacto@moroninformacion.es",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Salobreña Lucero del Alba",
+            "FLAMENCO",
+            2000.0,
+            "Salobreña",
+            "Granada",
+            "Andalucía",
+            "cultura@ayto-salobrena.org",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival de la Guitarra de Sevilla",
+            "FLAMENCO",
+            2000.0,
+            "Sevilla",
+            "Sevilla",
+            "Andalucía",
+            "info@guitartfestivalsevilla.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FF4A86E8",
+          "FFA4C2F4",
+          "FFC9DAF8",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1111",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2011 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2011 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2011 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2011 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2011 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2011 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2011 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2011 D1:L2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "FLAM_XL",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 5,
+        "usedCols": 10,
+        "usedRange": "A1:J5",
+        "nonEmptyRows": 5
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Flamenco On Fire",
+            "FLAMENCO",
+            10000.0,
+            "Pamplona",
+            "Navarra",
+            "Navarra",
+            "info@flamencoonfire.org",
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival de la Guitarra de Córdoba",
+            "FLAMENCO",
+            15000.0,
+            "Córdoba",
+            "Córdoba",
+            "Andalucía",
+            "comunicacion@guitarracordoba.es",
+            null,
+            null,
+            null
+          ],
+          [
+            "FESTIVAL DE LA GUITARRA DE CORDOBA",
+            "FLAMENCO",
+            15000.0,
+            "Córdoba",
+            "Córdoba",
+            "Andalucía",
+            "comunicacion@guitarracordoba.es",
+            null,
+            null,
+            null
+          ],
+          [
+            "Bienal de Flamenco",
+            "FLAMENCO",
+            20000.0,
+            "Sevilla",
+            "Sevilla",
+            "Andalucía",
+            "general.bienal@sevilla.org",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF4A86E8",
+          "FFA4C2F4",
+          "FFC9DAF8",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$J$5",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B5 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B5 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B5 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B5 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B5 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B5 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B5 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B5 D1:J2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "RUMBA_S",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1010,
+        "usedCols": 11,
+        "usedRange": "A1:K1010",
+        "nonEmptyRows": 1
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF0000FF",
+          "FF9FC5E8",
+          "FFC9DAF8",
+          "FFCFE2F3",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$K$10",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1010 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1010 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1010 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1010 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1010 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1010 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1010 D1:K2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1010 D1:K2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "RUMBA_L",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 10,
+        "usedCols": 10,
+        "usedRange": "A1:J10",
+        "nonEmptyRows": 1
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF0000FF",
+          "FF9FC5E8",
+          "FFC9DAF8",
+          "FFCFE2F3",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$J$10",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B10 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B10 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B10 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B10 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B10 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B10 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B10 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B10 D1:J2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "RUMBA_XL",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 3,
+        "usedCols": 10,
+        "usedRange": "A1:J3",
+        "nonEmptyRows": 3
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "AFORO",
+          "GENERO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Primavera Trompetera",
+            10000.0,
+            "RUMBA",
+            "Jerez de la Frontera",
+            "Cádiz",
+            "Andalucía",
+            "ester@sonde3.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "PRIMAVERANDO FESTIVAL",
+            15000.0,
+            "RUMBA",
+            "Sevilla",
+            "Sevilla",
+            "Andalucía",
+            "hey@primaverandofestival.es",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF0000FF",
+          "FF9FC5E8",
+          "FFC9DAF8",
+          "FFCFE2F3",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$J$3",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C3 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C3 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C3 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C3 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C3 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C3 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C3 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C3 D1:J2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "MR_S",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1017,
+        "usedCols": 12,
+        "usedRange": "A1:L1017",
+        "nonEmptyRows": 1017
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          null,
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Fiestas de Nava del Rey",
+            "NO",
+            "MUSIC REGIONAL",
+            1000.0,
+            "Nava del Rey",
+            "Valladolid",
+            "Castilla y León",
+            "cultura@ayto-navadelrey.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Sonna Huesca",
+            "SI",
+            "MUSIC REGIONAL",
+            750.0,
+            "Huesca (Provincia)",
+            "Huesca",
+            "Aragón",
+            "cultura@dphuesca.es",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Xornadas de Folclore",
+            "SI",
+            "MUSIC REGIONAL",
+            1000.0,
+            "Ourense",
+            "Ourense",
+            "Galicia",
+            "cultura@depourense.es",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Aitzina Folk",
+            "SI",
+            "MUSIC REGIONAL",
+            1000.0,
+            "Vitoria-Gasteiz",
+            "Álava",
+            "País Vasco",
+            "aitzinafolk@gmail.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "FESTIVAL CUCA",
+            "SI",
+            "MUSIC REGIONAL",
+            1000.0,
+            "Herguijuela de la Sierra",
+            "Salamanca",
+            "Castilla y León",
+            "festi.cuca@gmail.com",
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 2,
+        "sample": [
+          {
+            "cell": "I405",
+            "formula": "=+351 269 82 72"
+          },
+          {
+            "cell": "I528",
+            "formula": "=+33 621 15 28"
+          }
+        ],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FF9900FF",
+          "FFB4A7D6",
+          "FFD9D2E9",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C11 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C11 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C11 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C11 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C11 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C11 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C11 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C11 E1:L2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "MR_L",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2052,
+        "usedCols": 12,
+        "usedRange": "A1:L2052",
+        "nonEmptyRows": 1341
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "GULLIVER FEST",
+            "MUSICA REGIONAL",
+            1500.0,
+            "A Coruña",
+            "A Coruña",
+            "Galicia",
+            "info@gulliverfest.es",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "GULLIVER FEST",
+            "MUSICA REGIONAL",
+            1500.0,
+            "A Coruña",
+            "A Coruña",
+            "Galicia",
+            "Gulliverfest@gmail.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "CRANC ILLA FESTIVAL",
+            "MUSICA REGIONAL",
+            1500.0,
+            "Maó (Mahón), Menorca",
+            "Islas Baleares",
+            "Islas Baleares",
+            "crancfestival@gmail.com",
+            "696 167 717",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Poborina Folk",
+            "MUSICA REGIONAL",
+            2000.0,
+            "El Pobo",
+            "Teruel",
+            "Aragón",
+            "poborinafolk@gmail.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Fiesta del Castillo de Aínsa",
+            "MUSICA REGIONAL",
+            2000.0,
+            "Ainsa",
+            "Huesca",
+            "Aragón",
+            "secretaria@ainsa-sobrarbe.es",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FF9900FF",
+          "FFB4A7D6",
+          "FFD9D2E9",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C2052 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 C1:C2052 D1:L2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "MR_XL",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1214,
+        "usedCols": 10,
+        "usedRange": "A1:J1214",
+        "nonEmptyRows": 35
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Etnosur",
+            "MUSICA REGIONAL",
+            10000.0,
+            "Alcalá la Real",
+            "Jaén",
+            "Andalucía",
+            "info@etnosur.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "Fuerteventura en Música",
+            "MUSICA REGIONAL",
+            15000.0,
+            "El Cotillo",
+            "Las Palmas",
+            "Canarias",
+            "musica@cabildofuer.es",
+            null,
+            null,
+            null
+          ],
+          [
+            "Esperanzah! Festival",
+            "MUSICA REGIONAL",
+            15000.0,
+            "El Prat de Llobregat",
+            "Barcelona",
+            "Cataluña",
+            "info@esperanzah.cat",
+            null,
+            null,
+            null
+          ],
+          [
+            "Fira Mediterrània de Manresa",
+            "MUSICA REGIONAL",
+            20000.0,
+            "Manresa",
+            "Barcelona",
+            "Cataluña",
+            "info@firamediterrania.cat",
+            null,
+            null,
+            null
+          ],
+          [
+            "Binaural",
+            "MUSICA REGIONAL",
+            20000.0,
+            "Burgos",
+            "Burgos",
+            "Castilla y León",
+            "hola@binauralaudicion.com",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF9900FF",
+          "FFB4A7D6",
+          "FFD9D2E9",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$J$652",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 16,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting C32:C35>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting C32:C35>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting C32:C35>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting C32:C35>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting C32:C35>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting C32:C35>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting C32:C35>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting C32:C35>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B31 B36:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B31 B36:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B31 B36:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B31 B36:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B31 B36:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B31 B36:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B31 B36:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B31 B36:B1214 D1:J2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "MC_S",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1078,
+        "usedCols": 12,
+        "usedRange": "A1:L1078",
+        "nonEmptyRows": 878
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          null,
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Clásicos en el Parque",
+            "SI",
+            "MUSICA CLASICA",
+            1000.0,
+            "Rodalquilar",
+            "Almería",
+            "Andalucía",
+            "info@clasicosenelparque.com",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival Música Antigua y Barroca de Peñíscola",
+            "SI",
+            "MUSICA CLASICA",
+            1000.0,
+            "Peñíscola",
+            "Castellón",
+            "C. Valenciana",
+            "cultura@peniscola.org",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival de Torroella de Montgrí",
+            "SI",
+            "MUSICA CLASICA",
+            1000.0,
+            "Torroella de Montgrí",
+            "Girona",
+            "Cataluña",
+            "info@festivaldetorroella.cat",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Música al Castell",
+            "SI",
+            "MUSICA CLASICA",
+            1000.0,
+            "Dénia",
+            "Alicante",
+            "Comunidad Valenciana",
+            "cultura@ayto-denia.es",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Serenates (La Nau)",
+            "SI",
+            "MUSICA CLASICA",
+            500.0,
+            "Valencia",
+            "Valencia",
+            "C. Valenciana",
+            "cultura@uv.es",
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FFD5A6BD",
+          "FFEAD1DC",
+          "FFFF00FF",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$878",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1078 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1078 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1078 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1078 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1078 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1078 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1078 E1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:B2 C1:C1078 E1:L2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "MC_L",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 2021,
+        "usedCols": 12,
+        "usedRange": "A1:L2021",
+        "nonEmptyRows": 1221
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          null,
+          null,
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Festival de los Castillos",
+            "MUSICA CLASICA",
+            1500.0,
+            "Alcaudete",
+            "Jaén",
+            "Andalucía",
+            "cultura@alcaudete.es",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival Internacional de Música y Danza de Úbeda",
+            "MUSICA CLASICA",
+            1500.0,
+            "Úbeda",
+            "Jaén",
+            "Andalucía",
+            "festivaldeubeda@gmail.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival Internacional de Santander",
+            "MUSICA CLASICA",
+            1600.0,
+            "Santander",
+            "Cantabria",
+            "Cantabria",
+            "info@festivalsantander.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival Música y Danza Granada",
+            "MUSICA CLASICA",
+            2000.0,
+            "Granada",
+            "Granada",
+            "Andalucía",
+            "ofi@granadafestival.org",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Castillo de Peralada",
+            "MUSICA CLASICA",
+            2000.0,
+            "Peralada",
+            "Gerona",
+            "Cataluña",
+            "taquilla@festivalperalada.com",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "00000000",
+          "FFD5A6BD",
+          "FFEAD1DC",
+          "FFFF00FF",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "\"Google Sans Text\"",
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$L$1221",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2021 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2021 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2021 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2021 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2021 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2021 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2021 D1:L2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B2021 D1:L2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "MC_XL",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 3,
+        "usedCols": 10,
+        "usedRange": "A1:J3",
+        "nonEmptyRows": 3
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            "Festival de Música de Tenerife",
+            "MUSICA CLASICA",
+            20000.0,
+            "Santa Cruz de Tenerife",
+            "Santa Cruz de Tenerife",
+            "Canarias",
+            "tenerifemusicfestival@gmail.com",
+            null,
+            null,
+            null
+          ],
+          [
+            "Festival del Circ de Girona (Elefant)",
+            "MUSICA CLASICA",
+            30000.0,
+            "Girona",
+            "Girona",
+            "Cataluña",
+            "info@festivaldelcirc.com",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FFD5A6BD",
+          "FFEAD1DC",
+          "FFFF00FF",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$J$1",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1 B1:B3 D1:J1>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1 B1:B3 D1:J1>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1 B1:B3 D1:J1>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1 B1:B3 D1:J1>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1 B1:B3 D1:J1>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1 B1:B3 D1:J1>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1 B1:B3 D1:J1>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1 B1:B3 D1:J1>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    },
+    {
+      "name": "PTE_S-L-XL",
+      "hidden": false,
+      "dimensions": {
+        "usedRows": 1214,
+        "usedCols": 10,
+        "usedRange": "A1:J1214",
+        "nonEmptyRows": 1
+      },
+      "visibleData": {
+        "header": [
+          "NOMBRE FESTIVAL",
+          "GENERO",
+          "AFORO",
+          "UBICACION",
+          "PROVINCIA",
+          "CCAA",
+          "EMAIL",
+          "TELEFONO",
+          "NOMBRE CONTACTO",
+          "Merge status"
+        ],
+        "sampleRows": [
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "formulas": {
+        "total": 0,
+        "sample": [],
+        "errorsInCells": 0
+      },
+      "formatting": {
+        "fills": [
+          "FF980000",
+          "FFDD7E6B",
+          "FFE6B8AF",
+          "FFFFFFFF"
+        ],
+        "fonts": [
+          "Arial"
+        ],
+        "sizes": [
+          "None"
+        ],
+        "bold": [
+          "False"
+        ],
+        "italic": [
+          "False"
+        ],
+        "align_h": [],
+        "align_v": [],
+        "numfmt": [
+          "#,##0",
+          "General"
+        ],
+        "borders": [
+          "|||"
+        ]
+      },
+      "merges": [],
+      "validations": {
+        "total": 0,
+        "byColumn": {},
+        "sample": []
+      },
+      "filters": {
+        "basicFilterRange": "$A$1:$J$652",
+        "filterViews": []
+      },
+      "conditionalFormatting": {
+        "total": 8,
+        "rules": [
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1214 D1:J2>",
+            "type": "cellIs"
+          },
+          {
+            "range": "<ConditionalFormatting A1:A2 B1:B1214 D1:J2>",
+            "type": "cellIs"
+          }
+        ]
+      },
+      "protections": {
+        "sheetProtected": false,
+        "rangeProtected": "No disponible por exportacion XLSX"
+      }
+    }
+  ]
+}

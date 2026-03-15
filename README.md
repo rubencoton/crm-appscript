@@ -25,7 +25,8 @@ Este README sirve como guia rapida para cualquier persona o IA.
 - Seguridad extra:
   - prioriza la pestana activa para que el cambio se vea al instante,
   - si detecta cabecera incompleta, repara minimo (`REVISION EMAIL` + `Merge status`) sin romper datos,
-  - usa cursor rotativo para no quedarse siempre en las mismas pestanas cuando hay limite de tiempo.
+  - usa cursor rotativo para no quedarse siempre en las mismas pestanas cuando hay limite de tiempo,
+  - en pestanas no activas aplica modo ligero (solo cabecera) para recorrer muchas hojas en pocos segundos.
 
 ## 4) Menu operativo en Google Sheets
 Menu: `CRM FESTIVALES | RUBEN COTON`
